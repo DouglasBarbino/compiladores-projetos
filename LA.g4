@@ -54,7 +54,7 @@ cmd : 'leia' '(' identificador mais_ident ')' |
 	IDENT chamada_atribuicao |
 	'retorne' expressao;
 
-
+//D
 mais_expressao : (',' expressao)*;
 senao_opcional : ('senao' comandos)?;
 chamada_atribuicao : '(' argumentos_opcional ')' | 
