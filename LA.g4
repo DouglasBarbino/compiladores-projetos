@@ -37,7 +37,7 @@ parametros_opcional : (parametro)*;
 parametro : var_opcional identificador mais_ident ':' tipo_estendido mais_parametros;
 var_opcional : (var)*;
 
-//D
+
 mais_parametros : (',' parametro)?;
 declaracoes_locais : (declaracao_local)*;
 corpo : declaracoes_locais comandos;
