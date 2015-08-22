@@ -80,9 +80,8 @@ parcela_unario : '^' IDENT outros_ident dimensao | IDENT chamada_partes | NUM_IN
 parcela_nao_unario : '&' IDENT outros_ident dimensao | CADEIA;
 //D
 outras_parcelas : ('%' parcela)*;
-chamada_partes : '(' expressao mais_expressao ')' |
-		  outros_ident dimensao | 
-		  /* vazio */ ;
+chamada_partes :  ( '(' expressao mais_expressao ')' |
+		  outros_ident dimensao)? ;
 exp_relacional : exp_aritmetica op_opcional;
 //D
 op_opcional : (op_relacional exp_aritmetica)?;
