@@ -7,7 +7,7 @@ NUM_INT : ('0'..'9')+;
 NUM_REAL: ('0'..'9')+ '.' ('0'..'9')+;
 CADEIA : '"' ( ~('"') )* '"';
 COMENTARIO : '{' ~('{' | '}')* '}' {skip();};
-
+ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
 
 programa : declaracoes 'algoritmo' corpo 'fim_algoritmo';
 declaracoes : (decl_local_global)*; //corrigido
