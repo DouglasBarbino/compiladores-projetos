@@ -6,6 +6,7 @@ IDENT :  ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
 NUM_INT : ('0'..'9')+;
 NUM_REAL: ('0'..'9')+ '.' ('0'..'9')+;
 CADEIA : '"' ( ~('"') )* '"';
+COMENTARIO : '{' ~('{' | '}')* '}' {skip();};
 
 
 programa : declaracoes 'algoritmo' corpo 'fim_algoritmo';
