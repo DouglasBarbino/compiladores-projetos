@@ -7,7 +7,8 @@ package trabalho1;
 
 /**
  *
- * @author Usuário
+ * @author (versao original): Daniel
+ * @author (modificacoes): Grupo 3
  */
 public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
