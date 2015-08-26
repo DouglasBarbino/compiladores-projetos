@@ -10,7 +10,8 @@ import java.util.List;
 
 /**
  *
- * @author Usuário
+ * @author (versao original): Daniel
+ * @author (modificacoes): Grupo 3
  */
 public class TabelaDeSimbolos {
     private String escopo;
