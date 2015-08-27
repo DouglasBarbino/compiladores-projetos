@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package trabalho1;
+package trabalho1comp2;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,6 +12,13 @@ import java.util.List;
  *
  * @author (versao original): Daniel
  * @author (modificacoes): Grupo 3
+ */
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ *
+ * @author daniel
  */
 public class TabelaDeSimbolos {
     private String escopo;
