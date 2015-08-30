@@ -24,7 +24,7 @@ ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
 
 /*****************************SINTÁTICO*****************************************/
 
-programa 	: 
+programa : 
             {
                 TabelaDeSimbolos tabelaDeSimbolosGlobal = new TabelaDeSimbolos("global");
                 pilhaDeTabelas.empilhar(tabelaDeSimbolosGlobal);
@@ -81,7 +81,7 @@ A lista que a variavel retorna inclui o primeiro identificado mais a lista retor
 */
 variavel 	returns [ List<String> variaveis, String tipo_var]
 @init {$variaveis = new ArrayList<String, String>();}
-            : var = IDENT {$variaveis.add($var.getText());} dimensao  mais_var {$variaveis.addAll($mais_var.variaveis);} ':' t = tipo {$tipo_var = $t.tipo_var;}
+            		: var = IDENT {$variaveis.add($var.getText());} dimensao  mais_var {$variaveis.addAll($mais_var.variaveis);} ':' t = tipo {$tipo_var = $t.tipo_var;}
 			;
 			
 /*
@@ -89,7 +89,7 @@ O mais_var retorna uma lista com os nomes das variaveis que etão separadas por 
 */
 mais_var    returns [ List<String> variaveis]
 @init {$variaveis = new ArrayList<String>();}
-            : (',' var = IDENT {$variaveis.add($var.getText());} dimensao mais_var)*
+            		: (',' var = IDENT {$variaveis.add($var.getText());} dimensao mais_var)*
 			;
 			
 identificador 		: ponteiros_opcionais IDENT dimensao outros_ident
@@ -115,7 +115,7 @@ tipo_basico returns [String tipo_var]
 			| 'logico' {$tipo_var = 'logico';}
 			;
 tipo_basico_ident returns [String tipo_var] 	
-            : t = tipo_basico {$tipo_var = $t.tipo_var;}
+            		: t = tipo_basico {$tipo_var = $t.tipo_var;}
 			| id = IDENT {$tipo_var = id.tipo_var;}
 			;
 tipo_estendido 	returns [String tipo_var]
@@ -133,22 +133,47 @@ registro 	: 'registro' variavel mais_variaveis 'fim_registro'
 			;
 			
 declaracao_global 	
-            : 'procedimento' nome = IDENT 
-            {
-                TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+            		: 'procedimento' nome = IDENT 
+            		{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
                 
-                if(!tabelaDeSimbolosAtual.existeSimbolo($nome))
-                {
-                    tabelaDeSimbolosAtual.adicionarSimbolo($nome, "procedimento");
+        			if(!tabelaDeSimbolosAtual.existeSimbolo($nome))
+                		{
+                			tabelaDeSimbolosAtual.adicionarSimbolo($nome, "procedimento");
                     
-                    TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+$nome);
-                    pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
-                }
-            }
+                    			TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+$nome);
+                    			pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
+                		}
+            		}
             
-            
-            '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
-			| 'funcao' IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+            		/*VER PARTE DOS PARAMETROS PARA ADICIONARMOS NA TABELA DO PROCEDIMENTO, APARENTEMENTE O NOME VEM DO IDENTIFICADOR (REGRA 7)*/
+            		'(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
+            		
+            		// Apos o fim_procedimento, o escopo empilhado para ele eh desempilhado (fonte: pag 69 (no .pdf 75))
+            		{
+            			pilhaDeTabelas.desempilhar();
+            		}
+            		
+            		// As mesmas regras de escopo validas para os procedimentos se aplicam para as funcoes (fonte: pag 71 (no .pdf 77))
+            		
+			| 'funcao' nomeFuncao = IDENT 
+			{
+        			TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                		if(!tabelaDeSimbolosAtual.existeSimbolo($nomeFuncao))
+                		{
+                    			tabelaDeSimbolosAtual.adicionarSimbolo($nomeFuncao, "funcao");
+                    
+                    			TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+$nomeFuncao);
+                			pilhasDeTabelas.empilhar(tabelaDeSimbolosFuncao);
+                		}
+        		}
+			
+			/*MESMA COISA QUE O PROCEDIMENTO*/
+			'(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+			{
+            			pilhaDeTabelas.desempilhar();
+            		}
 			;
 parametros_opcional 	: (parametro)?
 			;
