@@ -38,7 +38,7 @@ programa :
 declaracoes : (decl_local_global)*
 			; 
 decl_local_global 	
-            : declaracao_local 
+            		: declaracao_local 
 			| declaracao_global
 			;
 			
@@ -91,9 +91,13 @@ mais_var    returns [ List<String> variaveis]
 @init {$variaveis = new ArrayList<String>();}
             		: (',' var = IDENT {$variaveis.add($var.getText());} dimensao mais_var)*
 			;
-			
-identificador 		: ponteiros_opcionais IDENT dimensao outros_ident
+
+/* Daqui eh enviado vai para parametro (21), que vai para parametros_opcional (20), que vai para declaracao_global (19),	
+   onde eh utilizado pelo procedimento e funcao*/
+identificador returns [String variavel] 		
+			: ponteiros_opcionais IDENT {$variavel = $IDENT.getText();} dimensao outros_ident
 			;
+			
 ponteiros_opcionais	:  ('^' ponteiros_opcionais)*
 			;
 outros_ident 		: ('.' identificador)*
