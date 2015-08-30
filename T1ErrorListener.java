@@ -2,6 +2,7 @@ package trabalho1comp2;
 
 import java.util.BitSet;
 import org.antlr.v4.runtime.ANTLRErrorListener;
+import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
@@ -18,7 +19,7 @@ public class T1ErrorListener implements ANTLRErrorListener {
     @Override
     public void syntaxError(Recognizer<?, ?> rcgnzr, Object o, int i, int i1, String string, RecognitionException re) {
         System.out.println("Aqui!");
-        sp.println("Erro: linha " + i + ":" + i1 + " " + string);
+        sp.println("Linha " + i + ": erro sintatico proximo a " + ((CommonToken)o).getText());
     }
 
     @Override
