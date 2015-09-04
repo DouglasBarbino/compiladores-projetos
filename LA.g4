@@ -24,7 +24,7 @@ ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
 
 /*****************************SINTÁTICO*****************************************/
 
-programa 	: 
+programa : 
             {
                 TabelaDeSimbolos tabelaDeSimbolosGlobal = new TabelaDeSimbolos("global");
                 pilhaDeTabelas.empilhar(tabelaDeSimbolosGlobal);
@@ -38,7 +38,7 @@ programa 	:
 declaracoes : (decl_local_global)*
 			; 
 decl_local_global 	
-            : declaracao_local 
+            		: declaracao_local 
 			| declaracao_global
 			;
 			
@@ -48,14 +48,14 @@ Já implementado:
 * verificação e adição das constantes e tipo
 */
 declaracao_local 	
-            :'declare' variavel 
-            {
-                TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+            		:'declare' variavel 
+            		{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
                 
-                for (String nome : $variavel.variaveis)
-                    if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
-                        tabelaDeSimbolosAtual.adicionarSimbolo(nome,$variavel.tipo_var);
-            }
+                		for (String nome : $variavel.variaveis)
+                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,$variavel.tipo_var);
+            		}
 			| 'constante' nome = IDENT ':'  tipo_basico '=' valor_constante 
 			{
 			    TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
@@ -91,9 +91,13 @@ mais_var    returns [ List<String> variaveis]
 @init {$variaveis = new ArrayList<String>();}
             		: (',' var = IDENT {$variaveis.add($var.getText());} dimensao mais_var)*
 			;
-			
-identificador 		: ponteiros_opcionais IDENT dimensao outros_ident
+
+/* Daqui eh enviado vai para parametro (21), que vai para parametros_opcional (20), que vai para declaracao_global (19),	
+   onde eh utilizado pelo procedimento e funcao*/
+identificador returns [String primParametro] 		
+			: ponteiros_opcionais IDENT {$primParametro = $IDENT.getText();} dimensao outros_ident
 			;
+			
 ponteiros_opcionais	:  ('^' ponteiros_opcionais)*
 			;
 outros_ident 		: ('.' identificador)*
@@ -134,20 +138,29 @@ registro 	: 'registro' variavel mais_variaveis 'fim_registro'
 			
 declaracao_global 	
             		: 'procedimento' nome = IDENT 
-        		{
-        			TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+            		{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
                 
-                		if(!tabelaDeSimbolosAtual.existeSimbolo($nome))
+        			if(!tabelaDeSimbolosAtual.existeSimbolo($nome))
                 		{
-                    			tabelaDeSimbolosAtual.adicionarSimbolo($nome, "procedimento");
+                			tabelaDeSimbolosAtual.adicionarSimbolo($nome, "procedimento");
                     
                     			TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+$nome);
-                			pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
+                    			pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
                 		}
-        		 }
+            		}
             
-            		/*VER PARTE DOS PARAMETROS PARA ADICIONARMOS NA TABELA DO PROCEDIMENTO, APARENTEMENTE O NOME VEM DO IDENTIFICADOR (REGRA 7)*/
-            		'(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
+            		//A adicao dos parametros no procedimento se dah da mesma maneira que eh feito na regra de declaracao_local (regra 4)
+            		//EH NECESSARIO PEGAR O TIPO DOS PARAMETROS AINDA
+            		'(' parametros_opcional 
+            		{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                		for (String nome : $parametros_opcional.parametros)
+                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,$TABELADEONDEVEMOTIPO.TIPO);
+            		}
+            		')' declaracoes_locais comandos 'fim_procedimento'
             		
             		// Apos o fim_procedimento, o escopo empilhado para ele eh desempilhado (fonte: pag 69 (no .pdf 75))
             		{
@@ -167,22 +180,46 @@ declaracao_global
                     			TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+$nomeFuncao);
                 			pilhasDeTabelas.empilhar(tabelaDeSimbolosFuncao);
                 		}
-        		 }
+        		}
 			
 			/*MESMA COISA QUE O PROCEDIMENTO*/
-			'(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+			'(' parametros_opcional 
+			{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                		for (String nome : $parametros_opcional.parametros)
+                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,$TABELADEONDEVEMOTIPO.TIPO);
+            		}
+            		
+            		')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+            		
 			{
             			pilhaDeTabelas.desempilhar();
             		}
-            		
 			;
-parametros_opcional 	: (parametro)?
+
+// O retorno da lista de parametros. TERMINAR
+parametros_opcional returns [ List<String> parametros ]	
+@init { $parametros = new ArrayList<String>(); }
+			: (parametro {$parametros.addAll($parametro.parametros);})?
 			;
-parametro 		: var_opcional identificador mais_ident ':' tipo_estendido mais_parametros
+
+/* Aqui ele recebe o nome de um parametro vindo do identificador e tambem outros vindo do mais_parametros.
+   A ideia utilizada aqui eh a mesma que foi utilizada na regra da vairavel, ou seja, a lista que o parametro
+   retorna inclui o primeiro identificador mais a lista retornada pelo mais_var (uso da função addAll para isso).*/
+parametro returns [ List<String> parametros ]	
+@init { $parametros = new ArrayList<String>(); }
+			: var_opcional par=identificador {$parametros.add($par.primParametro)}
+			  mais_ident ':' tipo_estendido mais_parametros {$parametros.addAll($mais_parametros.parametros);}
 			;
 var_opcional 		: 'var'?
 			;
-mais_parametros 	: (',' parametro)?
+
+// O retorno de varios outros parametros acumulado de algumas recursoes.
+mais_parametros returns [ List<String> parametros ]
+@init { $parametros = new ArrayList<String>(); }
+			: (',' parametro {$parametros.addAll($parametro.parametros);})?
 			;
 declaracoes_locais 	: (declaracao_local)*
 			;
