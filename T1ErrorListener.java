@@ -1,13 +1,14 @@
-package trabalho1comp2;
+package trabalho1;
 
 import java.util.BitSet;
 import org.antlr.v4.runtime.ANTLRErrorListener;
-import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.Parser;
 import org.antlr.v4.runtime.RecognitionException;
 import org.antlr.v4.runtime.Recognizer;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.atn.ATNConfigSet;
 import org.antlr.v4.runtime.dfa.DFA;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class T1ErrorListener implements ANTLRErrorListener {
     Saida sp;
@@ -18,13 +19,16 @@ public class T1ErrorListener implements ANTLRErrorListener {
 
     @Override
     public void syntaxError(Recognizer<?, ?> rcgnzr, Object o, int i, int i1, String string, RecognitionException re) {
-        System.out.println("Aqui!");
-        sp.println("Linha " + i + ": erro sintatico proximo a " + ((CommonToken)o).getText());
+        Token t = (Token)o;
+        String tkName = t.getText();
+        if(tkName.equals("<EOF>")) tkName = "EOF";
+        sp.println("Linha " + i + ": erro sintatico proximo a " + tkName);
+        throw new ParseCancellationException();
     }
 
     @Override
     public void reportAmbiguity(Parser parser, DFA dfa, int i, int i1, boolean bln, BitSet bitset, ATNConfigSet atncs) {
-        sp.println("Ambiguidade: linha " + i + ":" + i1 + " " + dfa.toString());
+        //sp.println("Ambiguidade: linha " + i + ":" + i1 + " " + dfa.toString());
     }
 
     @Override

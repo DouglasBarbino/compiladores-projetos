@@ -6,7 +6,7 @@
  * Versão 2: Adaptação para uso em CC2 [Grupo 3]
  */
 
-package trabalho1comp2;
+package trabalho1;
 
 import java.io.InputStream;
 import java.io.InputStreamReader;

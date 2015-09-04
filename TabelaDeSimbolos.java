@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package trabalho1comp2;
+package trabalho1;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package trabalho1comp2;
+package trabalho1;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 import org.antlr.v4.runtime.ANTLRInputStream;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.RecognitionException;
+import org.antlr.v4.runtime.misc.ParseCancellationException;
 
 public class TestaAnalisadorSintatico {
 
@@ -21,7 +22,13 @@ public class TestaAnalisadorSintatico {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         LAParser parser = new LAParser(tokens);
         parser.addErrorListener(new T1ErrorListener(out));
+        // artificio utilizado para que o parser só execute o primeiro erro e pare a execução
+        try {
         parser.programa();
+        } catch(ParseCancellationException pce) {
+            if(pce.getMessage() != null)
+                out.println(pce.getMessage());
+        }
 //        if (!out.isModificado()) {
 //            out.println("Fim da analise. Sem erros sintaticos.");
 //            out.println("Tabela de simbolos:");
