@@ -22,6 +22,8 @@ public class T1ErrorListener implements ANTLRErrorListener {
         Token t = (Token)o;
         String tkName = t.getText();
         if(tkName.equals("<EOF>")) tkName = "EOF";
+        System.out.println("Linha " + i + ": erro sintatico proximo a " + tkName);
+    
         sp.println("Linha " + i + ": erro sintatico proximo a " + tkName);
         throw new ParseCancellationException();
     }
