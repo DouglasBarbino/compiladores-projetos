@@ -12,7 +12,7 @@ grammar LA;
 		throw new ParseCancellationException(msg);
 	}
    
-    PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
+        PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
 	
 	Saida outSemantico = new Saida();
 
@@ -21,7 +21,7 @@ grammar LA;
 	}
 }
 
-/******************************LÃ‰XICO*******************************************/
+/******************************LÃXICO*******************************************/
 
 // Definindo o identificador:
 IDENT	: ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
@@ -120,7 +120,8 @@ mais_var returns [ List<String> variaveis]
             		: (',' var = IDENT {$variaveis.add($var.getText());} dimensao mais_var)*
 			;
 
-identificador : 	ponteiros_opcionais IDENT dimensao outros_ident
+identificador returns [String primParametro] 
+                        : ponteiros_opcionais IDENT {$primParametro = $IDENT.getText();} dimensao outros_ident
 			;
 			
 ponteiros_opcionais :   ('^')* 
@@ -168,27 +169,98 @@ valor_constante : 	CADEIA
 registro : 		'registro' variavel mais_variaveis 'fim_registro'
 			;
 			
-declaracao_global : 	'procedimento' IDENT 
+declaracao_global 
+                	: 'procedimento' nome = IDENT 
+            		{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+        			if(!tabelaDeSimbolosAtual.existeSimbolo($nome))
+                		{
+                			tabelaDeSimbolosAtual.adicionarSimbolo($nome, "procedimento");
+                    
+                    			TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+$nome);
+                    			pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
+                		}
+            		}
+            
+            		//A adicao dos parametros no procedimento se dah da mesma maneira que eh feito na regra de declaracao_local (regra 4)
             		'(' parametros_opcional 
+            		{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                		for ((String nome : $parametros_opcional.parametros) && (String tipo : $parametros_opcional.tipo_parametros))
+                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo);
+            		}
             		')' declaracoes_locais comandos 'fim_procedimento'
-			| 'funcao' IDENT 
+            		
+            		// Apos o fim_procedimento, o escopo empilhado para ele eh desempilhado (fonte: pag 69 (no .pdf 75))
+            		{
+            			pilhaDeTabelas.desempilhar();
+            		}
+            		
+            		// As mesmas regras de escopo validas para os procedimentos se aplicam para as funcoes (fonte: pag 71 (no .pdf 77))
+            		
+			| 'funcao' nomeFuncao = IDENT 
+			{
+        			TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                		if(!tabelaDeSimbolosAtual.existeSimbolo($nomeFuncao))
+                		{
+                    			tabelaDeSimbolosAtual.adicionarSimbolo($nomeFuncao, "funcao");
+                    
+                    			TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+$nomeFuncao);
+                			pilhasDeTabelas.empilhar(tabelaDeSimbolosFuncao);
+                		}
+        		}
+			
+			/*MESMA COISA QUE O PROCEDIMENTO*/
 			'(' parametros_opcional 
+			{
+                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                		for ((String nome : $parametros_opcional.parametros) && (String tipo : $parametros_opcional.tipo_parametros))
+                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo);
+            		}
+            		
             		')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+            		
+			{
+            			pilhaDeTabelas.desempilhar();
+            		}
+                        ;
+
+// O retorno da lista de parametros e seus tipos.
+parametros_opcional returns [ List<String> parametros, List<String> tipo_parametros ]	
+@init { $parametros = new ArrayList<String>(); }
+@init { $tipo_parametros = new ArrayList<String>(); }
+			: (parametro {$parametros.addAll($parametro.parametros);
+				      $tipo_parametros.addAll($parametro.tipo_parametros);})?
 			;
 
-parametros_opcional : 	(parametro)?
-			;
-
-parametro : 		var_opcional identificador 
-			mais_ident ':' tipo_estendido 
-			mais_parametros 
+/* Aqui ele recebe o nome de um parametro vindo do identificador e tambem outros vindo do mais_parametros.
+   A ideia utilizada aqui eh a mesma que foi utilizada na regra da variavel, ou seja, a lista que o parametro e o tipo
+   retorna inclui o primeiro identificador mais a lista retornada pelo mais_var (uso da funcao addAll para isso).*/
+parametro returns [ List<String> parametros, List<String> tipo_parametros ]	
+@init { $parametros = new ArrayList<String>(); }
+@init { $tipo_parametros = new ArrayList<String>(); }
+			: var_opcional par=identificador {$parametros.add($par.primParametro);}
+			  mais_ident ':' tipo_param=tipo_estendido {$tipo_parametros.add($tipo_param.tipo_var);}
+			  mais_parametros {$parametros.addAll($mais_parametros.parametros);
+			  		   $tipo_parametros.addAll($mais_parametros.tipo_parametros);}
 			;
 			
 var_opcional : 		'var'?
 			;
 
-mais_parametros : 	(',' parametro )?
-			;
+// O retorno de varios outros parametros e seus tipos acumulados de algumas recursoes.
+mais_parametros returns [ List<String> parametros, List<String> tipo_parametros ]
+@init { $parametros = new ArrayList<String>(); }
+@init { $tipo_parametros = new ArrayList<String>(); }
+			: (',' parametro {$parametros.addAll($parametro.parametros);
+					  $tipo_parametros.addAll($parametro.tipo_parametros);})?
+                        ;
 			
 declaracoes_locais : 	(declaracao_local)*
 			;
