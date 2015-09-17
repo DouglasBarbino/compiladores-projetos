@@ -43,16 +43,10 @@ ERROR
     : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
     ;
 
-/*****************************SINTÃ�TICO*****************************************/
+/*****************************SINTÃ?TICO*****************************************/
 
-programa :              {
-                            TabelaDeSimbolos tabelaDeSimbolosGlobal = new TabelaDeSimbolos("global");
-                            pilhaDeTabelas.empilhar(tabelaDeSimbolosGlobal);
-                        }
+programa :              
                         declaracoes 'algoritmo' corpo 'fim_algoritmo'
-                        {
-                            pilhaDeTabelas.desempilhar();
-                        }
 			;
 			
 declaracoes :           (decl_local_global)*
@@ -63,59 +57,8 @@ decl_local_global :     declaracao_local
 			;
 			
 declaracao_local :      'declare' v = variavel 
-            		{
-                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-				if($v.tipo_var == "literal" || $v.tipo_var == "inteiro" || $v.tipo_var == "real" || $v.tipo_var == "logico")
-				{
-
-
-					for (String nome : $variavel.variaveis)
-                                       		 if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
-                        				tabelaDeSimbolosAtual.adicionarSimbolo(nome,$variavel.tipo_var);
-                                                 else //ERRO 1
-                                                        erroSemantico ("identificador +nome+ ja declarado anteriormente")
-				}
-				else
-				{
-
-					if(!tabelaDeSimbolosAtual.existeSimbolo($v.tipo_var))
-		                        {
-
-						erroSemantico("Linha : +v.getLine() +  tipo +v.tipo_var+  nao declarado");
-
-					}
-					else
-					{
-						for (String nome : $variavel.variaveis)
-                                       		 	if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
-                        					tabelaDeSimbolosAtual.adicionarSimbolo(nome,$variavel.tipo_var);	
-                                                        else //ERRO 1
-                                                                erroSemantico ("identificador +nome+ ja declarado anteriormente")
-					}
-						
-				}		  
-            		}
 			| 'constante' nome = IDENT  ':'  tipo_basico '=' valor_constante 
-			{
-			    TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-			
-                            if(!tabelaDeSimbolosAtual.existeSimbolo($nome.getText()))
-                                tabelaDeSimbolosAtual.adicionarSimbolo($nome.getText(), $tipo_basico.tipo_var);
-                            else //ERRO 1
-                                erroSemantico ("identificador +nome+ ja declarado anteriormente")
-			} 
-			
 			| 'tipo' nome = IDENT ':' tipo
-			{
-			    TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-                            if(!tabelaDeSimbolosAtual.existeSimbolo($nome.getText()))
-                                tabelaDeSimbolosAtual.adicionarSimbolo($nome.getText(), "registro"); /* "registro"  */
-                            else //ERRO 1
-                                erroSemantico ("identificador +nome+ ja declarado anteriormente")
-			} 
 			;
 			
 variavel returns [ List<String> variaveis, String tipo_var]
@@ -179,68 +122,18 @@ registro : 		'registro' variavel mais_variaveis 'fim_registro'
 			
 declaracao_global 
                 	: 'procedimento' nome = IDENT 
-            		{
-                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-        			if(!tabelaDeSimbolosAtual.existeSimbolo($nome))
-                		{
-                			tabelaDeSimbolosAtual.adicionarSimbolo($nome, "procedimento");
-                    
-                    			TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+$nome);
-                    			pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
-                		}
-                                else //ERRO 1
-                                        erroSemantico ("identificador +nome+ ja declarado anteriormente")
-            		}
-            
-            		//A adicao dos parametros no procedimento se dah da mesma maneira que eh feito na regra de declaracao_local (regra 4)
             		'(' parametros_opcional 
-            		{
-                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-                		for ((String nome : $parametros_opcional.parametros) && (String tipo : $parametros_opcional.tipo_parametros))
-                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
-                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo);
-            		}
             		')' declaracoes_locais comandos 'fim_procedimento'
             		
-            		// Apos o fim_procedimento, o escopo empilhado para ele eh desempilhado (fonte: pag 69 (no .pdf 75))
-            		{
-            			pilhaDeTabelas.desempilhar();
-            		}
-            		
-            		// As mesmas regras de escopo validas para os procedimentos se aplicam para as funcoes (fonte: pag 71 (no .pdf 77))
             		
 			| 'funcao' nomeFuncao = IDENT 
-			{
-        			TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-                		if(!tabelaDeSimbolosAtual.existeSimbolo($nomeFuncao))
-                		{
-                    			tabelaDeSimbolosAtual.adicionarSimbolo($nomeFuncao, "funcao");
-                    
-                    			TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+$nomeFuncao);
-                			pilhasDeTabelas.empilhar(tabelaDeSimbolosFuncao);
-                		}
-                                else //ERRO 1
-                                        erroSemantico ("identificador +nome+ ja declarado anteriormente")
-        		}
 			
-			/*MESMA COISA QUE O PROCEDIMENTO*/
 			'(' parametros_opcional 
-			{
-                		TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-                		for ((String nome : $parametros_opcional.parametros) && (String tipo : $parametros_opcional.tipo_parametros))
-                    			if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
-                        			tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo);
-            		}
+			
             		
             		')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
             		
-			{
-            			pilhaDeTabelas.desempilhar();
-            		}
+			
                         ;
 
 // O retorno da lista de parametros e seus tipos.
@@ -295,7 +188,11 @@ cmd : 			'leia' '(' identificador mais_ident ')'
 			| 'retorne' expressao
 			;
 			
-mais_expressao : 	(',' expressao)*
+mais_expressao returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : (',' expressao {$nome_par.addAll($expressao.nome_par);
+                                           $tipo_par.addAll($expressao.tipo_par);})*
 			;
 			
 senao_opcional : 	('senao' comandos)?
@@ -329,7 +226,13 @@ intervalo_opcional : 	('..' op_unario NUM_INT)?
 op_unario : 		('-')?
 			;
 			
-exp_aritmetica : 	termo outros_termos
+exp_aritmetica returns [ List<String> tipo_par, List<String> nome_par ] 
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : termo {$nome_par.addAll($termo.nome_par);
+                                 $tipo_par.addAll($termo.tipo_par);} 
+                          outros_termos {$nome_par.addAll($outros_termos.nome_par);
+                                         $tipo_par.addAll($outros_termos.tipo_par);} 
 			;
 			
 op_multiplicacao : 	'*' 
@@ -340,34 +243,62 @@ op_adicao : 		'+'
 			| '-'
 			;
 			
-termo : 		fator outros_fatores
+termo returns [ List<String> tipo_par, List<String> nome_par ] 
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : fator    {$nome_par.addAll($fator.nome_par);
+                                   $tipo_par.addAll($fator.tipo_par);} 
+                          outros_fatores {$nome_par.addAll($outros_fatores.nome_par);
+                                          $tipo_par.addAll($outros_fatores.tipo_par);} 
 			;
 			
-outros_termos : 	(op_adicao termo)*
+outros_termos returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : (op_adicao termo {$nome_par.addAll($termo.nome_par);
+                                            $tipo_par.addAll($termo.tipo_par);} )*
 			;
 			
-fator : 		parcela outras_parcelas
+fator returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : parcela {$nome_par.add($parcela.nome_par);
+                                   $tipo_par.add($parcela.tipo_par);}
+                          outras_parcelas {$nome_par.addAll($outras_parcelas.nome_par);
+                                           $tipo_par.addAll($outras_parcelas.tipo_par);}
 			;
 			
-outros_fatores : 	(op_multiplicacao fator)*
+outros_fatores returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : (op_multiplicacao fator {$nome_par.addAll($fator.nome_par);
+                                                   $tipo_par.addAll($fator.tipo_par);})*
 			;
 			
-parcela : 		op_unario parcela_unario 
-			| parcela_nao_unario
+parcela returns [String tipo_par, String nome_par] :
+                        op_unario p = parcela_unario {$tipo_par = $p.tipo_par; $nome_par = $p.nome_par;}
+			| p = parcela_nao_unario {$tipo_par = $p.tipo_par; $nome_par = $p.nome_par;}
 			;
 			
-parcela_unario : 	'^' IDENT outros_ident dimensao 
-			| IDENT chamada_partes 
-			| NUM_INT 
-			| NUM_REAL 
+parcela_unario returns [String tipo_par, String nome_par] :
+                        '^' n = IDENT {$nome_par = $n.getText();} outros_ident dimensao 
+			| n = IDENT {$nome_par = $n.getText();} chamada_partes 
+			| NUM_INT {$tipo_par = 'inteiro';} 
+			| NUM_REAL {$tipo_par = 'real';}
 			| '(' expressao ')'
 			;
 			
-parcela_nao_unario : 	'&' IDENT outros_ident dimensao 
-			| CADEIA
+parcela_nao_unario returns [String tipo_par, String nome_par] : 	
+                        '&' n = IDENT {$nome_par = $n.getText();} outros_ident dimensao 
+			| CADEIA {$tipo_par = 'literal';}
 			;
 			
-outras_parcelas : 	('%' parcela)*
+outras_parcelas returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : ('%' p = parcela{$nome_par.add($p.nome_par);
+                                           $tipo_par.add($p.tipo_par);})*
+                          
 			;
 			
 chamada_partes : 	'(' expressao mais_expressao ')' 
@@ -375,10 +306,21 @@ chamada_partes : 	'(' expressao mais_expressao ')'
 			|  /* vazio*/
 			;
 			
-exp_relacional :	 exp_aritmetica op_opcional
+exp_relacional returns [ List<String> tipo_par, List<String> nome_par ] 
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); } 
+                        : exp_aritmetica {$nome_par.addAll($exp_aritmetica.nome_par);
+                                          $tipo_par.addAll($exp_aritmetica.tipo_par);} 
+                          op_opcional {$nome_par.addAll($op_opcional.nome_par);
+                                       $tipo_par.addAll($op_opcional.tipo_par);} 
 			;
 			
-op_opcional : 		(op_relacional exp_aritmetica)?
+op_opcional returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+    : 		(op_relacional exp_aritmetica {$nome_par.addAll($exp_aritmetica.nome_par);
+                                               $tipo_par.addAll($exp_aritmetica.tipo_par);}
+                )?
 			;
 			
 op_relacional : 	'=' 
@@ -389,25 +331,54 @@ op_relacional : 	'='
 			| '<'
 			;
 			
-expressao : 		termo_logico outros_termos_logicos
+expressao returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : termo_logico {$nome_par.addAll($termo_logico.nome_par);
+                                               $tipo_par.addAll($termo_logico.tipo_par);}
+                          outros_termos_logicos {$nome_par.addAll($outros_termos_logicos.nome_par);
+                                                     $tipo_par.addAll($outros_termos_logicos.tipo_par);}
 			;
 			
 op_nao : 		'nao'?
 			;
 			
-termo_logico : 		fator_logico outros_fatores_logicos
+termo_logico returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : fator_logico  {$nome_par.addAll($fator_logico.nome_par);
+                                               $tipo_par.addAll($fator_logico.tipo_par);} 
+                          outros_fatores_logicos {$nome_par.addAll($outros_fatores_logicos.nome_par);
+                                                                $tipo_par.addAll($outros_fatores_logicos.tipo_par);}
 			;
 			
-outros_termos_logicos : ('ou' termo_logico)*
+outros_termos_logicos returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : ('ou' termo_logico {$nome_par.addAll($termo_logico.nome_par);
+                                               $tipo_par.addAll($termo_logico.tipo_par);})*
 			;
 			
-outros_fatores_logicos : ('e' fator_logico)*
+outros_fatores_logicos returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                         : ('e' fator_logico {$nome_par.addAll($fator_logico.nome_par);
+                                               $tipo_par.addAll($fator_logico.tipo_par);}
+                         )*
 			;
 			
-fator_logico : 		op_nao parcela_logica
+fator_logico returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : op_nao parcela_logica {$nome_par.addAll($parcela_logica.nome_par);
+                                               $tipo_par.addAll($parcela_logica.tipo_par);}
 			;
 			
-parcela_logica : 	'verdadeiro' 
-			| 'falso' 
-			| exp_relacional
+parcela_logica returns [ List<String> tipo_par, List<String> nome_par ]	
+@init { $nome_par = new ArrayList<String>(); }
+@init { $tipo_par = new ArrayList<String>(); }
+                        : 'verdadeiro' {$tipo_par.add('logico');} 
+			| 'falso' {$tipo_par.add('logico');} 
+			| exp_relacional {$nome_par.addAll($exp_relacional.nome_par);
+                                               $tipo_par.addAll($exp_relacional.tipo_par);}
 			;
