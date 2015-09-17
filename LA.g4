@@ -1,5 +1,5 @@
 /*
-	VersÃ£o 1: Grupo 3 (Luazinha)
+	VersÃƒÂ£o 1: Grupo 3 (Luazinha)
 */
 
 grammar LA;
@@ -21,20 +21,20 @@ grammar LA;
 	}
 }
 
-/******************************LÃXICO*******************************************/
+/******************************LÃƒÂ‰XICO*******************************************/
 
 // Definindo o identificador:
 IDENT	: ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
-// Definindo nÃºmero inteiro e nÃºmero real:
+// Definindo nÃƒÂºmero inteiro e nÃƒÂºmero real:
 NUM_INT : ('0'..'9')+;
 NUM_REAL: ('0'..'9')+ '.' ('0'..'9')+;
 // Definindo cadeia de caracteres:
 CADEIA 	: '"' ( ~('"') )* '"';
-// Definindo comentÃ¡rios:
+// Definindo comentÃƒÂ¡rios:
 COMENTARIO : '{' ~('{' | '}')* '}' {skip();}; 
-// Definindo espaÃ§os para serem ignorados:
+// Definindo espaÃƒÂ§os para serem ignorados:
 ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
-// Definindo quando ocorre erro no comentÃ¡rio
+// Definindo quando ocorre erro no comentÃƒÂ¡rio
 COMENTARIO_ERRADO
     : '{' ~('\r'|'\n'|'}')* '\n' 
       { stop("Linha "+getLine()+": comentario nao fechado"); }
@@ -43,7 +43,7 @@ ERROR
     : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
     ;
 
-/*****************************SINTÁTICO*****************************************/
+/*****************************SINTÃ�TICO*****************************************/
 
 programa :              {
                             TabelaDeSimbolos tabelaDeSimbolosGlobal = new TabelaDeSimbolos("global");
@@ -73,6 +73,8 @@ declaracao_local :      'declare' v = variavel
 					for (String nome : $variavel.variaveis)
                                        		 if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
                         				tabelaDeSimbolosAtual.adicionarSimbolo(nome,$variavel.tipo_var);
+                                                 else //ERRO 1
+                                                        erroSemantico ("identificador +nome+ ja declarado anteriormente")
 				}
 				else
 				{
@@ -88,6 +90,8 @@ declaracao_local :      'declare' v = variavel
 						for (String nome : $variavel.variaveis)
                                        		 	if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
                         					tabelaDeSimbolosAtual.adicionarSimbolo(nome,$variavel.tipo_var);	
+                                                        else //ERRO 1
+                                                                erroSemantico ("identificador +nome+ ja declarado anteriormente")
 					}
 						
 				}		  
@@ -99,6 +103,8 @@ declaracao_local :      'declare' v = variavel
 			
                             if(!tabelaDeSimbolosAtual.existeSimbolo($nome.getText()))
                                 tabelaDeSimbolosAtual.adicionarSimbolo($nome.getText(), $tipo_basico.tipo_var);
+                            else //ERRO 1
+                                erroSemantico ("identificador +nome+ ja declarado anteriormente")
 			} 
 			
 			| 'tipo' nome = IDENT ':' tipo
@@ -107,6 +113,8 @@ declaracao_local :      'declare' v = variavel
                 
                             if(!tabelaDeSimbolosAtual.existeSimbolo($nome.getText()))
                                 tabelaDeSimbolosAtual.adicionarSimbolo($nome.getText(), "registro"); /* "registro"  */
+                            else //ERRO 1
+                                erroSemantico ("identificador +nome+ ja declarado anteriormente")
 			} 
 			;
 			
@@ -181,6 +189,8 @@ declaracao_global
                     			TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+$nome);
                     			pilhasDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
                 		}
+                                else //ERRO 1
+                                        erroSemantico ("identificador +nome+ ja declarado anteriormente")
             		}
             
             		//A adicao dos parametros no procedimento se dah da mesma maneira que eh feito na regra de declaracao_local (regra 4)
@@ -212,6 +222,8 @@ declaracao_global
                     			TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+$nomeFuncao);
                 			pilhasDeTabelas.empilhar(tabelaDeSimbolosFuncao);
                 		}
+                                else //ERRO 1
+                                        erroSemantico ("identificador +nome+ ja declarado anteriormente")
         		}
 			
 			/*MESMA COISA QUE O PROCEDIMENTO*/
