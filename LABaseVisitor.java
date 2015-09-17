@@ -1,4 +1,4 @@
-    // Generated from LA.g4 by ANTLR 4.2.2
+// Generated from LA.g4 by ANTLR 4.2.2
 package trabalho1;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;

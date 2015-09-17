@@ -61,7 +61,7 @@ public class LALexer extends Lexer {
 			throw new ParseCancellationException(msg);
 		}
 	   
-	    PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
+	        PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
 		
 		Saida outSemantico = new Saida();
 

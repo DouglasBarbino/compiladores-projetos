@@ -138,8 +138,8 @@ declaracao_global
 
 // O retorno da lista de parametros e seus tipos.
 parametros_opcional returns [ List<String> parametros, List<String> tipo_parametros ]	
-@init { $parametros = new ArrayList<String>(); }
-@init { $tipo_parametros = new ArrayList<String>(); }
+@init { $parametros = new ArrayList<String>(); 
+	$tipo_parametros = new ArrayList<String>(); }
 			: (parametro {$parametros.addAll($parametro.parametros);
 				      $tipo_parametros.addAll($parametro.tipo_parametros);})?
 			;
@@ -148,8 +148,8 @@ parametros_opcional returns [ List<String> parametros, List<String> tipo_paramet
    A ideia utilizada aqui eh a mesma que foi utilizada na regra da variavel, ou seja, a lista que o parametro e o tipo
    retorna inclui o primeiro identificador mais a lista retornada pelo mais_var (uso da funcao addAll para isso).*/
 parametro returns [ List<String> parametros, List<String> tipo_parametros ]	
-@init { $parametros = new ArrayList<String>(); }
-@init { $tipo_parametros = new ArrayList<String>(); }
+@init { $parametros = new ArrayList<String>(); 
+	$tipo_parametros = new ArrayList<String>(); }
 			: var_opcional par=identificador {$parametros.add($par.primParametro);}
 			  mais_ident ':' tipo_param=tipo_estendido {$tipo_parametros.add($tipo_param.tipo_var);}
 			  mais_parametros {$parametros.addAll($mais_parametros.parametros);
@@ -161,8 +161,8 @@ var_opcional : 		'var'?
 
 // O retorno de varios outros parametros e seus tipos acumulados de algumas recursoes.
 mais_parametros returns [ List<String> parametros, List<String> tipo_parametros ]
-@init { $parametros = new ArrayList<String>(); }
-@init { $tipo_parametros = new ArrayList<String>(); }
+@init { $parametros = new ArrayList<String>(); 
+	$tipo_parametros = new ArrayList<String>(); }
 			: (',' parametro {$parametros.addAll($parametro.parametros);
 					  $tipo_parametros.addAll($parametro.tipo_parametros);})?
                         ;
@@ -189,8 +189,8 @@ cmd : 			'leia' '(' identificador mais_ident ')'
 			;
 			
 mais_expressao returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+	$tipo_par = new ArrayList<String>(); }
                         : (',' expressao {$nome_par.addAll($expressao.nome_par);
                                            $tipo_par.addAll($expressao.tipo_par);})*
 			;
@@ -227,8 +227,8 @@ op_unario : 		('-')?
 			;
 			
 exp_aritmetica returns [ List<String> tipo_par, List<String> nome_par ] 
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+	$tipo_par = new ArrayList<String>(); }
                         : termo {$nome_par.addAll($termo.nome_par);
                                  $tipo_par.addAll($termo.tipo_par);} 
                           outros_termos {$nome_par.addAll($outros_termos.nome_par);
@@ -244,8 +244,8 @@ op_adicao : 		'+'
 			;
 			
 termo returns [ List<String> tipo_par, List<String> nome_par ] 
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+	$tipo_par = new ArrayList<String>(); }
                         : fator    {$nome_par.addAll($fator.nome_par);
                                    $tipo_par.addAll($fator.tipo_par);} 
                           outros_fatores {$nome_par.addAll($outros_fatores.nome_par);
@@ -253,15 +253,15 @@ termo returns [ List<String> tipo_par, List<String> nome_par ]
 			;
 			
 outros_termos returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 	
+	 $tipo_par = new ArrayList<String>(); }
                         : (op_adicao termo {$nome_par.addAll($termo.nome_par);
                                             $tipo_par.addAll($termo.tipo_par);} )*
 			;
 			
 fator returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+ 	$tipo_par = new ArrayList<String>(); }
                         : parcela {$nome_par.add($parcela.nome_par);
                                    $tipo_par.add($parcela.tipo_par);}
                           outras_parcelas {$nome_par.addAll($outras_parcelas.nome_par);
@@ -269,33 +269,33 @@ fator returns [ List<String> tipo_par, List<String> nome_par ]
 			;
 			
 outros_fatores returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+	 $tipo_par = new ArrayList<String>(); }
                         : (op_multiplicacao fator {$nome_par.addAll($fator.nome_par);
                                                    $tipo_par.addAll($fator.tipo_par);})*
 			;
 			
 parcela returns [String tipo_par, String nome_par] :
                         op_unario p = parcela_unario {$tipo_par = $p.tipo_par; $nome_par = $p.nome_par;}
-			| p = parcela_nao_unario {$tipo_par = $p.tipo_par; $nome_par = $p.nome_par;}
+			| p1 = parcela_nao_unario {$tipo_par = $p1.tipo_par; $nome_par = $p1.nome_par;}
 			;
 			
 parcela_unario returns [String tipo_par, String nome_par] :
                         '^' n = IDENT {$nome_par = $n.getText();} outros_ident dimensao 
 			| n = IDENT {$nome_par = $n.getText();} chamada_partes 
-			| NUM_INT {$tipo_par = 'inteiro';} 
-			| NUM_REAL {$tipo_par = 'real';}
+			| NUM_INT {$tipo_par = "inteiro";} 
+			| NUM_REAL {$tipo_par = "real";}
 			| '(' expressao ')'
 			;
 			
 parcela_nao_unario returns [String tipo_par, String nome_par] : 	
                         '&' n = IDENT {$nome_par = $n.getText();} outros_ident dimensao 
-			| CADEIA {$tipo_par = 'literal';}
+			| CADEIA {$tipo_par = "literal";}
 			;
 			
 outras_parcelas returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+	 $tipo_par = new ArrayList<String>(); }
                         : ('%' p = parcela{$nome_par.add($p.nome_par);
                                            $tipo_par.add($p.tipo_par);})*
                           
@@ -307,8 +307,8 @@ chamada_partes : 	'(' expressao mais_expressao ')'
 			;
 			
 exp_relacional returns [ List<String> tipo_par, List<String> nome_par ] 
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); } 
+@init { $nome_par = new ArrayList<String>(); 
+	 $tipo_par = new ArrayList<String>(); } 
                         : exp_aritmetica {$nome_par.addAll($exp_aritmetica.nome_par);
                                           $tipo_par.addAll($exp_aritmetica.tipo_par);} 
                           op_opcional {$nome_par.addAll($op_opcional.nome_par);
@@ -316,8 +316,8 @@ exp_relacional returns [ List<String> tipo_par, List<String> nome_par ]
 			;
 			
 op_opcional returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>();
+	 $tipo_par = new ArrayList<String>(); }
     : 		(op_relacional exp_aritmetica {$nome_par.addAll($exp_aritmetica.nome_par);
                                                $tipo_par.addAll($exp_aritmetica.tipo_par);}
                 )?
@@ -332,8 +332,8 @@ op_relacional : 	'='
 			;
 			
 expressao returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+ $tipo_par = new ArrayList<String>(); }
                         : termo_logico {$nome_par.addAll($termo_logico.nome_par);
                                                $tipo_par.addAll($termo_logico.tipo_par);}
                           outros_termos_logicos {$nome_par.addAll($outros_termos_logicos.nome_par);
@@ -344,8 +344,8 @@ op_nao : 		'nao'?
 			;
 			
 termo_logico returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+ $tipo_par = new ArrayList<String>(); }
                         : fator_logico  {$nome_par.addAll($fator_logico.nome_par);
                                                $tipo_par.addAll($fator_logico.tipo_par);} 
                           outros_fatores_logicos {$nome_par.addAll($outros_fatores_logicos.nome_par);
@@ -353,32 +353,32 @@ termo_logico returns [ List<String> tipo_par, List<String> nome_par ]
 			;
 			
 outros_termos_logicos returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+ $tipo_par = new ArrayList<String>(); }
                         : ('ou' termo_logico {$nome_par.addAll($termo_logico.nome_par);
                                                $tipo_par.addAll($termo_logico.tipo_par);})*
 			;
 			
 outros_fatores_logicos returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+ $tipo_par = new ArrayList<String>(); }
                          : ('e' fator_logico {$nome_par.addAll($fator_logico.nome_par);
                                                $tipo_par.addAll($fator_logico.tipo_par);}
                          )*
 			;
 			
 fator_logico returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
+@init { $nome_par = new ArrayList<String>(); 
+ $tipo_par = new ArrayList<String>(); }
                         : op_nao parcela_logica {$nome_par.addAll($parcela_logica.nome_par);
                                                $tipo_par.addAll($parcela_logica.tipo_par);}
 			;
 			
 parcela_logica returns [ List<String> tipo_par, List<String> nome_par ]	
-@init { $nome_par = new ArrayList<String>(); }
-@init { $tipo_par = new ArrayList<String>(); }
-                        : 'verdadeiro' {$tipo_par.add('logico');} 
-			| 'falso' {$tipo_par.add('logico');} 
+@init { $nome_par = new ArrayList<String>(); 
+ $tipo_par = new ArrayList<String>(); }
+                        : 'verdadeiro' {$tipo_par.add("logico");} 
+			| 'falso' {$tipo_par.add("logico");} 
 			| exp_relacional {$nome_par.addAll($exp_relacional.nome_par);
                                                $tipo_par.addAll($exp_relacional.tipo_par);}
 			;
