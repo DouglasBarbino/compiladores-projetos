@@ -4,6 +4,8 @@
  */
 package trabalho1;
 
+import java.util.ArrayList;
+import java.util.List;
 import org.antlr.runtime.RecognitionException;
 import trabalho1.LAParser.Declaracao_localContext;
 
@@ -26,6 +28,7 @@ public class AnalisadorSemantico extends LABaseListener {
         
         pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
         
+        
     }
     
     
@@ -47,13 +50,11 @@ public class AnalisadorSemantico extends LABaseListener {
     
     @Override
     public void enterDeclaracao_local(Declaracao_localContext ctx) {
-           out.println("Declaracao linha ");
-          
+           
         if(ctx.variavel() != null) {
             String nomeVar = ctx.variavel().IDENT().getSymbol().getText();
             String tipoVar = ctx.variavel().tipo_var;
             int linha = ctx.variavel().IDENT().getSymbol().getLine();
-            out.println("Declaracao linha "+linha);
             
             TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
                 
@@ -62,20 +63,20 @@ public class AnalisadorSemantico extends LABaseListener {
                     for (String nome : ctx.variavel().variaveis)
                     {
                         if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                            tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar);
+                            tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);
                         else //ERRO 1
-                            out.println("Linha "+linha+": identificador" +nomeVar+ "ja declarado anteriormente");
+                            out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
                     }
                     
 		}else{
                     if(!tabelaDeSimbolosAtual.existeSimbolo(tipoVar))
 		    {
-			out.println("Linha : "+linha +  "tipo "+tipoVar+"  nao declarado");
+			out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
                     }else{
                             for (String nome : ctx.variavel().variaveis)
                     {
                             if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                        	tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar);	
+                        	tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);	
                             else //ERRO 1
                                 out.println("Linha "+linha+": identificador "+nomeVar+" ja declarado anteriormente");
                     }      
@@ -91,36 +92,39 @@ public class AnalisadorSemantico extends LABaseListener {
     {
         String nome = ctx.IDENT().getText();
         
-        if (ctx.getStart().getText()=="procedimento")
+        if (ctx.getStart().getText().equals("procedimento"))
         {
-
-            TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+            
+            List<String> listaPar = new ArrayList<String>();
+            TabelaDeSimbolos tabelaDeSimbolosGlobal = pilhaDeTabelas.topo();
                 
-            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            if(!tabelaDeSimbolosGlobal.existeSimbolo(nome))
             {
-                tabelaDeSimbolosAtual.adicionarSimbolo(nome, "procedimento");
-                   
                 TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+nome);
-                pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
                 
-                
-              //  for (String par : ctx.parametros_opcional().parametros.get(indice))
-                //{
-                 //   if(!tabelaDeSimbolosAtual.existeSimbolo(par))
-                   // {
-                     //   ctx.parametros_opcional().tipo_parametros
-                       // tabelaDeSimbolosAtual.adicionarSimbolo(par, );
-                 //   }
+                for (int i=0; i<ctx.parametros_opcional().parametros.size(); i++)      
+                {
+                    String nomePar = ctx.parametros_opcional().parametros.get(i);
+                    String tipoPar = ctx.parametros_opcional().tipo_parametros.get(i);
+                    
+                    if(!tabelaDeSimbolosGlobal.existeSimbolo(nomePar) && tabelaDeSimbolosProcedimento.existeSimbolo(nomePar))
+                    {
+                        tabelaDeSimbolosProcedimento.adicionarSimbolo(nomePar, tipoPar, null);
+                        listaPar.add(tipoPar);
+                    }
+                    else
+                    {
+                        out.println("identificador "+nomePar+" ja declarado anteriormente");
+                    }
+                }
+                tabelaDeSimbolosGlobal.adicionarSimbolo(nome, "procedimento", listaPar);
+                   
+                pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
+
                 }
             }
             else //ERRO 1
                 out.println("identificador "+nome+" ja declarado anteriormente");
-        }else
-        {
-            /*if (ctx.comandos().cmd(). )
-            {
-            } */   
-        }    
             
     }
     
@@ -161,7 +165,7 @@ public class AnalisadorSemantico extends LABaseListener {
         {
             if (nome != null)
             {
-                tipo = tabelaDeSimbolosAtual2.recuperaTipo(nome);
+                
                 //ctx.tipo_par.add(tipo);
             }
         }

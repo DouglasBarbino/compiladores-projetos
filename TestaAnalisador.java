@@ -33,7 +33,7 @@ public class TestaAnalisador {
             parser.addErrorListener(new T1ErrorListener(out));
             LAParser.ProgramaContext raiz = parser.programa();
             AnalisadorSemantico as = new AnalisadorSemantico(out);
-          //  as.programa();
+         
             ParseTreeWalker ptw = new ParseTreeWalker();
             ptw.walk(as, raiz);
             

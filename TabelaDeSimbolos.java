@@ -29,13 +29,13 @@ public class TabelaDeSimbolos {
         this.escopo = escopo;
     }
     
-    public void adicionarSimbolo(String nome, String tipo) {
-        simbolos.add(new EntradaTabelaDeSimbolos(nome,tipo));
+    public void adicionarSimbolo(String nome, String tipo, List<String> parametros) {
+        simbolos.add(new EntradaTabelaDeSimbolos(nome,tipo, parametros));
     }
     
-    public void adicionarSimbolos(List<String> nomes, String tipo) {
+    public void adicionarSimbolos(List<String> nomes, String tipo, List<String> parametros) {
         for(String s:nomes) {
-            simbolos.add(new EntradaTabelaDeSimbolos(s, tipo));
+            simbolos.add(new EntradaTabelaDeSimbolos(s, tipo, parametros));
         }
     }
     
