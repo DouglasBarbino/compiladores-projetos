@@ -20,10 +20,14 @@ public class AnalisadorSemantico extends LABaseListener {
     public AnalisadorSemantico(Saida out) {
         this.out = out;
     }
-    
-    public void programa() {
-       // enterDeclaracao_local();
+
+    @Override
+    public void enterPrograma(LAParser.ProgramaContext ctx) {
+        
+        pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
+        
     }
+    
     
     /* //IDEIA PARA O QUARTO
     @Override
@@ -82,12 +86,52 @@ public class AnalisadorSemantico extends LABaseListener {
         }
     }
     
-     /* //IDEIA PARA O SEXTO
     @Override
-    public void enterDeclaracao_global(Declaracao_globalContext ctx) { } { 
-	int linha = ctx.comandos().ctx.cmd().ctx.match("retorne").getSymbol().getLine();
+    public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx)
+    {
+        String nome = ctx.IDENT().getText();
+        
+        if (ctx.getStart().getText()=="procedimento")
+        {
+
+            TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            {
+                tabelaDeSimbolosAtual.adicionarSimbolo(nome, "procedimento");
+                   
+                TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+nome);
+                pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);
+                
+                
+              //  for (String par : ctx.parametros_opcional().parametros.get(indice))
+                //{
+                 //   if(!tabelaDeSimbolosAtual.existeSimbolo(par))
+                   // {
+                     //   ctx.parametros_opcional().tipo_parametros
+                       // tabelaDeSimbolosAtual.adicionarSimbolo(par, );
+                 //   }
+                }
+            }
+            else //ERRO 1
+                out.println("identificador "+nome+" ja declarado anteriormente");
+        }else
+        {
+            /*if (ctx.comandos().cmd(). )
+            {
+            } */   
+        }    
+            
+    }
     
-    	if (ctx.comandos().ctx.cmd().ctx.match("retorne") != null){ //Verifica se existe um retorne dentro de uma declaracao global
+
+    /*
+     //IDEIA PARA O SEXTO
+    @Override
+    public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx){ 
+	//int linha = ctx.comandos().cmd().getSymbol().getLine();
+    
+    	if (ctx.comandos().getStart().get ){ //Verifica se existe um retorne dentro de uma declaracao global
     	//duvida no ctx.match("retorne") => serah que nao eh algo do tipo .retorne() como o ident, ou entao .28() que eh o indice
     	// dele no public static final String[] tokenNames do LAParser
     		if (ctx.match("funcao") == null	){ //Verifica se o que chama o retorne nao eh uma funcao, ou seja, um procedimento
@@ -101,10 +145,34 @@ public class AnalisadorSemantico extends LABaseListener {
     // (funcao):
     //.funcao()
     //.24()
+
     */
+    
     
 
     private String detectarTipo(LAParser.ExpressaoContext ctx) {
-        return null;
+       // String tipo = ctx.nome_par; //descobrir como atribuir lista
+        //atribuir nome_par a uma lista
+        //percorrer essa lista na tabela de simbolos e recuperar os tipos de cada nome
+         String tipo = null;
+         TabelaDeSimbolos tabelaDeSimbolosAtual2 = pilhaDeTabelas.topo();
+        
+        for (String nome : ctx.nome_par)
+        {
+            if (nome != null)
+            {
+                tipo = tabelaDeSimbolosAtual2.recuperaTipo(nome);
+                //ctx.tipo_par.add(tipo);
+            }
+        }
+        return tipo;
+    }
+    
+    @Override
+    public void enterArgumentos_opcional(LAParser.Argumentos_opcionalContext ctx)
+    {
+        //percorrer a lista de nomes 
     }
 }
+
+
