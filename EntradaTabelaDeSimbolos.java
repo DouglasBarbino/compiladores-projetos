@@ -5,6 +5,9 @@
  */
 package trabalho1;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  *
  * @author (versao original): Daniel
@@ -12,15 +15,19 @@ package trabalho1;
  */
 public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
+    private List<String> parametros;
     
-    public EntradaTabelaDeSimbolos(String nome, String tipo) {
+    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> parametros) 
+    {
         this.nome = nome;
         this.tipo = tipo;
+        this.parametros = parametros;
     }
     
     public String getNome() {
         return nome;
     }
+    
     
     public String getTipo() {
         return tipo;
