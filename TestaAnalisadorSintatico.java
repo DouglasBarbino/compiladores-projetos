@@ -20,9 +20,9 @@ public class TestaAnalisadorSintatico {
     // Modifique-a para testar os demais exemplos
 
         
-        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(args[0]));
+        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(args[0]));
         
-        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream("/home/gabriela/trabalho1/casosDeTesteT1/1.arquivos_com_erros_sintaticos/entrada/29-algoritmo_6-1_apostila_LA_1_erro_linha_8.txt"));
+        ANTLRInputStream input = new ANTLRInputStream(new FileInputStream("E:\\Copy\\2015.2\\Compiladores2\\casosDeTesteT1\\2.arquivos_com_erros_semanticos\\entrada\\1.algoritmo_2-2_apostila_LA.txt"));
         LALexer lexer = new LALexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         LAParser parser = new LAParser(tokens);
@@ -30,11 +30,16 @@ public class TestaAnalisadorSintatico {
         // artificio utilizado para que o parser só execute o primeiro erro e pare a execução
         try {
         LAParser.ProgramaContext raiz = parser.programa();
+        System.out.print("a");
         AnalisadorSemantico as = new AnalisadorSemantico(out);
+        System.out.print("b");
         ParseTreeWalker ptw = new ParseTreeWalker();
+        System.out.print("c");
         ptw.walk(as, raiz);
+        System.out.print("d");
         } catch(ParseCancellationException pce) {
-            if(pce.getMessage() != null)
+         System.out.print("e");
+           if(pce.getMessage() != null)
                 out.println(pce.getMessage());
         }
 //        if (!out.isModificado()) {
@@ -48,8 +53,8 @@ public class TestaAnalisadorSintatico {
         out.println("Fim da compilacao");
 //        }
         
-        PrintWriter pw = new PrintWriter(new File(args[1]));
-       // PrintWriter pw = new PrintWriter(new File("saida.txt"));
+//        PrintWriter pw = new PrintWriter(new File(args[1]));
+        PrintWriter pw = new PrintWriter(new File("saida.txt"));
         pw.print(out.getTexto());
         pw.flush();
         pw.close();
