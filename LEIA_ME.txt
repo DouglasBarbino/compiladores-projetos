@@ -20,7 +20,7 @@ Thiago Arraiol Casaes - 551880
 3.2- No Linux: Vá em Aplicações -> Acessórios -> Terminal;
 3.3- No MAC: Vá em Aplicações -> Utilitários -> Terminal;
 4- No terminal, entre na pasta onde está localizado o arquivo [nomeDoNossoTrabalho].g4 ;
-5- Feito isso, digite: java -jar [caminho do .jar do antlr, incluindo o arquivo .jar] -package [nome da pasta onde está o código fonte] [nome do arquivo .g4].g4 ;
+5- Feito isso, digite: java -jar [caminho do .jar do antlr, incluindo o arquivo .jar] -package [nome da pasta onde está o código fonte] [nome do arquivo .g4].g4 -listener -visitor ;
 6- Caso não tenha sido apresentada nenhuma mensagem de erro, os arquivos foram gerados;
 7- Para executar o compilador, foi utilizado o compilador NetBeans. Ele pode ser encontrado no link https://netbeans.org/downloads/ e clicando no botão de download de alguma das versões que contém o Java;
 8- Após feito o download, é necessário instalá-lo;
