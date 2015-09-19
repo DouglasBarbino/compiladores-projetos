@@ -124,14 +124,20 @@ public class AnalisadorSemantico extends LABaseListener {
                    
                 pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
 
-                }
             }
-            else //ERRO 1
-                out.println("identificador "+nome+" ja declarado anteriormente");
+        }
+        else //ERRO 1
+            out.println("identificador "+nome+" ja declarado anteriormente");
+
+	//ERRO 6
+	if (ctx.comandos().contemRetorne == true){ //Verifica se existe um retorne dentro de uma declaracao global
+            if (ctx.getStart().getText().equals("procedimento")){ //Verifica se o que chama o retorne nao eh uma funcao, ou seja, um procedimento
+                int linha = ctx.comandos().stop.getLine(); // Como todos os retornes sao utilizados no fim do comandos(), entao isso eh valido
+                out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+            }
+        }
             
     }
-    
-    
 
     private String detectarTipo(LAParser.ExpressaoContext ctx) {
        // String tipo = ctx.nome_par; //descobrir como atribuir lista
@@ -157,5 +163,3 @@ public class AnalisadorSemantico extends LABaseListener {
         //percorrer a lista de nomes 
     }
 }
-
-
