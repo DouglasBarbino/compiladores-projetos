@@ -68,11 +68,12 @@ variavel returns [ List<String> variaveis, String tipo_var]
 			
 mais_var returns [ List<String> variaveis]
 @init {$variaveis = new ArrayList<String>();}
-            		: (',' var = IDENT {$variaveis.add($var.getText());} dimensao mais_var)*
+            		: (',' var = IDENT {$variaveis.add($var.getText());} dimensao)*
 			;
 
-identificador returns [String primParametro] 
-                        : ponteiros_opcionais IDENT {$primParametro = $IDENT.getText();} dimensao outros_ident
+identificador returns [List<String> array_id]  
+@init {$array_id = new ArrayList<String>();}
+				: ponteiros_opcionais id = IDENT {$array_id.add($id.getText());} dimensao outros_ident
 			;
 			
 ponteiros_opcionais :   ('^')* 
@@ -88,7 +89,8 @@ tipo returns [String tipo_var]
 			| t = tipo_estendido {$tipo_var = $t.tipo_var;}
 			;
 			
-mais_ident : 		(',' identificador)* // mais ident
+mais_ident  :	
+			(',' identificador)* // mais ident
 			;
 			
 mais_variaveis : 	(variavel)* //mais variaveis
@@ -150,7 +152,7 @@ parametros_opcional returns [ List<String> parametros, List<String> tipo_paramet
 parametro returns [ List<String> parametros, List<String> tipo_parametros ]	
 @init { $parametros = new ArrayList<String>(); 
 	$tipo_parametros = new ArrayList<String>(); }
-			: var_opcional par=identificador {$parametros.add($par.primParametro);}
+			: var_opcional par=identificador {$parametros.addAll($par.array_id);}
 			  mais_ident ':' tipo_param=tipo_estendido {$tipo_parametros.add($tipo_param.tipo_var);}
 			  mais_parametros {$parametros.addAll($mais_parametros.parametros);
 			  		   $tipo_parametros.addAll($mais_parametros.tipo_parametros);}
