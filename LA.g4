@@ -89,8 +89,9 @@ tipo returns [String tipo_var]
 			| t = tipo_estendido {$tipo_var = $t.tipo_var;}
 			;
 			
-mais_ident  :	
-			(',' identificador)* // mais ident
+mais_ident returns [List<String> array_id]  
+@init {$array_id = new ArrayList<String>();}
+			:	(',' identificador {$array_id.addAll($identificador.array_id);})* // mais ident
 			;
 			
 mais_variaveis : 	(variavel)* //mais variaveis
