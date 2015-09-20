@@ -37,55 +37,57 @@ public class AnalisadorSemantico extends LABaseListener {
     public void enterDeclaracao_local(Declaracao_localContext ctx) {
            
         if(ctx.variavel() != null) {
-            String nomeVar = ctx.variavel().IDENT().getSymbol().getText();
-            String tipoVar = ctx.variavel().tipo_var;
-            int linha = ctx.variavel().IDENT().getSymbol().getLine();
-            
             TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-                
-		if(tipoVar == "literal" || tipoVar == "inteiro" || tipoVar == "real" || tipoVar == "logico")
-		{
-                    for (String nome : ctx.variavel().variaveis)
-                    {
-                        if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                            tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);
-                        else //ERRO 1
-                            out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
-                    }
-                    
-		}else{
-                    if(!tabelaDeSimbolosAtual.existeSimbolo(tipoVar))
-		    {
-			out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
-                    }else{
-                            for (String nome : ctx.variavel().variaveis)
-                    {
-                            if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                        	tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);	
-                            else //ERRO 1
-                                out.println("Linha "+linha+": identificador "+nomeVar+" ja declarado anteriormente");
-                    }      
-                    }
-					
-		}
             
+            for (int i=0; i<ctx.variavel().variaveis.size(); i++)  
+            {
+                String nomeVar = ctx.variavel().variaveis.get(i);
+                String tipoVar = ctx.variavel().tipo_var;
+                int linha = ctx.variavel().IDENT().getSymbol().getLine();
+                
+                if(tipoVar == "literal" || tipoVar == "inteiro" || tipoVar == "real" || tipoVar == "logico")
+                {
+                    if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+                    {   tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);
+                            System.out.println("Var adicionada "+nomeVar+" "+tipoVar);
+                    }    
+                    else //ERRO 1
+                      out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
+                }
+                else
+                {
+                     if(!tabelaDeSimbolosAtual.existeSimbolo(tipoVar))
+                     {
+                         out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
+                     }else
+                     {
+                         if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+                        	tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);	
+                         else //ERRO 1
+                           out.println("Linha "+linha+": identificador "+nomeVar+" ja declarado anteriormente");
+                     }
+                }
+                
+            }                
         }
     }
     
     @Override
     public void enterCmd(LAParser.CmdContext ctx)
-    {
+    {   
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         if(ctx.getStart().getText().equals("leia"))
         {
-            String nomeVar = ctx.identificador().primParametro;
-            int linha = ctx.identificador().IDENT().getSymbol().getLine();
-            
-            TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-            
-            if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+            for(int i=0; i < ctx.identificador().array_id.size(); i++)
             {
-                 out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
-            }
+                String nomeVar = ctx.identificador().array_id.get(i);
+                int linha = ctx.identificador().IDENT().getSymbol().getLine();
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+                {
+                    out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+                }
+            }    
+            
             
         }
     }
