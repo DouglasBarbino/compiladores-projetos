@@ -78,10 +78,20 @@ public class AnalisadorSemantico extends LABaseListener {
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         if(ctx.getStart().getText().equals("leia"))
         {
-            for(int i=0; i < ctx.identificador().array_id.size(); i++)
+            String nomeVar = ctx.identificador().array_id.get(0);
+            int linha = ctx.identificador().IDENT().getSymbol().getLine();
+            
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
             {
-                String nomeVar = ctx.identificador().array_id.get(i);
-                int linha = ctx.identificador().IDENT().getSymbol().getLine();
+                out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+            }
+            
+            for(int i=0; i < ctx.mais_ident().array_id.size(); i++)
+            {
+                
+                nomeVar = ctx.mais_ident().array_id.get(i);
+                System.out.println("Parametro passado, nome: "+nomeVar);
+                linha = ctx.identificador().IDENT().getSymbol().getLine();
                 if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
                 {
                     out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
