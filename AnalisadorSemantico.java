@@ -38,18 +38,23 @@ public class AnalisadorSemantico extends LABaseListener {
            
         if(ctx.variavel() != null) {
             TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+            //tabelaDeSimbolosAtual.adicionarSimbolo(null, "literal", null);
             
             for (int i=0; i<ctx.variavel().variaveis.size(); i++)  
             {
+                int linha;
                 String nomeVar = ctx.variavel().variaveis.get(i);
                 String tipoVar = ctx.variavel().tipo_var;
-                int linha = ctx.variavel().IDENT().getSymbol().getLine();
+                if(i==0)
+                    linha = ctx.variavel().IDENT().getSymbol().getLine();
+                else
+                    linha = ctx.variavel().mais_var().IDENT(i - 1).getSymbol().getLine();
                 
                 if(tipoVar == "literal" || tipoVar == "inteiro" || tipoVar == "real" || tipoVar == "logico")
                 {
                     if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
                     {   tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null);
-                            System.out.println("Var adicionada "+nomeVar+" "+tipoVar);
+                            System.out.println("Var adicionada "+nomeVar+" "+tipoVar+" linha: "+linha);
                     }    
                     else //ERRO 1
                       out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
@@ -76,10 +81,12 @@ public class AnalisadorSemantico extends LABaseListener {
     public void enterCmd(LAParser.CmdContext ctx)
     {   
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        int linha;
+        String nomeVar;
         if(ctx.getStart().getText().equals("leia"))
         {
-            String nomeVar = ctx.identificador().array_id.get(0);
-            int linha = ctx.identificador().IDENT().getSymbol().getLine();
+            nomeVar = ctx.identificador().array_id.get(0);
+            linha = ctx.identificador().IDENT().getSymbol().getLine();
             
             if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
             {
@@ -99,6 +106,40 @@ public class AnalisadorSemantico extends LABaseListener {
             }    
             
             
+        }else
+        {
+            if(ctx.getStart().getText().equals("escreva"))
+            {
+                nomeVar = ctx.expressao().nome_par.get(0);
+                linha = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getSymbol().getLine();
+            
+                if(nomeVar!=null)
+                {
+                    if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+                    {
+                        out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+                    }
+                }
+                
+            
+                for(int i=0; i < ctx.mais_expressao().nome_par.size(); i++)
+                {
+                
+                    nomeVar = ctx.mais_expressao().nome_par.get(i);
+                    System.out.println("Parametro passado, nome: "+nomeVar);
+                    //linha = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getSymbol().getLine();
+                    if(nomeVar!=null)
+                    {
+                        if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+                        {
+                            out.println("Linha +linha+: identificador "+nomeVar+" não declarado");
+                        }
+                    }
+                    
+                }    
+            
+            
+            }
         }
     }
     
