@@ -111,8 +111,7 @@ public class AnalisadorSemantico extends LABaseListener {
             if(ctx.getStart().getText().equals("escreva"))
             {
                 nomeVar = ctx.expressao().nome_par.get(0);
-                linha = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getSymbol().getLine();
-            
+                linha = ctx.expressao().linha.get(0);
                 if(nomeVar!=null)
                 {
                     if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
@@ -127,12 +126,12 @@ public class AnalisadorSemantico extends LABaseListener {
                 
                     nomeVar = ctx.mais_expressao().nome_par.get(i);
                     System.out.println("Parametro passado, nome: "+nomeVar);
-                    //linha = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getSymbol().getLine();
+                    linha = ctx.mais_expressao().linha.get(i);
                     if(nomeVar!=null)
                     {
                         if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
                         {
-                            out.println("Linha +linha+: identificador "+nomeVar+" não declarado");
+                            out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
                         }
                     }
                     
