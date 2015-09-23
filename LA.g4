@@ -6,7 +6,6 @@ grammar LA;
 
 @members
 {
-
 	private void stop(String msg)
 	{
 		throw new ParseCancellationException(msg);
@@ -56,9 +55,9 @@ decl_local_global :     declaracao_local
 			| declaracao_global
 			;
 			
-declaracao_local :      'declare' v = variavel 
-			| 'constante' nome = IDENT  ':'  tipo_basico '=' valor_constante 
-			| 'tipo' nome = IDENT ':' tipo
+declaracao_local :      'declare' variavel 
+			| 'constante' IDENT  ':'  tipo_basico '=' valor_constante 
+			| 'tipo' IDENT ':' tipo
 			;
 			
 variavel returns [ List<String> variaveis, String tipo_var]
@@ -313,7 +312,7 @@ parcela_unario returns [String tipo_par, String nome_par, int linha] :
 			
 parcela_nao_unario returns [String tipo_par, String nome_par, int linha] : 	
                         '&' n = IDENT {$nome_par = $n.getText(); $linha = $n.getLine();} outros_ident dimensao 
-			| CADEIA {$tipo_par = "literal";}
+			| c = CADEIA {$tipo_par = "literal"; $linha = $c.getLine();}
 			;
 			
 outras_parcelas returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
