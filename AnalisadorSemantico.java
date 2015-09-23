@@ -64,6 +64,8 @@ public class AnalisadorSemantico extends LABaseListener {
                      if(!tabelaDeSimbolosAtual.existeSimbolo(tipoVar))
                      {
                          out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
+                         /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
+                         tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar, tipoVar, null);
                      }else
                      {
                          if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
@@ -74,6 +76,30 @@ public class AnalisadorSemantico extends LABaseListener {
                 }
                 
             }                
+        }else
+        {
+            if(ctx.getStart().getText().equals("constante"))
+            {
+                String nome = ctx.IDENT().getText();
+                int linha = ctx.IDENT().getSymbol().getLine();
+                String tipo = ctx.tipo_basico().tipo_var;
+                
+                TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                    {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo, null);
+                            System.out.println("Var adicionada "+nome+" "+tipo+" linha: "+linha);
+                    }    
+                    else //ERRO 1
+                      out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+            }else{
+                 if(ctx.getStart().getText().equals("tipo"))
+                 {
+                     String novoTipo = ctx.IDENT().getText();
+                     TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+                     tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null);
+                 }
+            }
         }
     }
     
@@ -138,6 +164,16 @@ public class AnalisadorSemantico extends LABaseListener {
                 }    
             
             
+            }else
+            {
+                if(ctx.getStart().getText().equals("retorne"))
+                {
+                    if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
+                    {
+                        linha = ctx.expressao().linha.get(0);
+                        out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+                    }
+                }
             }
         }
     }
@@ -178,16 +214,8 @@ public class AnalisadorSemantico extends LABaseListener {
 
             }
         }
-        else //ERRO 1
+        else 
             out.println("identificador "+nome+" ja declarado anteriormente");
-
-	//ERRO 6
-	if (ctx.comandos().contemRetorne == true){ //Verifica se existe um retorne dentro de uma declaracao global
-            if (ctx.getStart().getText().equals("procedimento")){ //Verifica se o que chama o retorne nao eh uma funcao, ou seja, um procedimento
-                int linha = ctx.comandos().stop.getLine(); // Como todos os retornes sao utilizados no fim do comandos(), entao isso eh valido
-                out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
-            }
-        }
             
     }
 
