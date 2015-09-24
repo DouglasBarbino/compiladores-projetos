@@ -1,5 +1,5 @@
 /*
-	VersÃƒÆ’Ã‚Â£o 1: Grupo 3 (Luazinha)
+	VersÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o 1: Grupo 3 (Luazinha)
 */
 
 grammar LA;
@@ -20,20 +20,20 @@ grammar LA;
 	}
 }
 
-/******************************LÃƒÆ’Ã‚â€°XICO*******************************************/
+/******************************LÃƒÆ’Ã†â€™Ãƒâ€šÃ¢â‚¬Â°XICO*******************************************/
 
 // Definindo o identificador:
 IDENT	: ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
-// Definindo nÃƒÆ’Ã‚Âºmero inteiro e nÃƒÆ’Ã‚Âºmero real:
+// Definindo nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºmero inteiro e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºmero real:
 NUM_INT : ('0'..'9')+;
 NUM_REAL: ('0'..'9')+ '.' ('0'..'9')+;
 // Definindo cadeia de caracteres:
 CADEIA 	: '"' ( ~('"') )* '"';
-// Definindo comentÃƒÆ’Ã‚Â¡rios:
+// Definindo comentÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rios:
 COMENTARIO : '{' ~('{' | '}')* '}' {skip();}; 
-// Definindo espaÃƒÆ’Ã‚Â§os para serem ignorados:
+// Definindo espaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§os para serem ignorados:
 ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
-// Definindo quando ocorre erro no comentÃƒÆ’Ã‚Â¡rio
+// Definindo quando ocorre erro no comentÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio
 COMENTARIO_ERRADO
     : '{' ~('\r'|'\n'|'}')* '\n' 
       { stop("Linha "+getLine()+": comentario nao fechado"); }
@@ -42,7 +42,7 @@ ERROR
     : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
     ;
 
-/*****************************SINTÃƒ?TICO*****************************************/
+/*****************************SINTÃƒÆ’?TICO*****************************************/
 
 programa :              
                         declaracoes 'algoritmo' corpo 'fim_algoritmo'
@@ -175,15 +175,10 @@ declaracoes_locais : 	(declaracao_local)*
 corpo : declaracoes_locais comandos
 			;
 			
-comandos returns [Boolean contemRetorne]
-@init { $contemRetorne = false;}                        
-                        : (retornoCMD = cmd {if ($retornoCMD.contemRetorne == true)
-                                                $contemRetorne = true;})*
+comandos                : (cmd)*
 			;
 			
-cmd returns [Boolean contemRetorne]
-@init { $contemRetorne = false;}   
-			: 'leia' '(' identificador mais_ident ')' 
+cmd 			: 'leia' '(' identificador mais_ident ')' 
 			| 'escreva' '(' expressao mais_expressao ')' 
 			| 'se' expressao 'entao' comandos senao_opcional 'fim_se' 
 			| 'caso' exp_aritmetica 'seja' selecao senao_opcional 'fim_caso' 
@@ -192,7 +187,7 @@ cmd returns [Boolean contemRetorne]
 			| 'faca' comandos 'ate' expressao 
 			| '^' IDENT outros_ident dimensao '<-' expressao 
 			| IDENT chamada_atribuicao 
-			| 'retorne' expressao {$contemRetorne = true;}
+			| 'retorne' expressao
 			;
 			
 mais_expressao returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
