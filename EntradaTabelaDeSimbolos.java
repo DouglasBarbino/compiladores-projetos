@@ -16,16 +16,23 @@ import java.util.List;
 public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
     private List<String> parametros;
+    private TabelaDeSimbolos subTabeladoRegistro;
     
-    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> parametros) 
+    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> parametros, TabelaDeSimbolos sub) 
     {
         this.nome = nome;
         this.tipo = tipo;
         this.parametros = parametros;
+        this.subTabeladoRegistro = sub;
     }
     
     public String getNome() {
         return nome;
+    }
+    
+    public TabelaDeSimbolos getsubTabela()
+    {
+        return this.subTabeladoRegistro;
     }
     
     
