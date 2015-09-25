@@ -23,12 +23,21 @@ public class AnalisadorSemantico extends LABaseListener {
     
     TabelaDeSimbolos tabelaDoRegistro;
     
+    int EhRegistro;   //pensar numa forma melhor
+    
+    //TabelaDeSimbolos tabelaDoReg;
+    
     String tipoDaExpressao;
+    String tipoVar;
+    
+    
     
     public AnalisadorSemantico(Saida out) {
         this.out = out;
         this.tabelaDoRegistro = null;
         this.tipoDaExpressao = "indefinido";
+        //this.tabelaDoReg = null;
+        this.EhRegistro = 1;
     }
 
     @Override
@@ -49,47 +58,7 @@ public class AnalisadorSemantico extends LABaseListener {
         String tipoVar;
         int linha;
         
-        if(ctx.variavel() != null) {
-            
-            
-            for (int i=0; i<ctx.variavel().variaveis.size(); i++)  
-            {
-                nomeVar = ctx.variavel().variaveis.get(i);
-                tipoVar = ctx.variavel().tipo_var;
-                if(i==0)
-                    linha = ctx.variavel().IDENT().getSymbol().getLine();
-                else
-                    linha = ctx.variavel().mais_var().IDENT(i - 1).getSymbol().getLine();
-                
-                if(tipoVar == "literal" || tipoVar == "inteiro" || tipoVar == "real" || tipoVar == "logico")
-                {
-                    if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                    {   tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null, null);
-                            System.out.println("Var adicionada "+nomeVar+" "+tipoVar+" linha: "+linha);
-                    }    
-                    else //ERRO 1
-                      out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
-                }
-                else
-                {
-                     if(!pilhaDeTabelas.existeSimbolo(tipoVar))
-                     {
-                         System.out.println(tabelaDeSimbolosAtual.toString());
-                         out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
-                         /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
-                         tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar, tipoVar, null, null);
-                     }else
-                     {
-                         if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                        	tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipoVar, null, null);	
-                         else //ERRO 1
-                           out.println("Linha "+linha+": identificador "+nomeVar+" ja declarado anteriormente");
-                     }
-                }
-                
-            }                
-        }else
-        {
+
             if(ctx.getStart().getText().equals("constante"))
             {
                 nomeVar = ctx.IDENT().getText();
@@ -103,84 +72,72 @@ public class AnalisadorSemantico extends LABaseListener {
                     }    
                     else //ERRO 1
                       out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
-            }else{
-                 if(ctx.getStart().getText().equals("tipo"))
-                 {
-                     
-                     String novoTipo = ctx.IDENT().getText();
-                     System.out.println("NovoTipo " + novoTipo);
-
-                     System.out.println(tabelaDeSimbolosAtual.toString());
-                                          
-                     if(!pilhaDeTabelas.existeSimbolo(novoTipo)) 
-                     {   
-                         TabelaDeSimbolos tabelaDoRegistro = new TabelaDeSimbolos("registro"+novoTipo);
-                         //tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, null);
-                     
-                         nomeVar = ctx.tipo().registro().variavel().variaveis.get(0);
-                         tipoVar = ctx.tipo().registro().variavel().tipo_var;
-                      
-                         if(tipoVar == "literal" || tipoVar == "inteiro" || tipoVar == "real" || tipoVar == "logico")
-                        {
-                               if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                                {   tabelaDoRegistro.adicionarSimbolo(nomeVar,tipoVar, null, null);
-                                     System.out.println("Var adicionada "+nomeVar+" "+tipoVar+" linha: ");
-                                }    
-                                else //ERRO 1
-                                     out.println("Linha +linha+: identificador " +nomeVar+ " ja declarado anteriormente");
-                        }
-                        else
-                        {
-                            if(!pilhaDeTabelas.existeSimbolo(tipoVar))
-                            {
-                                out.println("Linha +linha +  : tipo "+tipoVar+" nao declarado");
-                                /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
-                                tabelaDoRegistro.adicionarSimbolo(nomeVar, tipoVar, null, null);
-                            }else
-                            {
-                                if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                                    tabelaDoRegistro.adicionarSimbolo(nomeVar,tipoVar, null, null);	
-                                else //ERRO 1
-                                    out.println("Linha +linha+: identificador "+nomeVar+" ja declarado anteriormente");
-                            }
-                        }
-                     
-                     
-                     
-                     for (int i=0; i<ctx.tipo().registro().variavel().mais_var().variaveis.size(); i++)  
-                    {
-                        nomeVar = ctx.tipo().registro().variavel().mais_var().variaveis.get(i);
-                        tipoVar = ctx.tipo().registro().variavel().tipo_var;
-                
-                        if(tipoVar == "literal" || tipoVar == "inteiro" || tipoVar == "real" || tipoVar == "logico")
-                        {
-                            if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                            {   tabelaDoRegistro.adicionarSimbolo(nomeVar,tipoVar, null, null);
-                                System.out.println("Var adicionada "+nomeVar+" "+tipoVar+" linha: ");
-                            }    
-                            else //ERRO 1
-                                out.println("Linha +linha+: identificador " +nomeVar+ " ja declarado anteriormente");
-                        }
-                        else
-                        {
-                            if(!pilhaDeTabelas.existeSimbolo(tipoVar))
-                            {
-                                out.println("Linha +linha +  : tipo "+tipoVar+" nao declarado");
-                                /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
-                                tabelaDoRegistro.adicionarSimbolo(nomeVar, tipoVar, null, null);
-                            }else
-                            {
-                                if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                                    tabelaDoRegistro.adicionarSimbolo(nomeVar,tipoVar, null, null);	
-                                else //ERRO 1
-                                    out.println("Linha +linha+: identificador "+nomeVar+" ja declarado anteriormente");
-                            }
-                        }
-                
-                    }  
-                tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, tabelaDoRegistro);
-                }
+            
               }
+            
+        
+    }
+    
+    
+    @Override
+    public void enterRegistro(LAParser.RegistroContext ctx)
+    {
+        String novoTipo = ctx.getParent().getParent().getStart().getText();
+        System.out.println("NovoTipo " + novoTipo);
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+
+//        System.out.println(tabelaDeSimbolosAtual.toString());
+                                          
+        if(!pilhaDeTabelas.existeSimbolo(novoTipo)) 
+        {   
+            TabelaDeSimbolos tabelaDoReg = new TabelaDeSimbolos("registro"+novoTipo);
+            //tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, null);    
+            tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, tabelaDoReg);
+        }
+    }
+    
+    @Override
+    public void enterVariavel(LAParser.VariavelContext ctx)
+    {
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        String nome = ctx.IDENT().getText();
+        System.out.println("Nome var "+nome);
+        int linha = ctx.IDENT().getSymbol().getLine();
+        if(ctx.tipo().registro()==null)
+        {   EhRegistro = 0;
+            if(ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico()!=null)
+            {
+                tipoVar = (String) ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                System.out.println("TipodaVariavel "+tipoVar);
+            }else
+            {
+                tipoVar = ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+            }
+            
+            if(tipoVar.equals("literal") || tipoVar.equals("inteiro") || tipoVar.equals("logico") || tipoVar.equals("real"))
+            {
+                if(!pilhaDeTabelas.existeSimbolo(nome))
+                {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);
+                    System.out.println("Var adicionada "+nome+" "+tipoVar+" linha: "+linha);
+                }    
+                else //ERRO 1
+                      out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+            }
+            else
+            {
+                if(!pilhaDeTabelas.existeSimbolo(tipoVar))
+                {
+                    System.out.println(tabelaDeSimbolosAtual.toString());
+                    out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
+                    /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
+                }else
+                {
+                    if(!pilhaDeTabelas.existeSimbolo(nome))
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);	
+                    else //ERRO 1
+                        out.println("Linha "+linha+": identificador "+nome+" ja declarado anteriormente");
+                }
             }
         }
     }
@@ -203,6 +160,12 @@ public class AnalisadorSemantico extends LABaseListener {
             
         
     }
+    
+//    @Override
+//    public void exitRegistro( LAParser.RegistroContext ctx)
+//    {
+//        pilhaDeTabelas.desempilhar();
+//    }
     
     @Override
     public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx)
@@ -281,6 +244,47 @@ public class AnalisadorSemantico extends LABaseListener {
             
     }
     
+    @Override
+    public void enterMais_var(LAParser.Mais_varContext ctx)
+    {
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        for(int i=0; i< ctx.IDENT().size(); i++)
+        {
+            
+            String nome = ctx.IDENT(i).getText();
+            System.out.println("Nome var "+nome);
+            int linha = ctx.IDENT(i).getSymbol().getLine();
+ 
+         if(EhRegistro == 0)   
+         {   if(tipoVar.equals("literal") || tipoVar.equals("inteiro") || tipoVar.equals("logico") || tipoVar.equals("real"))
+            {
+                if(!pilhaDeTabelas.existeSimbolo(nome))
+                {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);
+                    System.out.println("Var adicionada "+nome+" "+tipoVar+" linha: "+linha);
+                }    
+                else //ERRO 1
+                      out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+            }
+            else
+            {
+                if(!pilhaDeTabelas.existeSimbolo(tipoVar))
+                {
+                    System.out.println(tabelaDeSimbolosAtual.toString());
+                    out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
+                    /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
+                }else
+                {
+                    if(!pilhaDeTabelas.existeSimbolo(nome))
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);	
+                    else //ERRO 1
+                        out.println("Linha "+linha+": identificador "+nome+" ja declarado anteriormente");
+                }
+            }
+        }
+        }  
+    }
+    
     
 //    @Override
 //    public void enterParametros_opcional(LAParser.Parametros_opcionalContext ctx)
@@ -340,18 +344,26 @@ public class AnalisadorSemantico extends LABaseListener {
     public void enterIdentificador(LAParser.IdentificadorContext ctx)
     {
         TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
+        if(tabelaAtual == null)
+            System.out.println("NULOOOOOOO!!!");
+        
+        
         String nome = ctx.IDENT().getText();
+        
         System.out.println("Nome do identificador: "+nome);
         String tipo  = tabelaAtual.getTipo(nome);
-        if(tipo !=null)
-        {
-            tipoDoRegistro = tipo;
-        }    
-        System.out.println("Tipo "+tipo);
+                if(tipo !=null)
+                {
+                    tipoDoRegistro = tipo;
+                }    
+                System.out.println("Tipo "+tipo);
+        
         int linha;
 
         linha = ctx.IDENT().getSymbol().getLine();
         
+
+             
             if(!tabelaAtual.existeSimbolo(nome))
             {
                 if(tabelaDoRegistro != null)
@@ -366,7 +378,7 @@ public class AnalisadorSemantico extends LABaseListener {
                 }
                    
             }
-
+        
 //        else
 //        {
 //            if(ctx.outros_ident().identificador() != null)
