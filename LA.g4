@@ -1,5 +1,5 @@
 /*
-	VersÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â£o 1: Grupo 3 (Luazinha)
+	Versao 1: Grupo 3 (Luazinha)
 */
 
 grammar LA;
@@ -20,20 +20,20 @@ grammar LA;
 	}
 }
 
-/******************************LÃƒÆ’Ã†â€™Ãƒâ€šÃ¢â‚¬Â°XICO*******************************************/
+/******************************LEXICO*******************************************/
 
 // Definindo o identificador:
 IDENT	: ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
-// Definindo nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºmero inteiro e nÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Âºmero real:
+// Definindo numero inteiro e numero real:
 NUM_INT : ('0'..'9')+;
 NUM_REAL: ('0'..'9')+ '.' ('0'..'9')+;
 // Definindo cadeia de caracteres:
 CADEIA 	: '"' ( ~('"') )* '"';
-// Definindo comentÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rios:
+// Definindo comentarios:
 COMENTARIO : '{' ~('{' | '}')* '}' {skip();}; 
-// Definindo espaÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â§os para serem ignorados:
+// Definindo espacos para serem ignorados:
 ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
-// Definindo quando ocorre erro no comentÃƒÆ’Ã†â€™Ãƒâ€šÃ‚Â¡rio
+// Definindo quando ocorre erro no comentario
 COMENTARIO_ERRADO
     : '{' ~('\r'|'\n'|'}')* '\n' 
       { stop("Linha "+getLine()+": comentario nao fechado"); }
@@ -42,7 +42,7 @@ ERROR
     : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
     ;
 
-/*****************************SINTÃƒÆ’?TICO*****************************************/
+/*****************************SINTATICO*****************************************/
 
 programa :              
                         declaracoes 'algoritmo' corpo 'fim_algoritmo'
@@ -175,10 +175,15 @@ declaracoes_locais : 	(declaracao_local)*
 corpo : declaracoes_locais comandos
 			;
 			
-comandos                : (cmd)*
+comandos returns [Boolean contemRetorne]
+@init { $contemRetorne = false;}                        
+                        : (retornoCMD = cmd {if ($retornoCMD.contemRetorne == true)
+                                                $contemRetorne = true;})*
 			;
 			
-cmd 			: 'leia' '(' identificador mais_ident ')' 
+cmd returns [Boolean contemRetorne]
+@init { $contemRetorne = false;}   
+			: 'leia' '(' identificador mais_ident ')' 
 			| 'escreva' '(' expressao mais_expressao ')' 
 			| 'se' expressao 'entao' comandos senao_opcional 'fim_se' 
 			| 'caso' exp_aritmetica 'seja' selecao senao_opcional 'fim_caso' 
@@ -187,7 +192,7 @@ cmd 			: 'leia' '(' identificador mais_ident ')'
 			| 'faca' comandos 'ate' expressao 
 			| '^' IDENT outros_ident dimensao '<-' expressao 
 			| IDENT chamada_atribuicao 
-			| 'retorne' expressao
+			| 'retorne' expressao {$contemRetorne = true;}
 			;
 			
 mais_expressao returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -196,7 +201,7 @@ mais_expressao returns [ List<String> tipo_par, List<String> nome_par, List<Inte
 	$linha = new ArrayList<Integer>();}
                         : (',' expressao {$nome_par.addAll($expressao.nome_par);
                                            $tipo_par.addAll($expressao.tipo_par);
-										   $linha.addAll($expressao.linha);})*
+					   $linha.addAll($expressao.linha);})*
 			;
 			
 senao_opcional : 	('senao' comandos)?
@@ -236,10 +241,10 @@ exp_aritmetica returns [ List<String> tipo_par, List<String> nome_par, List<Inte
 	$linha = new ArrayList<Integer>();	}
                         : termo {$nome_par.addAll($termo.nome_par);
                                  $tipo_par.addAll($termo.tipo_par);
-								 $linha.addAll($termo.linha);} 
+				$linha.addAll($termo.linha);} 
                           outros_termos {$nome_par.addAll($outros_termos.nome_par);
                                          $tipo_par.addAll($outros_termos.tipo_par);
-										 $linha.addAll($outros_termos.linha);} 
+					$linha.addAll($outros_termos.linha);} 
 			;
 			
 op_multiplicacao : 	'*' 
@@ -256,10 +261,10 @@ termo returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linh
 	$linha = new ArrayList<Integer>();	}
                         : fator    {$nome_par.addAll($fator.nome_par);
                                    $tipo_par.addAll($fator.tipo_par);
-								   $linha.addAll($fator.linha);} 
+				$linha.addAll($fator.linha);} 
                           outros_fatores {$nome_par.addAll($outros_fatores.nome_par);
                                           $tipo_par.addAll($outros_fatores.tipo_par);
-										  $linha.addAll($outros_fatores.linha);} 
+					$linha.addAll($outros_fatores.linha);} 
 			;
 			
 outros_termos returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -268,7 +273,7 @@ outros_termos returns [ List<String> tipo_par, List<String> nome_par, List<Integ
 	$linha = new ArrayList<Integer>();		}
                         : (op_adicao termo {$nome_par.addAll($termo.nome_par);
                                             $tipo_par.addAll($termo.tipo_par);
-											$linha.addAll($termo.linha);} )*
+					$linha.addAll($termo.linha);} )*
 			;
 			
 fator returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -277,10 +282,10 @@ fator returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linh
 	$linha = new ArrayList<Integer>();	}
                         : parcela {$nome_par.add($parcela.nome_par);
                                    $tipo_par.add($parcela.tipo_par);
-								   $linha.add($parcela.linha);}
+				$linha.add($parcela.linha);}
                           outras_parcelas {$nome_par.addAll($outras_parcelas.nome_par);
                                            $tipo_par.addAll($outras_parcelas.tipo_par);
-										   $linha.addAll($outras_parcelas.linha);}
+					$linha.addAll($outras_parcelas.linha);}
 			;
 			
 outros_fatores returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -289,7 +294,7 @@ outros_fatores returns [ List<String> tipo_par, List<String> nome_par, List<Inte
 	  $linha = new ArrayList<Integer>();	}
                         : (op_multiplicacao fator {$nome_par.addAll($fator.nome_par);
                                                    $tipo_par.addAll($fator.tipo_par);
-												   $linha.addAll($fator.linha);})*
+						$linha.addAll($fator.linha);})*
 			;
 			
 parcela returns [String tipo_par, String nome_par, int linha] :
@@ -316,7 +321,7 @@ outras_parcelas returns [ List<String> tipo_par, List<String> nome_par, List<Int
 	 $linha = new ArrayList<Integer>();	}
                         : ('%' p = parcela{$nome_par.add($p.nome_par);
                                            $tipo_par.add($p.tipo_par);
-										   $linha.add($p.linha);})*
+					$linha.add($p.linha);})*
                           
 			;
 			
@@ -331,10 +336,10 @@ exp_relacional returns [ List<String> tipo_par, List<String> nome_par, List<Inte
 	 $linha = new ArrayList<Integer>();} 
                         : exp_aritmetica {$nome_par.addAll($exp_aritmetica.nome_par);
                                           $tipo_par.addAll($exp_aritmetica.tipo_par);
-										  $linha.addAll($exp_aritmetica.linha);} 
+					$linha.addAll($exp_aritmetica.linha);} 
                           op_opcional {$nome_par.addAll($op_opcional.nome_par);
                                        $tipo_par.addAll($op_opcional.tipo_par);
-									   $linha.addAll($op_opcional.linha);} 
+					$linha.addAll($op_opcional.linha);} 
 			;
 			
 op_opcional returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -343,7 +348,7 @@ op_opcional returns [ List<String> tipo_par, List<String> nome_par, List<Integer
 	 $linha = new ArrayList<Integer>();}
     : 		(op_relacional exp_aritmetica {$nome_par.addAll($exp_aritmetica.nome_par);
                                                $tipo_par.addAll($exp_aritmetica.tipo_par);
-											   $linha.addAll($exp_aritmetica.linha);}
+						$linha.addAll($exp_aritmetica.linha);}
                 )?
 			;
 			
@@ -361,10 +366,10 @@ expressao returns [ List<String> tipo_par, List<String> nome_par, List<Integer> 
 $linha = new ArrayList<Integer>(); }
                         : termo_logico {$nome_par.addAll($termo_logico.nome_par);
                                                $tipo_par.addAll($termo_logico.tipo_par);
-											   $linha.addAll($termo_logico.linha);}
+					$linha.addAll($termo_logico.linha);}
                           outros_termos_logicos {$nome_par.addAll($outros_termos_logicos.nome_par);
                                                      $tipo_par.addAll($outros_termos_logicos.tipo_par);
-													 $linha.addAll($outros_termos_logicos.linha);}
+						$linha.addAll($outros_termos_logicos.linha);}
 			;
 			
 op_nao : 		'nao'?
@@ -376,9 +381,9 @@ termo_logico returns [ List<String> tipo_par, List<String> nome_par, List<Intege
  $linha = new ArrayList<Integer>(); }
                         : fator_logico  {$nome_par.addAll($fator_logico.nome_par);
                                                $tipo_par.addAll($fator_logico.tipo_par);
-											   $linha.addAll($fator_logico.linha);} 
+						$linha.addAll($fator_logico.linha);} 
                           outros_fatores_logicos {$nome_par.addAll($outros_fatores_logicos.nome_par);
-                                                                $tipo_par.addAll($outros_fatores_logicos.tipo_par);
+                                                  $tipo_par.addAll($outros_fatores_logicos.tipo_par);
 																$linha.addAll($outros_fatores_logicos.linha);}
 			;
 			
@@ -388,7 +393,7 @@ outros_termos_logicos returns [ List<String> tipo_par, List<String> nome_par, Li
  $linha = new ArrayList<Integer>(); }
                         : ('ou' termo_logico {$nome_par.addAll($termo_logico.nome_par);
                                                $tipo_par.addAll($termo_logico.tipo_par);
-											   $linha.addAll($termo_logico.linha);})*
+						$linha.addAll($termo_logico.linha);})*
 			;
 			
 outros_fatores_logicos returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -397,7 +402,7 @@ outros_fatores_logicos returns [ List<String> tipo_par, List<String> nome_par, L
  $linha = new ArrayList<Integer>(); }
                          : ('e' fator_logico {$nome_par.addAll($fator_logico.nome_par);
                                                $tipo_par.addAll($fator_logico.tipo_par);
-											   $linha.addAll($fator_logico.linha);}
+						$linha.addAll($fator_logico.linha);}
                          )*
 			;
 			
@@ -407,7 +412,7 @@ fator_logico returns [ List<String> tipo_par, List<String> nome_par, List<Intege
  $linha = new ArrayList<Integer>(); }
                         : op_nao parcela_logica {$nome_par.addAll($parcela_logica.nome_par);
                                                $tipo_par.addAll($parcela_logica.tipo_par);
-											   $linha.addAll($parcela_logica.linha);}
+						$linha.addAll($parcela_logica.linha);}
 			;
 			
 parcela_logica returns [ List<String> tipo_par, List<String> nome_par, List<Integer> linha ]	
@@ -418,5 +423,5 @@ parcela_logica returns [ List<String> tipo_par, List<String> nome_par, List<Inte
 			| 'falso' {$tipo_par.add("logico");} 
 			| exp_relacional {$nome_par.addAll($exp_relacional.nome_par);
                                                $tipo_par.addAll($exp_relacional.tipo_par);
-											   $linha.addAll($exp_relacional.linha);}
+						$linha.addAll($exp_relacional.linha);}
 			;
