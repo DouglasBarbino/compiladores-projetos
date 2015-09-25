@@ -116,7 +116,7 @@ public class AnalisadorSemantico extends LABaseListener {
             
             if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
             {
-                out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+                out.println("Linha "+linha+": identificador "+nomeVar+" nao declarado");
             }
             
             for(int i=0; i < ctx.mais_ident().array_id.size(); i++)
@@ -127,7 +127,7 @@ public class AnalisadorSemantico extends LABaseListener {
                 linha = ctx.identificador().IDENT().getSymbol().getLine();
                 if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
                 {
-                    out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+                    out.println("Linha "+linha+": identificador "+nomeVar+" nao declarado");
                 }
             }    
             
@@ -142,10 +142,9 @@ public class AnalisadorSemantico extends LABaseListener {
                 {
                     if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
                     {
-                        out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+                        out.println("Linha "+linha+": identificador "+nomeVar+" nao declarado");
                     }
                 }
-                
             
                 for(int i=0; i < ctx.mais_expressao().nome_par.size(); i++)
                 {
@@ -157,23 +156,13 @@ public class AnalisadorSemantico extends LABaseListener {
                     {
                         if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
                         {
-                            out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+                            out.println("Linha "+linha+": identificador "+nomeVar+" nao declarado");
                         }
                     }
                     
                 }    
             
             
-            }else
-            {
-                if(ctx.getStart().getText().equals("retorne"))
-                {
-                    if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
-                    {
-                        linha = ctx.expressao().linha.get(0);
-                        out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
-                    }
-                }
             }
         }
     }
@@ -205,7 +194,7 @@ public class AnalisadorSemantico extends LABaseListener {
                     }
                     else
                     {
-                        out.println("identificador "+nomePar+" ja declarado anteriormente");
+                        out.println("Linha : identificador "+nomePar+" ja declarado anteriormente");
                     }
                 }
                 tabelaDeSimbolosGlobal.adicionarSimbolo(nome, "procedimento", listaPar);
@@ -215,10 +204,27 @@ public class AnalisadorSemantico extends LABaseListener {
             }
         }
         else 
-            out.println("identificador "+nome+" ja declarado anteriormente");
+            out.println("Linha : identificador "+nome+" ja declarado anteriormente");
+        
+        //ERRO 6
+	if (ctx.comandos().contemRetorne == true){ //Verifica se existe um retorne dentro de uma declaracao global
+            if (ctx.getStart().getText().equals("procedimento")){ //Verifica se o que chama o retorne nao eh uma funcao, ou seja, um procedimento
+                int linha = ctx.comandos().stop.getLine(); // Como todos os retornes sao utilizados no fim do comandos(), entao isso eh valido
+                out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+            }
+        }
             
     }
 
+    @Override
+    public void enterCorpo(LAParser.CorpoContext ctx){
+        //ERRO 6 TAMBEM
+        if (ctx.comandos().contemRetorne == true){ //Verifica se existe um retorne aqui, se existir foi utilizado um retorne na funcao principal
+            int linha = ctx.comandos().stop.getLine(); // Como todos os retornes sao utilizados no fim do comandos(), entao isso eh valido
+            out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+        }
+    }
+    
     private String detectarTipo(LAParser.ExpressaoContext ctx) {
        // String tipo = ctx.nome_par; //descobrir como atribuir lista
         //atribuir nome_par a uma lista
