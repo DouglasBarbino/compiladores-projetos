@@ -37,6 +37,17 @@ public class PilhaDeTabelas {
         }
         return false;
     }
+    
+    public TabelaDeSimbolos getSubtabela(String tipo)
+    {
+        for(int i = 0; i < pilha.size(); i++) {
+            if(pilha.get(i).existeSimbolo(tipo)) {
+                return pilha.get(i).getSubtabela(tipo);
+            }
+        }
+        
+        return null;
+    }
 
     public void desempilhar() {
         TabelaDeSimbolos ret = pilha.pop();
