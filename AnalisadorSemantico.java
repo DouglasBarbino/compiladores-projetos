@@ -153,12 +153,10 @@ public class AnalisadorSemantico extends LABaseListener {
                 {
                     if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
                     {
-                        linha = ctx.expressao().linha.get(0);
-                        out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+                        //linha = ctx.expressao().linha.get(0); // nao vou consertar, ja fiz isso rodar e mudaram outra vez
+                        //out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
                     }
                 }
-            
-        
     }
     
 //    @Override
@@ -370,13 +368,18 @@ public class AnalisadorSemantico extends LABaseListener {
                 {
                     if(!tabelaDoRegistro.existeSimbolo(nome))
                     {
-                        out.println("Linha "+linha+": identificador "+nome+" não declarado");
+                        //nome = nome + '.' + ctx.outros_ident().identificador().IDENT().getText();
+                        out.println("Linha "+linha+": identificador "+nome+" nao declarado");
                     }
                 }else
                 {
-                    out.println("Linha "+linha+": identificador "+nome+" não declarado");
+                    // Este erro ocorre na segunda vez que ele estah em identificador
+                    // entao eh preciso voltar dois nos (outros_ident e identificador)
+                    // para pegar o resto da variavel
+                    nome = ctx.getParent().getParent().getStart().getText() + '.';
+                    nome = nome + ctx.IDENT().getText();
+                    out.println("Linha "+linha+": identificador "+nome+" nao declarado");
                 }
-                   
             }
         
 //        else
@@ -398,7 +401,7 @@ public class AnalisadorSemantico extends LABaseListener {
 //               
 //               if(!tabelaDoReg.existeSimbolo(nome))
 //               {
-//                   out.println("Linha "+linha+": identificador "+nome+" não declarado");
+//                   out.println("Linha "+linha+": identificador "+nome+" nao declarado");
 //               }
 //               
 //            }
@@ -412,7 +415,7 @@ public class AnalisadorSemantico extends LABaseListener {
 //                linha = ctx.identificador().IDENT().getSymbol().getLine();
 //                if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
 //                {
-//                    out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
+//                    out.println("Linha "+linha+": identificador "+nomeVar+" nao declarado");
 //                }
 //            }    
         
@@ -442,7 +445,7 @@ public class AnalisadorSemantico extends LABaseListener {
 //               
 //        if(!tabelaDoReg.existeSimbolo(nome))
 //        {
-//            out.println("Linha "+linha+": identificador "+nome+" não declarado");
+//            out.println("Linha "+linha+": identificador "+nome+" nao declarado");
 //        }
     }
     
@@ -461,7 +464,7 @@ public class AnalisadorSemantico extends LABaseListener {
 //            linha = ctx.identificador().get(i).IDENT().getSymbol().getLine();
 //            if(!tabelaAtual.existeSimbolo(nome))
 //            {
-//                out.println("Linha "+linha+": identificador "+nome+" não declarado");
+//                out.println("Linha "+linha+": identificador "+nome+" nao declarado");
 //            }
 //            if(ctx.identificador().get(i).outros_ident().identificador() != null)
 //            {
@@ -472,7 +475,7 @@ public class AnalisadorSemantico extends LABaseListener {
 //               
 //               if(!tabelaDoReg.existeSimbolo(nome))
 //               {
-//                   out.println("Linha "+linha+": identificador "+nome+" não declarado");
+//                   out.println("Linha "+linha+": identificador "+nome+" nao declarado");
 //               }
 //               
 //            }
@@ -496,12 +499,10 @@ public class AnalisadorSemantico extends LABaseListener {
             int linha = ctx.IDENT().getSymbol().getLine();
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
-                out.println("Linha "+linha+": identificador "+nome+" não declarado");
+                nome = nome + '.' + ctx.chamada_partes().outros_ident().identificador().IDENT().getText();
+                out.println("Linha "+linha+": identificador "+nome+" nao declarado");
             }
         }
-        
-        
-        
     }
     
     @Override
@@ -514,10 +515,8 @@ public class AnalisadorSemantico extends LABaseListener {
             int linha = ctx.IDENT().getSymbol().getLine();
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
-                out.println("Linha "+linha+": identificador "+nome+" não declarado");
+                out.println("Linha "+linha+": identificador "+nome+" nao declarado");
             }
         }
     }
-
 }
-
