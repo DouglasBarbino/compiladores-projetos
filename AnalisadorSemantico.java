@@ -153,7 +153,7 @@ public class AnalisadorSemantico extends LABaseListener {
                 {
                     if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
                     {
-                        //linha = ctx.expressao().linha.get(0); // nao vou consertar, ja fiz isso rodar e mudaram outra vez
+                        //linha = ctx.expressao().linha.get(0); // nao vou consertar, jah fiz isso rodar e mudaram outra vez
                         //out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
                     }
                 }
@@ -376,10 +376,14 @@ public class AnalisadorSemantico extends LABaseListener {
                     // Este erro ocorre na segunda vez que ele estah em identificador
                     // entao eh preciso voltar dois nos (outros_ident e identificador)
                     // para pegar o resto da variavel
-                    nome = ctx.getParent().getParent().getStart().getText() + '.';
-                    nome = nome + ctx.IDENT().getText();
+                    //System.out.println("Tem como pai"+ctx.getParent().getStart().getText());
+                    if (ctx.getParent().getStart().getText().equals(".")){
+                        nome = ctx.getParent().getParent().getStart().getText() + '.';
+                        nome = nome + ctx.IDENT().getText();
+                    }
                     out.println("Linha "+linha+": identificador "+nome+" nao declarado");
                 }
+                   
             }
         
 //        else
@@ -499,10 +503,12 @@ public class AnalisadorSemantico extends LABaseListener {
             int linha = ctx.IDENT().getSymbol().getLine();
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
-                nome = nome + '.' + ctx.chamada_partes().outros_ident().identificador().IDENT().getText();
+                if (ctx.chamada_partes().outros_ident().identificador() != null)
+                    nome = nome + '.' + ctx.chamada_partes().outros_ident().identificador().IDENT().getText();
                 out.println("Linha "+linha+": identificador "+nome+" nao declarado");
             }
-        }
+        }   
+        
     }
     
     @Override
