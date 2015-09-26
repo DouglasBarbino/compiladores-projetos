@@ -90,7 +90,7 @@ public class AnalisadorSemantico extends LABaseListener {
                     out.println("Linha "+linha+": identificador " +nomeTipo+ " ja declarado anteriormente");
                 }
         }
-    }
+    } 
     
     @Override
     public void enterRegistro(LAParser.RegistroContext ctx)
@@ -141,7 +141,6 @@ public class AnalisadorSemantico extends LABaseListener {
                 if(!pilhaDeTabelas.existeSimbolo(tipoVar))
                 {
                     System.out.println(tabelaDeSimbolosAtual.toString());
-                    System.out.println("EH DAQUI QUE TA VINDO O ERRO");
                     out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
                     /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
                     tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
@@ -163,14 +162,14 @@ public class AnalisadorSemantico extends LABaseListener {
         int linha;
         String nomeVar;
         
-                if(ctx.getStart().getText().equals("retorne"))
-                {
-                    if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
-                    {
-                        //linha = ctx.expressao().linha.get(0); // nao vou consertar, jah fiz isso rodar e mudaram outra vez
-                        //out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
-                    }
-                }
+        if(ctx.getStart().getText().equals("retorne"))
+        {
+            if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
+            {
+                linha = ctx.getStop().getLine(); // pronto, nada como uma noite de sono pra melhorar meu humor e eu consertar isso
+                out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+            }
+        }
     }
     
 //    @Override
@@ -266,34 +265,53 @@ public class AnalisadorSemantico extends LABaseListener {
             String nome = ctx.IDENT(i).getText();
             System.out.println("Nome var "+nome);
             int linha = ctx.IDENT(i).getSymbol().getLine();
- 
-         if(EhRegistro == 0)   
-         {   if(tipoVar.equals("literal") || tipoVar.equals("inteiro") || tipoVar.equals("logico") || tipoVar.equals("real"))
+
+            if(EhRegistro == 0)   
             {
-                if(!pilhaDeTabelas.existeSimbolo(nome))
-                {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);
-                    System.out.println("Var adicionada "+nome+" "+tipoVar+" linha: "+linha);
-                }    
-                else //ERRO 1
-                      out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
-            }
-            else
-            {
-                if(!pilhaDeTabelas.existeSimbolo(tipoVar))
-                {
-                    System.out.println(tabelaDeSimbolosAtual.toString());
-                    out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
-                    /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
-                }else
+                if(tipoVar.equals("literal") || tipoVar.equals("inteiro") || tipoVar.equals("logico") || tipoVar.equals("real"))
                 {
                     if(!pilhaDeTabelas.existeSimbolo(nome))
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);	
+                    {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);
+                        System.out.println("Var adicionada "+nome+" "+tipoVar+" linha: "+linha);
+                    }    
                     else //ERRO 1
-                        out.println("Linha "+linha+": identificador "+nome+" ja declarado anteriormente");
+                        out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                }
+                else
+                {
+                    if(!pilhaDeTabelas.existeSimbolo(tipoVar))
+                    {
+                        System.out.println(tabelaDeSimbolosAtual.toString());
+                        out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
+                        /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
+                        tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
+                    }else
+                    {
+                        if(!pilhaDeTabelas.existeSimbolo(nome))
+                        tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);	
+                        else //ERRO 1
+                            out.println("Linha "+linha+": identificador "+nome+" ja declarado anteriormente");
+                    }
                 }
             }
-        }
+            else 
+            {
+                // Caso unico do teste 11 onde ele eh um registro, porem duas variaveis
+                // estao sendo criadas como aquele tipo registro. Soh esse caso entra
+                // aqui pois mais que uma declaracao dentro de um registro a segunda
+                // condicao eh falsa
+                if (EhRegistro == 1 && ctx.getParent().getParent().getStart().getText().equals("declare"))
+                {
+                    System.out.println("Entrou pra adicionar "+nome);
+                    if(!pilhaDeTabelas.existeSimbolo(nome))
+                    {   
+                        tabelaDeSimbolosAtual.adicionarSimbolo(nome,"registro", null, null);
+                        System.out.println("Var adicionada "+nome+" registro linha: "+linha);
+                    }    
+                    else //ERRO 1
+                        out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                }
+            }
         }  
     }
     
