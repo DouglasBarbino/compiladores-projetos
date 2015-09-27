@@ -95,7 +95,10 @@ public class AnalisadorSemantico extends LABaseListener {
     @Override
     public void enterRegistro(LAParser.RegistroContext ctx)
     {
-        String novoTipo = ctx.getParent().getParent().getStart().getText();
+        // jeito antigo: pega como nome do registro "tipo"
+        //String novoTipo = ctx.getParent().getParent().getStart().getText();
+        // jeito novo: pega como nome do registro o nome do registro
+        String novoTipo = ctx.getParent().getParent().getChild(1).getText();
         System.out.println("NovoTipo " + novoTipo);
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
 
@@ -107,6 +110,7 @@ public class AnalisadorSemantico extends LABaseListener {
             //tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, null);    
             tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, tabelaDoReg);
         }
+        
     }
     
     @Override
@@ -302,10 +306,11 @@ public class AnalisadorSemantico extends LABaseListener {
                 // condicao eh falsa
                 if (EhRegistro == 1 && ctx.getParent().getParent().getStart().getText().equals("declare"))
                 {
-                    System.out.println("Entrou pra adicionar "+nome);
+                    System.out.println("NovoTipo "+nome);
                     if(!pilhaDeTabelas.existeSimbolo(nome))
                     {   
-                        tabelaDeSimbolosAtual.adicionarSimbolo(nome,"registro", null, null);
+                        TabelaDeSimbolos tabelaDoReg = new TabelaDeSimbolos("registro"+nome);
+                        tabelaDeSimbolosAtual.adicionarSimbolo(nome,"tipo", null, tabelaDoReg);
                         System.out.println("Var adicionada "+nome+" registro linha: "+linha);
                     }    
                     else //ERRO 1
@@ -396,8 +401,15 @@ public class AnalisadorSemantico extends LABaseListener {
              
             if(!tabelaAtual.existeSimbolo(nome))
             {
+                if (ctx.getParent().getParent().getParent().getStart().getText() != null)
+                    //recupera o tipo do registro
+                    tipoDoRegistro = tabelaAtual.getTipo(ctx.getParent().getParent().getParent().getStart().getText());
+                    System.out.println("tipoDoRegistro "+tipoDoRegistro);
+                    //System.out.println("tabelaDoRegistro "+ctx.getParent().getParent().getParent().getStart().getText());
+                    tabelaDoRegistro =  pilhaDeTabelas.getSubtabela("registro"+tipoDoRegistro);
                 if(tabelaDoRegistro != null)
                 {
+                    System.out.println("agora foi");
                     if(!tabelaDoRegistro.existeSimbolo(nome))
                     {
                         //nome = nome + '.' + ctx.outros_ident().identificador().IDENT().getText();
