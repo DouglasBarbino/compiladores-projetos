@@ -73,4 +73,27 @@ public class GeradorCodigo extends LABaseListener {
             
         codigo.println(tipo+" "+nome);
     }
+    
+    
+    public void enterCmd(LAParser.CmdContext ctx){
+        //onde irao ser feitas as equacoes
+        String variavel, expressao;
+        //atribuicao simples
+        if (ctx.IDENT() != null && ctx.getStart().getText().equals("para")){
+            // verifica se nao eh atribuicao para ponteiro
+            if (ctx.getStart().getText().equals(ctx.IDENT().getText())){
+                variavel = ctx.IDENT().getText();
+                if (ctx.chamada_atribuicao().outros_ident() != null) //ver se eh variavel de registro
+                    //nome registro + . + nome variavel dentro do registro
+                    variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
+            }
+            else{
+                variavel = "*"+ctx.IDENT().getText();
+                if (ctx.outros_ident() != null) //ver se eh variavel de registro
+                    //nome registro + . + nome variavel dentro do registro
+                    variavel = variavel+ctx.outros_ident().getStart().getText()+ctx.outros_ident().identificador().IDENT().getText();
+            }
+            expressao = " = ";    
+        }
+    }
 }
