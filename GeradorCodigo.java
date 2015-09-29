@@ -74,7 +74,6 @@ public class GeradorCodigo extends LABaseListener {
         codigo.println(tipo+" "+nome);
     }
     
-    
     public void enterCmd(LAParser.CmdContext ctx){
         //onde irao ser feitas as equacoes
         String variavel, expressao;
@@ -85,15 +84,86 @@ public class GeradorCodigo extends LABaseListener {
                 variavel = ctx.IDENT().getText();
                 if (ctx.chamada_atribuicao().outros_ident() != null) //ver se eh variavel de registro
                     //nome registro + . + nome variavel dentro do registro
-                    variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
+                    variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+
+                            ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
             }
             else{
                 variavel = "*"+ctx.IDENT().getText();
                 if (ctx.outros_ident() != null) //ver se eh variavel de registro
                     //nome registro + . + nome variavel dentro do registro
-                    variavel = variavel+ctx.outros_ident().getStart().getText()+ctx.outros_ident().identificador().IDENT().getText();
+                    variavel = variavel+ctx.outros_ident().getStart().getText()+
+                            ctx.outros_ident().identificador().IDENT().getText();
             }
-            expressao = " = ";    
+            //NAO TENHO CERTEZA SE ALGUM CASO DA PROBLEMA FAZER ISSO, POR ENQUANTO SERVE ISSO QUE ATENDE TODOS OS CASOS
+            expressao = " = "+
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().getText(); 
+            //tem modulo
+            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas()!= null)
+                /*expressao = expressao+" "+
+                        ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas().getStart().getText()
+                        +" "+
+                        ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().getText();
+            */
+                expressao = expressao + capturaModulo(ctx);
+            
+            //tem multiplicacao / divisao
+            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().outros_fatores() != null)
+                expressao = expressao + capturaMultDiv(ctx);
+            
+            //tem adicao / subtracao
+            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().outros_termos() != null)
+                expressao = expressao + capturaAdiSub(ctx);
+
+            //jeito antigo caso seja necessario
+            //expressao = " = "; 
+            /*if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().
+                    termo().fator().parcela().parcela_nao_unario() != null)
+                expressao = expressao+ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().
+                        exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario().getText();
+            else {
+                if 
+            }*/
         }
+        
+        //escrita
+        
+    }
+    
+    private String capturaModulo(LAParser.CmdContext ctx) {
+        String expressao;
+        expressao = " "+
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas().getStart().getText()
+                    +" "+
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().getText();
+        return expressao;
+    }
+    
+    private String capturaMultDiv(LAParser.CmdContext ctx){
+        String expressao;
+        expressao = " "+
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().outros_fatores().getStart().getText();
+        if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas()!= null)
+            expressao = expressao + capturaModulo(ctx);
+        else
+            expressao = expressao + " " +
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().getText();
+        return expressao;
+    }
+    
+    private String capturaAdiSub(LAParser.CmdContext ctx){
+        String expressao;
+        expressao = " "+
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().outros_termos().getStart().getText();
+        if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().outros_fatores() != null){
+            expressao = expressao + capturaMultDiv(ctx);
+        }
+        else{
+            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas()!= null)
+                expressao = expressao + capturaModulo(ctx);
+            else
+                expressao = expressao + " " +
+                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().getText();
+        }
+        return expressao;
     }
 }
