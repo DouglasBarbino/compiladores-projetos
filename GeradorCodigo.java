@@ -40,10 +40,23 @@ public class GeradorCodigo extends LABaseListener {
         codigo.println("}");
     }
     
+    public void enterDeclaracao_local(LAParser.Declaracao_localContext ctx) {
+        
+        // declarando um tipo de registro
+        if (ctx.getStart().getText().equals("tipo")){
+            codigo.println("typedef struct {");
+        }
+    }
+    
     public void enterVariavel(LAParser.VariavelContext ctx) {
         //Declarando uma variavel
         String nome = ctx.IDENT().getText();
         String tipo = null;
+        
+        //Caso foi declarada mais de uma variavel com esse tipo
+        //deixar desse jeito para montar o codigo, para adicionar na tabela de simbolos utilizar a regra do mais_var
+        if (ctx.mais_var() != null)
+            nome = nome+ctx.mais_var().getText();
         //Caso tipo basico nao seja nulo, a variavel sera um dos 4 tipos de la
         if (ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico() != null){
             switch (ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getStart().getText()){
@@ -71,12 +84,35 @@ public class GeradorCodigo extends LABaseListener {
         if (ctx.tipo().tipo_estendido().ponteiros_opcionais() != null)
             tipo = tipo + "*";
             
-        codigo.println(tipo+" "+nome);
+        codigo.println(tipo+" "+nome+";");
+    }
+    
+    public void exitRegistro(LAParser.RegistroContext ctx){
+        
+        String variaveis;
+        //Declarou tudo o que tinha pra se declarar no registro, fecha a chave dele
+        //caso seja um tipo de registro
+        if (ctx.getParent().getParent().getStart().getText().equals("tipo"))
+            //getChild(1) eh o nome do tipo
+            variaveis = ctx.getParent().getParent().getChild(1).getText();
+        
+        //caso contrario eh apenas um registro
+        else {
+            //eh o nome do registro
+            variaveis = ctx.getParent().getParent().getStart().getText();
+            // verifica se mais de uma variavel eh declarada naquele registro, como no exemplo 11 dos erros semanticos
+            // ai se verifica se mais_var eh nulo ou nao
+            if (ctx.getParent().getParent().getChild(2).getText() != null)
+                variaveis = variaveis + ctx.getParent().getParent().getChild(2).getText();
+        }
+        codigo.println("} "+variaveis);
     }
     
     public void enterCmd(LAParser.CmdContext ctx){
+        
+        String variavel, expressao = " = ";
+        
         //onde irao ser feitas as equacoes
-        String variavel, expressao;
         //atribuicao simples
         if (ctx.IDENT() != null && ctx.getStart().getText().equals("para")){
             // verifica se nao eh atribuicao para ponteiro
@@ -86,6 +122,7 @@ public class GeradorCodigo extends LABaseListener {
                     //nome registro + . + nome variavel dentro do registro
                     variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+
                             ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
+                expressao = expressao + ctx.chamada_atribuicao().expressao().getText();
             }
             else{
                 variavel = "*"+ctx.IDENT().getText();
@@ -93,77 +130,12 @@ public class GeradorCodigo extends LABaseListener {
                     //nome registro + . + nome variavel dentro do registro
                     variavel = variavel+ctx.outros_ident().getStart().getText()+
                             ctx.outros_ident().identificador().IDENT().getText();
+                expressao = expressao + ctx.expressao().getText();
             }
-            //NAO TENHO CERTEZA SE ALGUM CASO DA PROBLEMA FAZER ISSO, POR ENQUANTO SERVE ISSO QUE ATENDE TODOS OS CASOS
-            expressao = " = "+
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().getText(); 
-            //tem modulo
-            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas()!= null)
-                /*expressao = expressao+" "+
-                        ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas().getStart().getText()
-                        +" "+
-                        ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().getText();
-            */
-                expressao = expressao + capturaModulo(ctx);
             
-            //tem multiplicacao / divisao
-            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().outros_fatores() != null)
-                expressao = expressao + capturaMultDiv(ctx);
-            
-            //tem adicao / subtracao
-            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().outros_termos() != null)
-                expressao = expressao + capturaAdiSub(ctx);
-
-            //jeito antigo caso seja necessario
-            //expressao = " = "; 
-            /*if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().
-                    termo().fator().parcela().parcela_nao_unario() != null)
-                expressao = expressao+ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().
-                        exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario().getText();
-            else {
-                if 
-            }*/
+            codigo.println(variavel+expressao+";");
         }
-        
         //escrita
         
-    }
-    
-    private String capturaModulo(LAParser.CmdContext ctx) {
-        String expressao;
-        expressao = " "+
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas().getStart().getText()
-                    +" "+
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().getText();
-        return expressao;
-    }
-    
-    private String capturaMultDiv(LAParser.CmdContext ctx){
-        String expressao;
-        expressao = " "+
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().outros_fatores().getStart().getText();
-        if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas()!= null)
-            expressao = expressao + capturaModulo(ctx);
-        else
-            expressao = expressao + " " +
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().getText();
-        return expressao;
-    }
-    
-    private String capturaAdiSub(LAParser.CmdContext ctx){
-        String expressao;
-        expressao = " "+
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().outros_termos().getStart().getText();
-        if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().outros_fatores() != null){
-            expressao = expressao + capturaMultDiv(ctx);
-        }
-        else{
-            if (ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().outras_parcelas()!= null)
-                expressao = expressao + capturaModulo(ctx);
-            else
-                expressao = expressao + " " +
-                    ctx.chamada_atribuicao().expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().getText();
-        }
-        return expressao;
     }
 }
