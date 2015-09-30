@@ -63,11 +63,12 @@ public class TabelaDeSimbolos {
     
     public List<String> getListaPar(String nomeSubrotina)
     {
-        //List<String> ListaPar = new ArrayList<String>();
+        List<String> ListaPar = new ArrayList<String>();
         
         for(int i = 0; i < simbolos.size(); i++) {
             if(simbolos.get(i).getNome().equals(nomeSubrotina)) {
-                return simbolos.get(i).getListaPar();
+                ListaPar = simbolos.get(i).getListaPar();
+                return ListaPar;
             }
         }
         
