@@ -45,8 +45,8 @@ public class PilhaDeTabelas {
     {
         List<String> parametros = new ArrayList<String>();
         for(int i = 0; i < pilha.size(); i++) {
-            if(pilha.get(i).getListaPar(subRotina)!=null) {
-                parametros = pilha.get(i).getListaPar(subRotina);
+            if(pilha.get(i).existeSimbolo(subRotina)) {
+                return pilha.get(i).getListaPar(subRotina);
             }
         }
         
