@@ -121,11 +121,13 @@ public class GeradorCodigo extends LABaseListener {
     @Override
     public void enterCmd(LAParser.CmdContext ctx){
         
-        String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional;
+        String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional, variavelPara, escrita;
+        
+        estrutura = ctx.getStart().getText();
         
         //onde irao ser feitas as equacoes
         //atribuicao simples
-        if (ctx.IDENT() != null && ctx.getStart().getText().equals("para")){
+        if (ctx.IDENT() != null && estrutura.equals("para")){
             // verifica se nao eh atribuicao para ponteiro
             if (ctx.getStart().getText().equals(ctx.IDENT().getText())){
                 variavel = ctx.IDENT().getText();
@@ -147,9 +149,6 @@ public class GeradorCodigo extends LABaseListener {
             codigo.println(variavel+expressao+";");
         }
         else{
-            
-            estrutura = ctx.getStart().getText();
-            
             // verifica se eh se, caso, para ou enquanto pois sua estrutura inicial eh parecida
             if (estrutura.equals("se") || estrutura.equals("caso") || 
                 estrutura.equals("para") || estrutura.equals("enquanto")){
@@ -175,7 +174,7 @@ public class GeradorCodigo extends LABaseListener {
                     case "se":
                     case "enquanto":
                         //pega a primeira parte de uma expressao
-                        condicao = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
+                        condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
                         //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
                         if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional() != null){
                             condicao = condicao + tratamentoOpRelacional(ctx);
@@ -183,24 +182,74 @@ public class GeradorCodigo extends LABaseListener {
                         else
                             condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getText();
                         
+                        //RESOLVER A QUESTAO DE TRATAR A SAIDA EM UM NOH PARA TERMINAR ESSA PARTE
+                        
                         break;
                     case "caso":
-                        condicao = "switch";
+                        // por algum motivo ele nao estah me deixando fazer ctx.exp_aritmetica.getText();
+                        condicao = condicao+ctx.getChild(1).getText();
                         break;
-                    case "para":
-                        condicao = "for";
-                        break;
-                    default: //enquanto
-                        condicao = "while";
+                    default: //para
+                        //mesmo problema que no caso do caso (:P), nao consigo fazer ctx.exp_aritmetica.getText();
+                        variavelPara = ctx.IDENT().getText();
+                        condicao = condicao + variavelPara + " = " + ctx.getChild(3).getText() + "; ";
+                        condicao = condicao + variavelPara + " <= " + ctx.getChild(5).getText() + "; ";
+                        condicao = condicao + variavelPara + "++";
                 }
                 
                 //fecha o parenteses para todos e imprime no codigo
                 condicao = condicao + ") {";
                 codigo.println(condicao);
             }
+            else{
+                if (estrutura.equals("leia")){
+                    //PRECISA DA TABELA DE SIMBOLOS
+                }
+                else{
+                    if (estrutura.equals("escrita")){
+                        escrita = "printf(";
+                        
+                        //verifica se tem texto para ser impresso
+                        if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                            .termo().fator().parcela().parcela_nao_unario() != null)
+                            escrita = escrita + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                            .termo().fator().parcela().parcela_nao_unario().getText();
+                        
+                        //PRECISA DA TABELA DE SIMBOLOS
+                        escrita = escrita + ");";
+                    }
+                    else //retornar algo
+                        codigo.println("return "+ctx.expressao().getText()+";");
+                }
+            }
         }
         //escrita
        
+    }
+    
+    public void enterSelecao(LAParser.SelecaoContext ctx) {
+        //utilizado para montar cases da estrutura condicional escolha
+        int comecoIntervalo, fimIntervalo, i;
+        
+        //convertendo numeros para inteiros, no primeiro caso verifica se eh negativo
+        if (ctx.constantes().numero_intervalo().op_unario() != null)
+            comecoIntervalo = Integer.parseInt("-"+ctx.constantes().numero_intervalo().NUM_INT().getText());
+        else
+            comecoIntervalo = Integer.parseInt(ctx.constantes().numero_intervalo().NUM_INT().getText());
+                        
+        //verifica se o intervalo que deve ser percorrido no case eh de apenas um numero ou nao
+        if (ctx.constantes().numero_intervalo().intervalo_opcional() != null){
+            if (ctx.constantes().numero_intervalo().intervalo_opcional().op_unario() != null)
+                fimIntervalo = Integer.parseInt("-"+ctx.constantes().numero_intervalo().intervalo_opcional().NUM_INT().getText());
+            else
+                fimIntervalo = Integer.parseInt(ctx.constantes().numero_intervalo().intervalo_opcional().NUM_INT().getText());
+        }
+        else
+            fimIntervalo = comecoIntervalo;
+                        
+        //inicia o loop de criacao dos case
+        for (i=comecoIntervalo; i<fimIntervalo; i++)
+            codigo.println("case "+i+":");
     }
     
     private String tratamentoOpE(LAParser.CmdContext ctx) {
