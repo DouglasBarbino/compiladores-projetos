@@ -27,7 +27,7 @@ public class EntradaTabelaDeSimbolos {
     }
     
     public String getNome() {
-        return nome;
+        return this.nome;
     }
     
     public TabelaDeSimbolos getsubTabela()
@@ -35,9 +35,14 @@ public class EntradaTabelaDeSimbolos {
         return this.subTabeladoRegistro;
     }
     
+    public List<String> getListaPar()
+    {
+        return this.parametros;
+    }
+            
     
     public String getTipo() {
-        return tipo;
+        return this.tipo;
     }
     
     @Override
