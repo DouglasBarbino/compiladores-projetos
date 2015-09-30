@@ -43,6 +43,8 @@ public class AnalisadorSemantico extends LABaseListener {
     List<String> TipoArg;
     String nomeSubRotina;
     int Linha;
+    String NomeDecSubRotina;
+    TabelaDeSimbolos tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada;
     
     
     
@@ -251,12 +253,15 @@ public class AnalisadorSemantico extends LABaseListener {
         String nome = ctx.IDENT().getText();
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         
+        tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada = tabelaDeSimbolosAtual;
+        
         if (ctx.getStart().getText().equals("procedimento"))
         {
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
-                tabelaDeSimbolosAtual.adicionarSimbolo(nome, "procedimento", null, null);
-                TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+ nome);
+               // tabelaDeSimbolosAtual.adicionarSimbolo(nome, "procedimento", null, null);
+                NomeDecSubRotina = nome;
+                TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento"+nome);
                 pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
             }else
             {
@@ -300,8 +305,9 @@ public class AnalisadorSemantico extends LABaseListener {
                 EhFuncao = 1;
                 if(!pilhaDeTabelas.existeSimbolo(nome))
                 {
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, "funcao", null, null);
-                    TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+ nome);
+                   // tabelaDeSimbolosAtual.adicionarSimbolo(nome, "funcao", null, null);
+                    NomeDecSubRotina = nome;
+                    TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao"+nome);
                     pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);  
                  }else
                  {
@@ -409,9 +415,14 @@ public class AnalisadorSemantico extends LABaseListener {
     public void enterParametro(LAParser.ParametroContext ctx)
     {
        if(ctx.tipo_estendido().tipo_basico_ident().tipo_basico()!=null) 
-           TipoPar = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+       {  TipoPar = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+           System.out.println("Tipo do Parametro no enterParametro: "+TipoPar);
+       }   
        else
+       {
            TipoPar = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
+           System.out.println("Tipo do Parametro no enterParametro: "+TipoPar);
+       }
     };
     
     @Override
@@ -419,8 +430,17 @@ public class AnalisadorSemantico extends LABaseListener {
     {
         
             EhParametro = 0;
-            TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-            tabelaDeSimbolosAtual.adicionarSimbolo("listaDeParametros", null, listaPar, null);
+            //TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+            System.out.println("Nome da subrotina que está sendo adicionada a lista de parametros "+NomeDecSubRotina);
+            tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada.adicionarSimbolo(NomeDecSubRotina, null, listaPar, null);
+            
+            System.out.println("Tipos dos parametros adicionados com o nome "+NomeDecSubRotina);
+            
+            for( int i = 0; i < listaPar.size(); i++)
+            {
+                System.out.println(listaPar.get(i));
+            }
+            
             
             listaPar.clear();
         
@@ -492,9 +512,22 @@ public class AnalisadorSemantico extends LABaseListener {
         if(PassouParametro == 1)
         {
             List<String> EspecificacaoParametros = new ArrayList<String>();
-        
+            System.out.println("Nome da subrotina no chamada Partes: "+ nomeSubRotina);
             EspecificacaoParametros = pilhaDeTabelas.getListaPar(nomeSubRotina);
+            
+            
+            
+            for(int j = 0; j < EspecificacaoParametros.size(); j++)
+            {
+                System.out.println("Parametros: "+EspecificacaoParametros.get(j));
+            }
+            
+            for(int j = 0; j < TipoArg.size(); j++)
+            {
+                System.out.println("Parametros: "+TipoArg.get(j));
+            }
         
+            
             if(EspecificacaoParametros.size() != TipoArg.size())
             {
                  out.println("Linha "+Linha+": incompatibilidade de parametros na chamada de "+ nomeSubRotina);
@@ -725,7 +758,11 @@ public class AnalisadorSemantico extends LABaseListener {
         if(ctx.IDENT()!=null)
         {
             String nome = ctx.IDENT().getText();
-            nomeSubRotina = nome;
+            if(ctx.chamada_partes().getStart().getText().equals("("))
+            {
+                nomeSubRotina = nome;
+                System.out.println("Nome da subrotina: "+nomeSubRotina);
+            }
             System.out.println("Nome parcela_unario "+nome);
             int linha = ctx.IDENT().getSymbol().getLine();
             Linha = linha;
