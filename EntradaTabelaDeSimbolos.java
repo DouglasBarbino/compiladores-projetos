@@ -18,12 +18,28 @@ public class EntradaTabelaDeSimbolos {
     private List<String> parametros;
     private TabelaDeSimbolos subTabeladoRegistro;
     
-    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> parametros, TabelaDeSimbolos sub) 
+    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub) 
     {
         this.nome = nome;
         this.tipo = tipo;
-        this.parametros = parametros;
         this.subTabeladoRegistro = sub;
+        
+        if(listaPassada == null)
+        {
+            this.parametros = listaPassada;
+        }else
+        {
+            this.parametros = new ArrayList<String>();
+        
+            for(int i=0; i< listaPassada.size(); i++)
+            {
+               this.parametros.add(i,listaPassada.get(i));
+            }
+        }
+        
+
+//parametros;
+        
     }
     
     public String getNome() {
