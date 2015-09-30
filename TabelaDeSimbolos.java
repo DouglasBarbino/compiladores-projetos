@@ -61,6 +61,19 @@ public class TabelaDeSimbolos {
         return null;
     }
     
+    public List<String> getListaPar(String nomeSubrotina)
+    {
+        //List<String> ListaPar = new ArrayList<String>();
+        
+        for(int i = 0; i < simbolos.size(); i++) {
+            if(simbolos.get(i).getNome().equals(nomeSubrotina)) {
+                return simbolos.get(i).getListaPar();
+            }
+        }
+        
+       return null; 
+    }
+    
 //    public TabelaDeSimbolos getTabela(String tipo)
 //    {
 //        for(EntradaTabelaDeSimbolos etds:simbolos) {
