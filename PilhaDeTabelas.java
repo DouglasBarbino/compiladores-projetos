@@ -6,7 +6,7 @@
 package trabalho1;
 
 import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 /**
  *
@@ -27,6 +27,30 @@ public class PilhaDeTabelas {
 
     public TabelaDeSimbolos topo() {
         return pilha.peek();
+    }
+    
+    public String getTipo(String nome)
+    {
+        String tipo = null;
+        for(int i = 0; i < pilha.size(); i++) {
+            if(pilha.get(i).getTipo(nome)!=null) {
+                tipo = pilha.get(i).getTipo(nome);
+            }
+        }
+        
+        return tipo;
+    }
+    
+    public List<String> getListaPar(String subRotina)
+    {
+        List<String> parametros = new ArrayList<String>();
+        for(int i = 0; i < pilha.size(); i++) {
+            if(pilha.get(i).getListaPar(subRotina)!=null) {
+                parametros = pilha.get(i).getListaPar(subRotina);
+            }
+        }
+        
+        return parametros;
     }
 
     public boolean existeSimbolo(String nome) {
