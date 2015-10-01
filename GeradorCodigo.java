@@ -122,6 +122,7 @@ public class GeradorCodigo extends LABaseListener {
         codigo.println("} "+variaveis);
     }
     
+    @Override
     public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         
         String declaracao;
@@ -170,7 +171,7 @@ public class GeradorCodigo extends LABaseListener {
             declaracao = declaracao + ctx.parametros_opcional().parametro().identificador().getText();
             
             if (ctx.parametros_opcional().parametro().mais_parametros() != null)
-                //aqui tambem jah seria uma boa poder tratar retornos no noh, assim precisaria fazer todo 
+                //aqui tambem jah seria uma boa poder tratar retornos no noh, assim nao precisaria fazer todo 
                 // o tratamento para o mais_parametros... por enquanto fica soh a virgula pois nao tem
                 // nenhum caso de teste que utilize mais que um parametro, qualquer coisa dou uma melhorada aqui depois...
                 declaracao = declaracao + " ,";
@@ -182,6 +183,7 @@ public class GeradorCodigo extends LABaseListener {
         //aqui vem os comandos
     }
     
+    @Override
     public void exitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         //Declarou tudo o que tinha pra se declarar no procedimento ou funcao, fecha a chave dele
         codigo.println("}");
@@ -302,8 +304,6 @@ public class GeradorCodigo extends LABaseListener {
                 }
             }
         }
-        //escrita
-       
     }
     
     public void enterSelecao(LAParser.SelecaoContext ctx) {
