@@ -45,6 +45,7 @@ public class AnalisadorSemantico extends LABaseListener {
     int Linha;
     String NomeDecSubRotina;
     TabelaDeSimbolos tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada;
+    String TipoFuncao;
     
     
     
@@ -261,6 +262,7 @@ public class AnalisadorSemantico extends LABaseListener {
             {
                // tabelaDeSimbolosAtual.adicionarSimbolo(nome, "procedimento", null, null);
                 NomeDecSubRotina = nome;
+                TipoFuncao = null;
                 TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento"+nome);
                 pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
             }else
@@ -307,6 +309,14 @@ public class AnalisadorSemantico extends LABaseListener {
                 {
                    // tabelaDeSimbolosAtual.adicionarSimbolo(nome, "funcao", null, null);
                     NomeDecSubRotina = nome;
+                    if(ctx.tipo_estendido().tipo_basico_ident().tipo_basico()==null)
+                    {
+                        TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
+                    }else
+                    {
+                        TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                    }
+                    
                     TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao"+nome);
                     pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);  
                  }else
@@ -432,7 +442,7 @@ public class AnalisadorSemantico extends LABaseListener {
             EhParametro = 0;
             //TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
             System.out.println("Nome da subrotina que está sendo adicionada a lista de parametros "+NomeDecSubRotina);
-            tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada.adicionarSimbolo(NomeDecSubRotina, null, listaPar, null);
+            tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada.adicionarSimbolo(NomeDecSubRotina, TipoFuncao, listaPar, null);
             
             System.out.println("Tipos dos parametros adicionados com o nome "+NomeDecSubRotina);
             
