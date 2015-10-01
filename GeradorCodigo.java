@@ -47,8 +47,14 @@ public class GeradorCodigo extends LABaseListener {
     @Override
     public void enterDeclaracao_local(LAParser.Declaracao_localContext ctx) {
         // declarando um tipo de registro
-        if (ctx.getStart().getText().equals("tipo")){
+        String tipoDeclLocal = ctx.getStart().getText();
+        
+        if (tipoDeclLocal.equals("tipo"))
             codigo.println("typedef struct {");
+        else{
+            // declarando uma constante
+            if (tipoDeclLocal.equals("constante"))
+                codigo.println("#define "+ctx.IDENT().getText()+" "+ctx.valor_constante().getText());
         }
     }
     
@@ -190,6 +196,26 @@ public class GeradorCodigo extends LABaseListener {
     }
     
     @Override
+    public void exitComandos(LAParser.ComandosContext ctx) {
+        //Ao contrario do caso, para ou enquanto onde se fecha a chave no exitCmd, o se
+        // se fecha a chave aqui devido a possibilidade do se possuir um senao
+        
+        //Nao se usa o getStart aqui pois o comandos tambem eh o que inicia a declaracao dos
+        // comandos apos a declaracao de variaveis no main(), o que poderia resultar em erros caso a 
+        // primeira coisa que se declara apos as variaveis eh um se, entao se pega o texto do primeiro filho
+        if (ctx.getParent().getChild(0)).getText().equals("se"))
+            codigo.println("}");
+        else{
+            //Apos colocar todos os comandos dentro de um case do caso, eh necessario colocar um break
+            // entao para verificar se eh a situacao do caso se procura pelo irmao da esquerda do comandos,
+            // que na regra do caso eh o token ":"     
+            if (ctx.getParent().getChild(1)).getText().equals(":"))
+                codigo.println("break;");
+        }
+        
+    }
+    
+    @Override
     public void enterCmd(LAParser.CmdContext ctx){
         
         String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional, variavelPara, escrita;
@@ -248,6 +274,9 @@ public class GeradorCodigo extends LABaseListener {
                 switch (estrutura){
                     case "se":
                     case "enquanto":
+                        
+                        //Caso de fato nao seja possivel tratar o retorno do token no noh
+                        /* 
                         //pega a primeira parte de uma expressao
                         condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
                         //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
@@ -256,9 +285,8 @@ public class GeradorCodigo extends LABaseListener {
                         }
                         else
                             condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getText();
-                        
-                        //RESOLVER A QUESTAO DE TRATAR A SAIDA EM UM NOH PARA TERMINAR ESSA PARTE
-                        
+                        */
+                        condicao = condicao + ctx.expressao().getText();
                         break;
                     case "caso":
                         // por algum motivo ele nao estah me deixando fazer ctx.exp_aritmetica.getText();
@@ -279,7 +307,7 @@ public class GeradorCodigo extends LABaseListener {
             else{
                 if (estrutura.equals("faca")){
                     //estrutura de repeticao do..while
-                    
+                    codigo.println("do {");
                 }
                 else{
                     if (estrutura.equals("leia")){
@@ -306,6 +334,35 @@ public class GeradorCodigo extends LABaseListener {
         }
     }
     
+    @Override
+    public void exitCmd(LAParser.CmdContext ctx) {
+        //Declarou tudo o que tinha para declarar em caso, para ou enquanto, fecha a chave 
+        //O se nao eh tratado aqui pois ele pode ter um senao
+        String tipoCmd = ctx.getStart().getText(); 
+        
+        if (tipoCmd.equals("caso") || tipoCmd.equals("para") || tipoCmd.equals("enquanto"))
+            codigo.println("}");
+    }
+    
+    @Override
+    public void enterSenao_opcional(LAParser.Senao_opcionalContext ctx) {
+        //verifica se o primeiro token encontrado no pai eh se, ou seja, eh o caso de senao,
+        // ou se eh um caso, ou seja, eh o caso do default
+        if (ctx.getParent().getStart().getText().equals("se"))
+            codigo.println("else {");
+        else
+            codigo.println("default:");
+    }
+    
+    @Override
+    public void exitSenao_opcional(LAParser.Senao_opcionalContext ctx) {
+        //verifica se o primeiro token encontrado no pai eh se pois apenas no se eh necessario
+        // fechar a chave do senao, na regra do caso o default nao utiliza chave
+        if (ctx.getParent().getStart().getText().equals("se"))
+            codigo.println("}");
+    }
+    
+    @Override
     public void enterSelecao(LAParser.SelecaoContext ctx) {
         //utilizado para montar cases da estrutura condicional escolha
         int comecoIntervalo, fimIntervalo, i;
@@ -329,6 +386,17 @@ public class GeradorCodigo extends LABaseListener {
         //inicia o loop de criacao dos case
         for (i=comecoIntervalo; i<fimIntervalo; i++)
             codigo.println("case "+i+":");
+    }
+    
+    public void enterExpressao(LAParser.ExpressaoContext ctx) {
+        
+        //tratando o final do do..while, pra isso verificando se o primeiro token encontrado
+        // no pai eh faca, ou seja, ver se o cmd tem faca
+        if (ctx.getParent().getStart().getText().equals("faca"))
+        {
+            //caso for possivel tratar o retorno do noh, isso vai estar correto
+            codigo.println("} while ("+ctx.getText()+");");
+        }
     }
     
     private String tratamentoOpE(LAParser.CmdContext ctx) {
