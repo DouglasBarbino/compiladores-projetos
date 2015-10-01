@@ -92,6 +92,10 @@ public class GeradorCodigo extends LABaseListener {
         //verificar se eh um ponteiro
         if (ctx.tipo().tipo_estendido().ponteiros_opcionais() != null)
             tipo = tipo + "*";
+        
+        //verificar se eh um vetor
+        if (ctx.dimensao() != null)
+            nome = nome + ctx.dimensao().getText();
             
         codigo.println(tipo+" "+nome+";");
     }
@@ -116,6 +120,71 @@ public class GeradorCodigo extends LABaseListener {
                 variaveis = variaveis + ctx.getParent().getParent().getChild(2).getText();
         }
         codigo.println("} "+variaveis);
+    }
+    
+    public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
+        
+        String declaracao;
+        
+        //verifica se eh um procedimento ou uma funcao
+        if (ctx.getStart().getText().equals("procedimento"))
+            declaracao = "void ";
+        else{
+            // como eh funcao precisa ser verificado o tipo dela
+            switch (ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText()){
+                case "literal":
+                    declaracao = "char ";
+                    break;
+                case "inteiro":
+                    declaracao = "int ";
+                    break;
+                case "real":
+                    declaracao = "float ";
+                    break;
+                default: //caso logico
+                    declaracao = "bool ";   
+            }
+        }
+        
+        declaracao = declaracao + ctx.IDENT().getText()+" (";
+        
+        //captura dos parametros
+        if (ctx.parametros_opcional() != null){
+            // pega o tipo do parametro
+            switch (ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText()){
+                case "literal":
+                    //char eh passado como um ponteiro aqui
+                    declaracao = declaracao + "char* ";
+                    break;
+                case "inteiro":
+                    declaracao = declaracao + "int ";
+                    break;
+                case "real":
+                    declaracao = declaracao + "float ";
+                    break;
+                default: //caso logico
+                    declaracao = declaracao + "bool ";  
+            }
+            
+            // pega o nome da variavel
+            declaracao = declaracao + ctx.parametros_opcional().parametro().identificador().getText();
+            
+            if (ctx.parametros_opcional().parametro().mais_parametros() != null)
+                //aqui tambem jah seria uma boa poder tratar retornos no noh, assim precisaria fazer todo 
+                // o tratamento para o mais_parametros... por enquanto fica soh a virgula pois nao tem
+                // nenhum caso de teste que utilize mais que um parametro, qualquer coisa dou uma melhorada aqui depois...
+                declaracao = declaracao + " ,";
+        }
+        
+        declaracao = declaracao + ") {";
+        codigo.println(declaracao);
+        
+        //aqui vem os comandos
+    }
+    
+    public void exitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
+        //Declarou tudo o que tinha pra se declarar no procedimento ou funcao, fecha a chave dele
+        codigo.println("}");
     }
     
     @Override
@@ -145,6 +214,10 @@ public class GeradorCodigo extends LABaseListener {
                             ctx.outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.expressao().getText();
             }
+            
+            //verificar se eh um vetor
+            if (ctx.chamada_atribuicao().dimensao() != null)
+                variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
             
             codigo.println(variavel+expressao+";");
         }
@@ -202,24 +275,30 @@ public class GeradorCodigo extends LABaseListener {
                 codigo.println(condicao);
             }
             else{
-                if (estrutura.equals("leia")){
-                    //PRECISA DA TABELA DE SIMBOLOS
+                if (estrutura.equals("faca")){
+                    //estrutura de repeticao do..while
+                    
                 }
                 else{
-                    if (estrutura.equals("escrita")){
-                        escrita = "printf(";
-                        
-                        //verifica se tem texto para ser impresso
-                        if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
-                            .termo().fator().parcela().parcela_nao_unario() != null)
-                            escrita = escrita + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
-                            .termo().fator().parcela().parcela_nao_unario().getText();
-                        
+                    if (estrutura.equals("leia")){
                         //PRECISA DA TABELA DE SIMBOLOS
-                        escrita = escrita + ");";
                     }
-                    else //retornar algo
-                        codigo.println("return "+ctx.expressao().getText()+";");
+                    else{
+                        if (estrutura.equals("escrita")){
+                            escrita = "printf(";
+                        
+                            //verifica se tem texto para ser impresso
+                            if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                .termo().fator().parcela().parcela_nao_unario() != null)
+                                escrita = escrita + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                .termo().fator().parcela().parcela_nao_unario().getText();
+                        
+                            //PRECISA DA TABELA DE SIMBOLOS
+                            escrita = escrita + ");";
+                        }
+                        else //retornar algo
+                            codigo.println("return "+ctx.expressao().getText()+";");
+                    }
                 }
             }
         }
