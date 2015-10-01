@@ -70,7 +70,7 @@ public class GeradorCodigo extends LABaseListener {
         
         //Caso foi declarada mais de uma variavel com esse tipo
         //deixar desse jeito para montar o codigo, para adicionar na tabela de simbolos utilizar a regra do mais_var
-        if (ctx.mais_var() != null)
+        if (ctx.mais_var().getStart().getText().equals(","))
             nome = nome+ctx.mais_var().getText();
         //Caso tipo basico nao seja nulo, a variavel sera um dos 4 tipos de la
         if (ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico() != null){
@@ -95,12 +95,12 @@ public class GeradorCodigo extends LABaseListener {
                 tipo = ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
         }
         
-        //verificar se eh um ponteiro
-        if (ctx.tipo().tipo_estendido().ponteiros_opcionais() != null)
+        //verificar se eh um ponteiro     
+        if (ctx.tipo().tipo_estendido().ponteiros_opcionais().getText().equals("^"))
             tipo = tipo + "*";
         
         //verificar se eh um vetor
-        if (ctx.dimensao() != null)
+        if (ctx.dimensao().getStart().getText().equals("["))
             nome = nome + ctx.dimensao().getText();
             
         codigo.println(tipo+" "+nome+";");
@@ -176,7 +176,7 @@ public class GeradorCodigo extends LABaseListener {
             // pega o nome da variavel
             declaracao = declaracao + ctx.parametros_opcional().parametro().identificador().getText();
             
-            if (ctx.parametros_opcional().parametro().mais_parametros() != null)
+            if (ctx.parametros_opcional().parametro().mais_parametros().getStart().getText().equals(","))
                 //aqui tambem jah seria uma boa poder tratar retornos no noh, assim nao precisaria fazer todo 
                 // o tratamento para o mais_parametros... por enquanto fica soh a virgula pois nao tem
                 // nenhum caso de teste que utilize mais que um parametro, qualquer coisa dou uma melhorada aqui depois...
@@ -203,13 +203,13 @@ public class GeradorCodigo extends LABaseListener {
         //Nao se usa o getStart aqui pois o comandos tambem eh o que inicia a declaracao dos
         // comandos apos a declaracao de variaveis no main(), o que poderia resultar em erros caso a 
         // primeira coisa que se declara apos as variaveis eh um se, entao se pega o texto do primeiro filho
-        if (ctx.getParent().getChild(0)).getText().equals("se"))
+        if (ctx.getParent().getChild(0).getText().equals("se"))
             codigo.println("}");
         else{
             //Apos colocar todos os comandos dentro de um case do caso, eh necessario colocar um break
             // entao para verificar se eh a situacao do caso se procura pelo irmao da esquerda do comandos,
             // que na regra do caso eh o token ":"     
-            if (ctx.getParent().getChild(1)).getText().equals(":"))
+            if (ctx.getParent().getChild(1).getText().equals(":"))
                 codigo.println("break;");
         }
         
@@ -224,28 +224,34 @@ public class GeradorCodigo extends LABaseListener {
         
         //onde irao ser feitas as equacoes
         //atribuicao simples
-        if (ctx.IDENT() != null && estrutura.equals("para")){
+        if (ctx.IDENT() != null && (!estrutura.equals("para"))){
             // verifica se nao eh atribuicao para ponteiro
-            if (ctx.getStart().getText().equals(ctx.IDENT().getText())){
+            if (estrutura.equals(ctx.IDENT().getText())){
                 variavel = ctx.IDENT().getText();
-                if (ctx.chamada_atribuicao().outros_ident() != null) //ver se eh variavel de registro
+                //ver se eh variavel de registro
+                if (ctx.chamada_atribuicao().outros_ident().getStart().getText().equals("."))
                     //nome registro + . + nome variavel dentro do registro
                     variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+
                             ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.chamada_atribuicao().expressao().getText();
+                
+                //verificar se eh um vetor
+                if (ctx.chamada_atribuicao().dimensao().getStart().getText().equals("["))
+                    variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
             }
             else{
                 variavel = "*"+ctx.IDENT().getText();
-                if (ctx.outros_ident() != null) //ver se eh variavel de registro
+                //ver se eh variavel de registro
+                if (ctx.outros_ident().getStart().getText().equals(".")) 
                     //nome registro + . + nome variavel dentro do registro
                     variavel = variavel+ctx.outros_ident().getStart().getText()+
                             ctx.outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.expressao().getText();
+                
+                //verificar se eh um vetor
+                if (ctx.dimensao().getStart().getText().equals("["))
+                    variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
             }
-            
-            //verificar se eh um vetor
-            if (ctx.chamada_atribuicao().dimensao() != null)
-                variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
             
             codigo.println(variavel+expressao+";");
         }
@@ -314,7 +320,7 @@ public class GeradorCodigo extends LABaseListener {
                         //PRECISA DA TABELA DE SIMBOLOS
                     }
                     else{
-                        if (estrutura.equals("escrita")){
+                        if (estrutura.equals("escreva")){
                             escrita = "printf(";
                         
                             //verifica se tem texto para ser impresso
@@ -368,14 +374,14 @@ public class GeradorCodigo extends LABaseListener {
         int comecoIntervalo, fimIntervalo, i;
         
         //convertendo numeros para inteiros, no primeiro caso verifica se eh negativo
-        if (ctx.constantes().numero_intervalo().op_unario() != null)
+        if (ctx.constantes().numero_intervalo().op_unario().getStart().getText().equals("-"))
             comecoIntervalo = Integer.parseInt("-"+ctx.constantes().numero_intervalo().NUM_INT().getText());
         else
             comecoIntervalo = Integer.parseInt(ctx.constantes().numero_intervalo().NUM_INT().getText());
                         
         //verifica se o intervalo que deve ser percorrido no case eh de apenas um numero ou nao
-        if (ctx.constantes().numero_intervalo().intervalo_opcional() != null){
-            if (ctx.constantes().numero_intervalo().intervalo_opcional().op_unario() != null)
+        if (ctx.constantes().numero_intervalo().intervalo_opcional().getStart().getText().equals("..")){
+            if (ctx.constantes().numero_intervalo().intervalo_opcional().op_unario().getStart().getText().equals("-"))
                 fimIntervalo = Integer.parseInt("-"+ctx.constantes().numero_intervalo().intervalo_opcional().NUM_INT().getText());
             else
                 fimIntervalo = Integer.parseInt(ctx.constantes().numero_intervalo().intervalo_opcional().NUM_INT().getText());
