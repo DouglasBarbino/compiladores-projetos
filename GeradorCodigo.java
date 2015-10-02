@@ -64,46 +64,46 @@ public class GeradorCodigo extends LABaseListener {
         String nome = ctx.IDENT().getText();
         String tipo = null;
         
-        // declaracao de um registro
-        if (ctx.tipo().getStart().getText().equals("registro"))
-            codigo.println("struct {");
-        
         //Caso foi declarada mais de uma variavel com esse tipo
         //deixar desse jeito para montar o codigo, para adicionar na tabela de simbolos utilizar a regra do mais_var
         if (ctx.mais_var().getStart().getText().equals(","))
             nome = nome+ctx.mais_var().getText();
-        //Caso tipo basico nao seja nulo, a variavel sera um dos 4 tipos de la
-        if (ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico() != null){
-            switch (ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getStart().getText()){
-                case "literal":
-                    tipo = "char";
-                    nome = nome+"[80]";
-                    break;
-                case "inteiro":
-                    tipo = "int";
-                    break;
-                case "real":
-                    tipo = "float";
-                    break;
-                default: //caso logico, nenhum dos testes vai entrar aqui
-                    tipo = "bool";     
-            }
-        }
-        else{
+        //Caso tipo estendido nao seja nulo, a variavel sera um dos 4 tipos ou de um registro jah definido
+        if (ctx.tipo().tipo_estendido() != null){
             // Tipo nao eh dos basicos, eh um registro
             if (ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT() != null)
                 tipo = ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
-        }
-        
-        //verificar se eh um ponteiro     
-        if (ctx.tipo().tipo_estendido().ponteiros_opcionais().getText().equals("^"))
-            tipo = tipo + "*";
-        
-        //verificar se eh um vetor
-        if (ctx.dimensao().getStart().getText().equals("["))
-            nome = nome + ctx.dimensao().getText();
+            else{
+                switch (ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getStart().getText()){
+                    case "literal":
+                        tipo = "char";
+                        nome = nome+"[80]";
+                        break;
+                    case "inteiro":
+                        tipo = "int";
+                        break;
+                    case "real":
+                        tipo = "float";
+                        break;
+                    default: //caso logico, nenhum dos testes vai entrar aqui
+                        tipo = "bool";   
+                }
+            }
             
-        codigo.println(tipo+" "+nome+";");
+            //verificar se eh um ponteiro     
+            if (ctx.tipo().tipo_estendido().ponteiros_opcionais().getText().equals("^"))
+                tipo = tipo + "*";
+            
+            //verificar se eh um vetor
+            if (ctx.dimensao().getStart().getText().equals("["))
+                nome = nome + ctx.dimensao().getText();
+            
+            codigo.println(tipo+" "+nome+";");
+        }
+        else{
+            //declaracao de registro
+            codigo.println("struct {");
+        }
     }
     
     @Override
@@ -125,7 +125,7 @@ public class GeradorCodigo extends LABaseListener {
             if (ctx.getParent().getParent().getChild(2).getText() != null)
                 variaveis = variaveis + ctx.getParent().getParent().getChild(2).getText();
         }
-        codigo.println("} "+variaveis);
+        codigo.println("} "+variaveis+";");
     }
     
     @Override
@@ -222,11 +222,13 @@ public class GeradorCodigo extends LABaseListener {
         
         estrutura = ctx.getStart().getText();
         
-        //onde irao ser feitas as equacoes
-        //atribuicao simples
-        if (ctx.IDENT() != null && (!estrutura.equals("para"))){
-            // verifica se nao eh atribuicao para ponteiro
-            if (estrutura.equals(ctx.IDENT().getText())){
+        if (ctx.chamada_atribuicao() != null){
+            //Caso de passagem de parametros para um procedimento / funcao:
+            if (ctx.chamada_atribuicao().getStart().getText().equals("(") && ctx.chamada_atribuicao().getStop().getText().equals(")")){
+                codigo.println(ctx.getText());    
+            }
+            //Atribuicao simples que nao eh para ponteiro
+            else{
                 variavel = ctx.IDENT().getText();
                 //ver se eh variavel de registro
                 if (ctx.chamada_atribuicao().outros_ident().getStart().getText().equals("."))
@@ -234,94 +236,98 @@ public class GeradorCodigo extends LABaseListener {
                     variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+
                             ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.chamada_atribuicao().expressao().getText();
-                
+
                 //verificar se eh um vetor
                 if (ctx.chamada_atribuicao().dimensao().getStart().getText().equals("["))
                     variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
+                
+                codigo.println(variavel+expressao+";");
             }
-            else{
+        }
+        else{
+            //Atribuicao simples para ponteiro
+            if (estrutura.equals("^")){
                 variavel = "*"+ctx.IDENT().getText();
                 //ver se eh variavel de registro
                 if (ctx.outros_ident().getStart().getText().equals(".")) 
                     //nome registro + . + nome variavel dentro do registro
                     variavel = variavel+ctx.outros_ident().getStart().getText()+
-                            ctx.outros_ident().identificador().IDENT().getText();
+                        ctx.outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.expressao().getText();
-                
+
                 //verificar se eh um vetor
                 if (ctx.dimensao().getStart().getText().equals("["))
                     variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
-            }
-            
-            codigo.println(variavel+expressao+";");
-        }
-        else{
-            // verifica se eh se, caso, para ou enquanto pois sua estrutura inicial eh parecida
-            if (estrutura.equals("se") || estrutura.equals("caso") || 
-                estrutura.equals("para") || estrutura.equals("enquanto")){
                 
-                switch (estrutura){
-                    case "se":
-                        condicao = "if";
-                        break;
-                    case "caso":
-                        condicao = "switch";
-                        break;
-                    case "para":
-                        condicao = "for";
-                        break;
-                    default: //enquanto
-                        condicao = "while";
-                }
-                //adiciona parenteses para todos
-                condicao = condicao + " (";
-                
-                //preenchimento do parenteses
-                switch (estrutura){
-                    case "se":
-                    case "enquanto":
-                        
-                        //Caso de fato nao seja possivel tratar o retorno do token no noh
-                        /* 
-                        //pega a primeira parte de uma expressao
-                        condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
-                        //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
-                        if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional() != null){
-                            condicao = condicao + tratamentoOpRelacional(ctx);
-                        }
-                        else
-                            condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getText();
-                        */
-                        condicao = condicao + ctx.expressao().getText();
-                        break;
-                    case "caso":
-                        // por algum motivo ele nao estah me deixando fazer ctx.exp_aritmetica.getText();
-                        condicao = condicao+ctx.getChild(1).getText();
-                        break;
-                    default: //para
-                        //mesmo problema que no caso do caso (:P), nao consigo fazer ctx.exp_aritmetica.getText();
-                        variavelPara = ctx.IDENT().getText();
-                        condicao = condicao + variavelPara + " = " + ctx.getChild(3).getText() + "; ";
-                        condicao = condicao + variavelPara + " <= " + ctx.getChild(5).getText() + "; ";
-                        condicao = condicao + variavelPara + "++";
-                }
-                
-                //fecha o parenteses para todos e imprime no codigo
-                condicao = condicao + ") {";
-                codigo.println(condicao);
+                codigo.println(variavel+expressao+";");
             }
             else{
-                if (estrutura.equals("faca")){
-                    //estrutura de repeticao do..while
-                    codigo.println("do {");
+                // verifica se eh se, caso, para ou enquanto pois sua estrutura inicial eh parecida
+                if (estrutura.equals("se") || estrutura.equals("caso") || 
+                    estrutura.equals("para") || estrutura.equals("enquanto")){
+
+                    switch (estrutura){
+                        case "se":
+                            condicao = "if";
+                            break;
+                        case "caso":
+                            condicao = "switch";
+                            break;
+                        case "para":
+                            condicao = "for";
+                            break;
+                        default: //enquanto
+                            condicao = "while";
+                    }
+                    //adiciona parenteses para todos
+                    condicao = condicao + " (";
+
+                    //preenchimento do parenteses
+                    switch (estrutura){
+                        case "se":
+                        case "enquanto":
+
+                            //Caso de fato nao seja possivel tratar o retorno do token no noh
+                            /* 
+                            //pega a primeira parte de uma expressao
+                            condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
+                            //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
+                            if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional() != null){
+                                condicao = condicao + tratamentoOpRelacional(ctx);
+                            }
+                            else
+                                condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getText();
+                            */
+                            condicao = condicao + ctx.expressao().getText();
+                            break;
+                        case "caso":
+                            // por algum motivo ele nao estah me deixando fazer ctx.exp_aritmetica.getText();
+                            condicao = condicao+ctx.getChild(1).getText();
+                            break;
+                        default: //para
+                            //mesmo problema que no caso do caso (:P), nao consigo fazer ctx.exp_aritmetica.getText();
+                            variavelPara = ctx.IDENT().getText();
+                            condicao = condicao + variavelPara + " = " + ctx.getChild(3).getText() + "; ";
+                            condicao = condicao + variavelPara + " <= " + ctx.getChild(5).getText() + "; ";
+                            condicao = condicao + variavelPara + "++";
+                    }
+
+                    //fecha o parenteses para todos e imprime no codigo
+                    condicao = condicao + ") {";
+                    codigo.println(condicao);
                 }
                 else{
-                    if (estrutura.equals("leia")){
-                        //PRECISA DA TABELA DE SIMBOLOS
+                    if (estrutura.equals("faca")){
+                        //estrutura de repeticao do..while
+                        codigo.println("do {");
                     }
                     else{
-                        if (estrutura.equals("escreva")){
-                            escrita = "printf(";
+                        if (estrutura.equals("leia")){
+                            //PRECISA DA TABELA DE SIMBOLOS
+                        }
+                        else{
+                            if (estrutura.equals("escreva")){
+                                escrita = "printf(";
                         
                             //verifica se tem texto para ser impresso
                             if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
@@ -329,11 +335,12 @@ public class GeradorCodigo extends LABaseListener {
                                 escrita = escrita + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
                                 .termo().fator().parcela().parcela_nao_unario().getText();
                         
-                            //PRECISA DA TABELA DE SIMBOLOS
-                            escrita = escrita + ");";
+                                //PRECISA DA TABELA DE SIMBOLOS
+                                escrita = escrita + ");";
+                            }
+                            else //retornar algo
+                                codigo.println("return "+ctx.expressao().getText()+";");
                         }
-                        else //retornar algo
-                            codigo.println("return "+ctx.expressao().getText()+";");
                     }
                 }
             }
@@ -390,7 +397,7 @@ public class GeradorCodigo extends LABaseListener {
             fimIntervalo = comecoIntervalo;
                         
         //inicia o loop de criacao dos case
-        for (i=comecoIntervalo; i<fimIntervalo; i++)
+        for (i=comecoIntervalo; i<=fimIntervalo; i++)
             codigo.println("case "+i+":");
     }
     
