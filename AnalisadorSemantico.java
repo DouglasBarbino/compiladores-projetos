@@ -261,6 +261,7 @@ public class AnalisadorSemantico extends LABaseListener {
                    for(int i = 0; i<ctx.variavel().mais_var().IDENT().size(); i++)
                    {
                        nome = ctx.variavel().mais_var().IDENT(i).getText();
+                       linha = ctx.variavel().mais_var().IDENT(i).getSymbol().getLine();
                        if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
                        {
                            tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipo, null, null);
