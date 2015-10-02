@@ -13,14 +13,23 @@ import org.antlr.runtime.RecognitionException;
  * @author Usuário
  */
 public class GeradorCodigo extends LABaseListener {
+    //SITUACAO ATUAL: ATE VARIAVEL TUDO O QUE ERA REFERENTE A TABELA DE SIMBOLOS FOI PEGO
     
     //FALTA UTILIZAR AS TABELAS DE SIMBOLOS, NO MOMENTO APENAS COMECEI A CASCA DA 
     //GERACAO DE CODIGO
-    
     Saida codigo;
+    
+    //PARA AS TABELAS DE SIMBOLOS
+    static PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
+    List<String> tipoDoReg = new ArrayList<String>();
+    int Registro;
+    TabelaDeSimbolos tabelaDoReg;
+    int EhRegistro; 
     
     public GeradorCodigo(Saida codigo){
         this.codigo = codigo;
+        this.Registro = 0;
+        this.EhRegistro = 1;
     }
     
     @Override
@@ -29,6 +38,9 @@ public class GeradorCodigo extends LABaseListener {
         codigo.println("#include <stdio.h>");
         codigo.println("#include <stdlib.h>");
         codigo.println("");
+        
+        //TABELA DE SIMBOLOS GLOBAL
+        pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
     }
     
     @Override
@@ -46,20 +58,45 @@ public class GeradorCodigo extends LABaseListener {
     
     @Override
     public void enterDeclaracao_local(LAParser.Declaracao_localContext ctx) {
+        //Para a tabela de simbolos
+        String nomeVar, tipo;
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+
         // declarando um tipo de registro
         String tipoDeclLocal = ctx.getStart().getText();
         
-        if (tipoDeclLocal.equals("tipo"))
+        if (tipoDeclLocal.equals("tipo")){
             codigo.println("typedef struct {");
+            
+            //PARA A TABELA DE SIMBOLOS
+            nomeVar = ctx.IDENT().getText();
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
+                tipoDoReg.add(nomeVar);
+            //FIM TABELA SIMBOLOS
+        }
         else{
             // declarando uma constante
-            if (tipoDeclLocal.equals("constante"))
+            if (tipoDeclLocal.equals("constante")){
                 codigo.println("#define "+ctx.IDENT().getText()+" "+ctx.valor_constante().getText());
+                
+                //INCLUINDO CONSTANTE NA TABELA DE SIMBOLOS
+                nomeVar = ctx.IDENT().getText();
+                tipo = ctx.tipo_basico().tipo_var;
+                
+                if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
+            }
         }
     }
     
     @Override
     public void enterVariavel(LAParser.VariavelContext ctx) {
+        //PARA A TABELA DE SIMBOLOS
+        TabelaDeSimbolos tabelaDeSimbolosAtual = tabelaDoReg;
+        if(Registro == 0)
+            tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        String nomeTabSimb = ctx.IDENT().getText(), tipoTabSimb;
+        
         //Declarando uma variavel
         String nome = ctx.IDENT().getText();
         String tipo = null;
@@ -99,15 +136,50 @@ public class GeradorCodigo extends LABaseListener {
                 nome = nome + ctx.dimensao().getText();
             
             codigo.println(tipo+" "+nome+";");
+            
+            //PARA A TABELA DE SIMBOLOS
+            EhRegistro = 0;
+            
+            if(ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico()!=null)
+                tipoTabSimb = ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+            else
+                tipoTabSimb = ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+            
+            if(tipoTabSimb.equals("literal") || tipoTabSimb.equals("inteiro") || 
+               tipoTabSimb.equals("logico") || tipoTabSimb.equals("real")){
+                if(!pilhaDeTabelas.existeSimbolo(nomeTabSimb))
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nomeTabSimb,tipoTabSimb, null, null);
+            }
+            else{
+                if(!pilhaDeTabelas.existeSimbolo(tipoTabSimb))
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nomeTabSimb, tipoTabSimb, null, null);
+                else{
+                    if(!pilhaDeTabelas.existeSimbolo(nome))
+                        tabelaDeSimbolosAtual.adicionarSimbolo(nomeTabSimb,tipoTabSimb, null, null);
+                }
+            }
+            //FIM TABELA SIMBOLOS
         }
         else{
             //declaracao de registro
             codigo.println("struct {");
+            
+            //PARA A TABELA DE SIMBOLOS
+            tipoDoReg.add(nome);
         }
     }
     
     @Override
+    public void enterRegistro(LAParser.RegistroContext ctx){
+           // TUDO PARA A TABELA DE SIMBOLOS
+           tabelaDoReg = new TabelaDeSimbolos("registro");
+           Registro = 1;
+    }
+    
+    @Override
     public void exitRegistro(LAParser.RegistroContext ctx){
+        //PARA A TABELA DE SIMBOLOS
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         
         String variaveis;
         //Declarou tudo o que tinha pra se declarar no registro, fecha a chave dele
@@ -126,6 +198,15 @@ public class GeradorCodigo extends LABaseListener {
                 variaveis = variaveis + ctx.getParent().getParent().getChild(2).getText();
         }
         codigo.println("} "+variaveis+";");
+        
+        //PARA A TABELA DE SIMBOLOS
+        for(int i = 0; i < tipoDoReg.size(); i++){
+           tabelaDeSimbolosAtual.adicionarSimbolo(tipoDoReg.get(i), tipoDoReg.get(i), null, tabelaDoReg);
+        }
+       
+        tabelaDoReg = null;
+        tipoDoReg.clear();
+        Registro = 0;
     }
     
     @Override
@@ -217,6 +298,9 @@ public class GeradorCodigo extends LABaseListener {
     
     @Override
     public void enterCmd(LAParser.CmdContext ctx){
+        //PARA A TABELA DE SIMBOLOS
+        TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
+        String tipoVariavelTabSimb, nomeVariavelTabSimb;
         
         String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional, variavelPara, escrita;
         
@@ -323,7 +407,26 @@ public class GeradorCodigo extends LABaseListener {
                     }
                     else{
                         if (estrutura.equals("leia")){
-                            //PRECISA DA TABELA DE SIMBOLOS
+                            //PARA A TABELA DE SIMBOLOS
+                            //por enquanto apenas para teste so se pega o nome da variavel, coisa bem simples
+                            nomeVariavelTabSimb = ctx.identificador().IDENT().getText();
+                            tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+                            
+                            switch (tipoVariavelTabSimb){
+                                case "literal":
+                                    codigo.println("gets("+nomeVariavelTabSimb+");");
+                                    break;
+                                case "inteiro":
+                                    codigo.println("scanf(\"%d\",&"+nomeVariavelTabSimb+");");
+                                    break;
+                                case "real":
+                                    codigo.println("scanf(\"%f\",&"+nomeVariavelTabSimb+");");
+                                    break;
+                                default: //caso logico
+                                    //na verdade nao se le bool por scanf, mas soh pra mostrar q deu erro coloquei um %a
+                                    codigo.println("scanf(\"%a\",&"+nomeVariavelTabSimb+");");
+                            }
+                            //FIM TABELA SIMBOLOS
                         }
                         else{
                             if (estrutura.equals("escreva")){
@@ -337,6 +440,8 @@ public class GeradorCodigo extends LABaseListener {
                         
                                 //PRECISA DA TABELA DE SIMBOLOS
                                 escrita = escrita + ");";
+                                
+                                codigo.println(escrita);
                             }
                             else //retornar algo
                                 codigo.println("return "+ctx.expressao().getText()+";");
