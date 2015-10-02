@@ -19,14 +19,16 @@ public class TestaAnalisador {
     // Modifique-a para testar os demais exemplos
 
         //para verificar se vai executar a geracao de codigo ou nao
-        String saida = null;
-      
+        String saida = "";
+        Boolean naoEhSintatico = true;
+        
         Saida out = new Saida();
         Saida codigo = new Saida();
         
         ANTLRInputStream input = new ANTLRInputStream(new FileInputStream(args[0]));
         
-        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream("E:\\Facul\\6 sem\\CC2\\T1\\casosDeTesteT1\\2.arquivos_com_erros_semanticos\\entrada\\17.algoritmo_9-2_apostila_LA.txt"));
+        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream("E:\\Facul\\6 sem\\CC2\\T1\\casosDeTesteT1\\1.arquivos_com_erros_sintaticos\\entrada\\16-algoritmo_3-3_apostila_LA_1_erro_linha_11.txt"));
+        //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream("E:\\Facul\\6 sem\\CC2\\T1\\casosDeTesteT1\\2.arquivos_com_erros_semanticos\\entrada\\1.algoritmo_2-2_apostila_LA.txt"));
         //ANTLRInputStream input = new ANTLRInputStream(new FileInputStream("E:\\Facul\\6 sem\\CC2\\T1\\casosDeTesteT1\\3.arquivos_sem_erros\\1.entrada\\10.caso_impressao.alg"));
         LALexer lexer = new LALexer(input);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
@@ -46,12 +48,15 @@ public class TestaAnalisador {
         } 
         catch(ParseCancellationException pce) 
         {
+            //Entrou no catch, eh teste sintatico e por isso nao vai gerar codigo
+            naoEhSintatico = false;
+            
             if(pce.getMessage() != null)
                 out.println(pce.getMessage());
         }
         
         //caso nao teve erros o tamanho de saida serah 0
-        if (saida.length() == 0){
+        if (saida.length() == 0 && naoEhSintatico){
             
             //Eh necessario redeclarar tudo outra vez...
             ANTLRInputStream inputGC = new ANTLRInputStream(new FileInputStream(args[0]));
