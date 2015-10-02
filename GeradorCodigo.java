@@ -514,7 +514,8 @@ public class GeradorCodigo extends LABaseListener {
         int i = 0;
         //tratar casos de mais escritas
         if (ctx.getParent().getStart().getText().equals("escreva")){
-            do{
+            //enquanto aparecer virgulas serao impressos printf
+            while (ctx.getChild(i) != null){
                 escrita = "printf(";
                         
                 //Como nao da pra usar o ctx.expressao pois eh preciso pegar o expressao daquela virgula, entao vai ter que ser 
@@ -580,8 +581,7 @@ public class GeradorCodigo extends LABaseListener {
                 
                 // incrementa o contador em 2 pois procuro se tem uma virgula, e ela aparece a cada um noh sim, um nao
                 i = i+2;
-            //enquanto aparecer mais virgulas serao impressos mais printf
-            } while(ctx.getChild(i) != null);
+            }
         }
     }
     
