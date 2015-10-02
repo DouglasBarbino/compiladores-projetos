@@ -432,11 +432,53 @@ public class GeradorCodigo extends LABaseListener {
                             if (estrutura.equals("escreva")){
                                 escrita = "printf(";
                         
-                            //verifica se tem texto para ser impresso
-                            if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
-                                .termo().fator().parcela().parcela_nao_unario() != null)
-                                escrita = escrita + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
-                                .termo().fator().parcela().parcela_nao_unario().getText();
+                                //verifica se eh texto para ser impresso
+                                if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                    .termo().fator().parcela().parcela_nao_unario() != null)
+                                    escrita = escrita + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                            .termo().fator().parcela().parcela_nao_unario().getText();   
+                                //eh variaveis
+                                else{
+                                    //PARA A TABELA DE SIMBOLOS
+                                    //vai imprimir um registro
+                                    if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                        .termo().fator().parcela().parcela_unario().chamada_partes().getStart().getText().equals("."))
+                                        
+                                        //por enquanto apenas para teste so se pega o nome da variavel, coisa bem simples
+                                        nomeVariavelTabSimb = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                                                .termo().fator().parcela().parcela_unario().chamada_partes().outros_ident().identificador().IDENT().getText();
+                                    
+                                    //vai imprimir uma variavel ou o retorno de uma funcao
+                                    
+                                    //como nao tem caso de imprimir resultados de expressoes cujos tipos das variaveis sao diferentes soh 
+                                    //estou pegando o tipo da primeira variavel, qualquer coisa depois eu trato isso
+                                    else
+                                        nomeVariavelTabSimb = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                                                .termo().fator().parcela().parcela_unario().IDENT().getText();
+                                    
+                                    tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+
+                                    switch (tipoVariavelTabSimb){
+                                        //tudo de variavel eh pego na exp.relacional pro caso do que eh para ser impresso seja uma expressao
+                                        case "literal":
+                                            escrita = escrita + "\"%s\"," +
+                                                    ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText();
+                                            break;
+                                        case "inteiro":
+                                            escrita = escrita + "\"%d\"," +
+                                                    ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText();
+                                            break;
+                                        case "real":
+                                            escrita = escrita + "\"%f\"," +
+                                                    ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText();
+                                            break;
+                                        default: //caso logico
+                                            //bool pode ser escrito como inteiro, mas jah que nao tem casos logicos entao deixei %a pra mostrar erro
+                                            escrita = escrita + "\"%a\"," +
+                                                    ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText();
+                                    }
+                                    //FIM TABELA SIMBOLOS
+                                }
                         
                                 //PRECISA DA TABELA DE SIMBOLOS
                                 escrita = escrita + ");";
@@ -460,6 +502,87 @@ public class GeradorCodigo extends LABaseListener {
         
         if (tipoCmd.equals("caso") || tipoCmd.equals("para") || tipoCmd.equals("enquanto"))
             codigo.println("}");
+    }
+    
+    @Override
+    public void enterMais_expressao(LAParser.Mais_expressaoContext ctx) {
+        //PARA A TABELA DE SIMBOLOS
+        TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
+        String tipoVariavelTabSimb, nomeVariavelTabSimb;
+        
+        String escrita;
+        int i = 0;
+        //tratar casos de mais escritas
+        if (ctx.getParent().getStart().getText().equals("escreva")){
+            do{
+                escrita = "printf(";
+                        
+                //Como nao da pra usar o ctx.expressao pois eh preciso pegar o expressao daquela virgula, entao vai ter que ser 
+                //tudo na base do getChild(), mas deixo comentado o que sao aqueles getChild
+                
+                //verifica se eh texto para ser impresso
+                //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario()
+                if (ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1) != null)
+                    //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario()
+                    escrita = escrita + 
+                            ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getText();   
+                //eh variaveis
+                else{
+                    //PARA A TABELA DE SIMBOLOS
+                    //vai imprimir um registro
+                    //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().chamada_partes().getText() != null
+                    if (ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getText() != null)
+                                        
+                        //por enquanto apenas para teste so se pega o nome da variavel, coisa bem simples
+                        //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().chamada_partes().outros_ident().identificador().IDENT().getText()
+                        nomeVariavelTabSimb = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getChild(0).getChild(1).getChild(1).getText();
+                    
+                    //vai imprimir uma variavel ou o retorno de uma funcao
+                                    
+                    //como nao tem caso de imprimir resultados de expressoes cujos tipos das variaveis sao diferentes soh 
+                    //estou pegando o tipo da primeira variavel, qualquer coisa depois eu trato isso
+                    else
+                        //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getText()
+                        nomeVariavelTabSimb = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(0).getText();
+                                    
+                    tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+
+                    switch (tipoVariavelTabSimb){
+                        //tudo de variavel eh pego na exp.relacional pro caso do que eh para ser impresso seja uma expressao
+                        case "literal":
+                            //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText()
+                            escrita = escrita + "\"%s\"," +
+                                        ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getText();
+                            break;
+                        case "inteiro":
+                            //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText()
+                            escrita = escrita + "\"%d\"," +
+                                        ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getText();
+                            break;
+                        case "real":
+                            //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText()
+                            escrita = escrita + "\"%f\"," +
+                                        ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getText();
+                            break;
+                        default: //caso logico
+                            //bool pode ser escrito como inteiro, mas jah que nao tem casos logicos entao deixei %a pra mostrar erro
+                            //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().getText()
+                            escrita = escrita + "\"%a\"," +
+                                        ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getText();
+                    }
+                //FIM TABELA SIMBOLOS
+                }
+                        
+                //PRECISA DA TABELA DE SIMBOLOS
+                escrita = escrita + ");";
+                                
+                codigo.println(escrita);
+                
+                // incrementa o contador em 2 pois procuro se tem uma virgula, e ela aparece a cada um noh sim, um nao
+                i = i+2;
+            //enquanto aparecer mais virgulas serao impressos mais printf
+            } while(ctx.getChild(i) != null);
+        }
     }
     
     @Override
