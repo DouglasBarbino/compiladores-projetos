@@ -56,9 +56,16 @@ public class VerificadorDeTipos {
     }
     
     public static String verificaTipo(LAParser.Exp_relacionalContext ctx) {
-        String tipoExp_rel;
+        String tipoExp_rel = "tipo_invalido";
         if(ctx.op_opcional() != null)
-            tipoExp_rel = "logico";
+        {
+            if(ctx.op_opcional().op_relacional()!=null)
+            {
+                tipoExp_rel = "logico";
+            }else{
+                tipoExp_rel = verificaTipo(ctx.exp_aritmetica());
+            }
+        }    
         else
             tipoExp_rel = verificaTipo(ctx.exp_aritmetica());
         
@@ -112,18 +119,25 @@ public class VerificadorDeTipos {
     
     public static String verificaTipo(LAParser.ParcelaContext ctx) {
         String tipo;
-        if(ctx.parcela_unario()!=null)
-        {
-            tipo = verificaTipo(ctx.parcela_unario());
-        }else{
-            tipo = verificaTipo(ctx.parcela_nao_unario());
-        }
+//        if(ctx.getStart().getText().equals("%"))
+//        {
+//            tipo = "inteiro";
+//        }else
+//        {
+            if(ctx.parcela_unario()!=null)
+            {
+                tipo = verificaTipo(ctx.parcela_unario());
+            }else{
+                tipo = verificaTipo(ctx.parcela_nao_unario());
+            }
+        //}
+        
         
         return tipo;
     }
     
     public static String verificaTipo(LAParser.Parcela_unarioContext ctx) {
-        String tipo = "indefinido";
+        String tipo = "tipo_invalido";
         if(ctx.NUM_INT() != null)
         {
             tipo = "inteiro";
@@ -134,12 +148,73 @@ public class VerificadorDeTipos {
                 tipo = "real";
             }else
             {
-                TabelaDeSimbolos atual = AnalisadorSemantico.pilhaDeTabelas.topo();
-                if(ctx.IDENT() != null)
+                PilhaDeTabelas atual = AnalisadorSemantico.pilhaDeTabelas;
+                if(ctx.outros_ident()!=null)
                 {
-                    String nome = ctx.IDENT().getText();
-                    tipo = atual.getTipo(nome);
+                    if(ctx.outros_ident().identificador()!=null)
+                    {
+                        String nome = ctx.IDENT().getText();
+                        String tipo1 = atual.getTipo(nome);
+                        TabelaDeSimbolos TabelaReg = atual.getSubtabela(tipo1);
+                        nome = ctx.outros_ident().identificador().IDENT().getText();
+                        tipo = TabelaReg.getTipo(nome);
+                    }
+                    
+                }else{
+                    if(ctx.chamada_partes()!=null)
+                    {
+                        if(ctx.chamada_partes().outros_ident()!=null)
+                        {    if(ctx.chamada_partes().outros_ident().identificador()!=null)
+                            {
+                                String nome = ctx.IDENT().getText();
+                                String tipo1 = atual.getTipo(nome);
+                                TabelaDeSimbolos TabelaReg = atual.getSubtabela(tipo1);
+                                nome = ctx.chamada_partes().outros_ident().identificador().IDENT().getText();
+                                tipo = TabelaReg.getTipo(nome);
+                            }else{
+                                if(ctx.IDENT() != null)
+                                {
+                                    String nome = ctx.IDENT().getText();
+                                    tipo = atual.getTipo(nome);
+                                }else
+                                {
+                                    if(ctx.getStart().getText().equals("("))
+                                    {
+                                        tipo = verificaTipo(ctx.expressao());
+                                    }
+                                }
+                            }
+                        }else{
+                                if(ctx.IDENT() != null)
+                                {
+                                    String nome = ctx.IDENT().getText();
+                                    tipo = atual.getTipo(nome);
+                                }else
+                                {
+                                    if(ctx.getStart().getText().equals("("))
+                                    {
+                                        tipo = verificaTipo(ctx.expressao());
+                                    }
+                                }
+                            }
+                    }
+                    else{
+                        
+                    
+                    if(ctx.IDENT() != null)
+                    {
+                        String nome = ctx.IDENT().getText();
+                        tipo = atual.getTipo(nome);
+                    }else
+                    {
+                        if(ctx.getStart().getText().equals("("))
+                        {
+                            tipo = verificaTipo(ctx.expressao());
+                        }
+                    }
                 }
+                }
+                
                
             }
         }
@@ -148,19 +223,37 @@ public class VerificadorDeTipos {
     }
     
     public static String verificaTipo(LAParser.Parcela_nao_unarioContext ctx) {
-        String tipo = "indefinido";
+        String tipo = "tipo_invalido";
         if(ctx.CADEIA() != null)
         {
             tipo = "literal";
         }else
         {
-            TabelaDeSimbolos atual = AnalisadorSemantico.pilhaDeTabelas.topo();
-            if(ctx.IDENT() != null)
+            PilhaDeTabelas atual = AnalisadorSemantico.pilhaDeTabelas;
+            if(ctx.outros_ident()!=null)
             {
-                String nome = ctx.IDENT().getText();
-                tipo = atual.getTipo(nome);
-            }
+                if(ctx.outros_ident().identificador()!=null)
+                {
+                    String nome = ctx.IDENT().getText();
+                    String tipo1 = atual.getTipo(nome);
+                    TabelaDeSimbolos TabelaReg = atual.getSubtabela(tipo1);
+                    nome = ctx.outros_ident().identificador().IDENT().getText();
+                    tipo = TabelaReg.getTipo(nome);
+                }else{
+                    if(ctx.IDENT() != null)
+                    {
+                        String nome = ctx.IDENT().getText();
+                        tipo = atual.getTipo(nome);
+                    }
+                }
+            }else{
+                if(ctx.IDENT() != null)
+                {
+                   String nome = ctx.IDENT().getText();
+                   tipo = atual.getTipo(nome);
+                }
             
+        } 
         }
         
         return tipo;
