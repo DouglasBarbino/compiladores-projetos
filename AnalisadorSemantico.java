@@ -16,48 +16,16 @@ import trabalho1.LAParser.Declaracao_localContext;
 public class AnalisadorSemantico extends LABaseListener {
 
     Saida out;
+    int EhFuncao = 0;
 
     static PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
     
-    List<String> tipoDoReg = new ArrayList<String>();
-    String tipoDoRegistro;
     
-    TabelaDeSimbolos tabelaDoRegistro;
-    
-    int EhRegistro;   //pensar numa forma melhor
-    
-    TabelaDeSimbolos tabelaDoReg;
-    
-    String tipoDaExpressao;
-    String tipoVar;
-    String nomeVarPai;
-    
-    String TipoPar;
-    
-    int EhFuncao = 0;
-    int EhParametro = 0;
-    List<String> listaPar;
-    int Registro;
-    
-    int PassouParametro = 0;
-    List<String> TipoArg;
-    String nomeSubRotina;
-    int Linha;
-    String NomeDecSubRotina;
-    TabelaDeSimbolos tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada;
-    String TipoFuncao;
     
     
     
     public AnalisadorSemantico(Saida out) {
         this.out = out;
-        this.tabelaDoRegistro = null;
-        this.tipoDaExpressao = "indefinido";
-        //this.tabelaDoReg = null;
-        this.EhRegistro = 1;
-        this.Registro = 0;
-        this.TipoArg = new ArrayList<String>();
-        this.listaPar = new ArrayList<String>();
     }
 
     @Override
@@ -74,479 +42,568 @@ public class AnalisadorSemantico extends LABaseListener {
     public void enterDeclaracao_local(Declaracao_localContext ctx) {
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         
-        String nomeVar;
-        String tipoVar;
+        String nome;
+        String tipo;
         int linha;
         
 
-            if(ctx.getStart().getText().equals("constante"))
-            {
-                nomeVar = ctx.IDENT().getText();
-                linha = ctx.IDENT().getSymbol().getLine();
-                String tipo = ctx.tipo_basico().tipo_var;
-                
-                
-                if(!pilhaDeTabelas.existeSimbolo(nomeVar))
-                    {   tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
-                            System.out.println("Var adicionada "+nomeVar+" "+tipo+" linha: "+linha);
-                    }    
-                    else //ERRO 1
-                      out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
-            
-             }else
-            {
-                if(ctx.getStart().getText().equals("tipo"))
-                {
-                    nomeVar = ctx.IDENT().getText();
-                    linha = ctx.IDENT().getSymbol().getLine();
-                    if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                        tipoDoReg.add(nomeVar);
-                    else
-                        out.println("Linha "+linha+": identificador " +nomeVar+ " ja declarado anteriormente");
-                }
-            }
-            
-        
-    }
-    
-    
-    @Override
-    public void enterRegistro(LAParser.RegistroContext ctx)
-    {
-       // if(ctx.)
-//        String novoTipo = ctx.getParent().getParent().getChild(0).getText();
-//        System.out.println("NovoTipo " + novoTipo);
-//        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-
-//        System.out.println(tabelaDeSimbolosAtual.toString());
-                                          
-//        if(!pilhaDeTabelas.existeSimbolo(novoTipo)) 
-//        {   
-//            TabelaDeSimbolos tabelaDoReg = new TabelaDeSimbolos("registro"+novoTipo);
-//            //tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, null);    
-//            tabelaDeSimbolosAtual.adicionarSimbolo(novoTipo, "tipo", null, tabelaDoReg);
-//        }
-        
-           tabelaDoReg = new TabelaDeSimbolos("registro");
-           Registro = 1;
-        
-    }
-    
-    @Override
-    public void exitRegistro(LAParser.RegistroContext ctx)
-    {
-       TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-       
-       if(tabelaDoReg == null)
-       {
-           System.out.println("Deu errado!");
-       }
-       for(int i = 0; i < tipoDoReg.size(); i++)
-       {
-           tabelaDeSimbolosAtual.adicionarSimbolo(tipoDoReg.get(i), tipoDoReg.get(i), null, tabelaDoReg);
-       }
-       
-       tabelaDoReg = null;
-       tipoDoReg.clear();
-       Registro = 0;
-    }
-    
-    @Override
-    public void enterVariavel(LAParser.VariavelContext ctx)
-    {
-        TabelaDeSimbolos tabelaDeSimbolosAtual = tabelaDoReg;
-        if(tabelaDeSimbolosAtual!=null)
-            System.out.println("AAAAAAAAAAAAAAAAAAAAAAAAAAA");
-        if(Registro == 0)
+        if(ctx.getStart().getText().equals("constante"))
         {
-            tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-        }
-        String nome = ctx.IDENT().getText();
-        System.out.println("Nome var "+nome);
-        int linha = ctx.IDENT().getSymbol().getLine();
-        if(ctx.tipo().registro()==null)
-        {   EhRegistro = 0;
+            nome = ctx.IDENT().getText();
+            linha = ctx.IDENT().getSymbol().getLine();
+            tipo = ctx.tipo_basico().getText();
+                
+                
+            if(!pilhaDeTabelas.existeSimbolo(nome))
+            {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo, null, null);
+                            System.out.println("Var adicionada "+nome+" "+tipo+" linha: "+linha);
+            }    
+            else //ERRO 1
+                out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
             
-            if(ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico()!=null)
-            {
-                tipoVar = (String) ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
-                System.out.println("TipodaVariavel "+tipoVar);
-            }else
-            {
-                tipoVar = ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
-            }
-            
-            if(tipoVar.equals("literal") || tipoVar.equals("inteiro") || tipoVar.equals("logico") || tipoVar.equals("real"))
-            {
-                if(!pilhaDeTabelas.existeSimbolo(nome))
-                {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);
-                    System.out.println("Var adicionada "+nome+" "+tipoVar+" linha: "+linha);
-                }    
-                else //ERRO 1
-                      out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
-            }
-            else
-            {
-                if(!pilhaDeTabelas.existeSimbolo(tipoVar))
-                {
-                    System.out.println(tabelaDeSimbolosAtual.toString());
-                    out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
-                    /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
-                }else
-                {
-                    if(!pilhaDeTabelas.existeSimbolo(nome))
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);	
-                    else //ERRO 1
-                        out.println("Linha "+linha+": identificador "+nome+" ja declarado anteriormente");
-                }
-            }
         }else
         {
-            tipoDoReg.add(nome);
-        }
+            if(ctx.getStart().getText().equals("tipo"))
+            {
+                String nomeDoReg = ctx.IDENT().getText();
+                int linhaDoReg = ctx.IDENT().getSymbol().getLine();
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nomeDoReg))
+                {
+                    AdicionarSimboloRegistro(ctx, tabelaDeSimbolosAtual, nomeDoReg, linhaDoReg);
+                   
+                }else
+                    out.println("Linha "+linhaDoReg+": identificador " +nomeDoReg+ " ja declarado anteriormente");
+            }   
+                else
+                {
+                    if(ctx.getStart().getText().equals("declare"))
+                    {
+                       
+                        AdicionarSimbolo(ctx, tabelaDeSimbolosAtual);
+                        
+                    }
+                }
+            }
+            
+        
+    }    
+    
+        
+    public void AdicionarSimboloRegistro(LAParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual, String nomeDoReg, int LinhaDoReg)
+    { 
+        String nome;
+        String tipo;
+        int linha;
+        
+        TabelaDeSimbolos tabelaDoRegistro = new TabelaDeSimbolos("registro");
+                   //List<String> nomes = new ArrayList<>();
+            if(ctx.tipo()!=null)       
+            {      nome = ctx.tipo().registro().variavel().IDENT().getText();
+                   //nomes.add(nome);
+                   linha = ctx.tipo().registro().variavel().IDENT().getSymbol().getLine();
+                   if(ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                   {
+                       tipo = ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                   }else
+                   {
+                       tipo = ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   }
+                   
+                   if(!tabelaDoRegistro.existeSimbolo(nome))
+                   {
+                       tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   }else
+                   {
+                       out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                   }
+                   
+                   for(int i = 0; i<ctx.tipo().registro().variavel().mais_var().IDENT().size(); i++)
+                   {
+                       nome = ctx.tipo().registro().variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDoRegistro.existeSimbolo(nome))
+                       {
+                           tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                       }
+                   }
+                   
+                   for(int i = 0; i < ctx.tipo().registro().mais_variaveis().variavel().size(); i++) 
+                   {
+                        nome = ctx.tipo().registro().mais_variaveis().variavel(i).IDENT().getText();
+                        //nomes.add(nome);
+                        linha = ctx.tipo().registro().mais_variaveis().variavel(i).IDENT().getSymbol().getLine();
+                        if(ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                        {
+                            tipo = ctx.tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                        }else
+                        {
+                            tipo = ctx.tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                        }
+                   
+                        if(!tabelaDoRegistro.existeSimbolo(nome))
+                        {
+                            tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                        }else
+                        {
+                            out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                        }
+                   
+                        for(int j = 0; j<ctx.tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT().size(); j++)
+                        {
+                            nome = ctx.tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT(i).getText();
+                            if(!tabelaDoRegistro.existeSimbolo(nome))
+                            {
+                                tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                            }
+                        }
+                   }
+            }else{
+                if(ctx.variavel().tipo()!=null)
+                {
+                   nome = ctx.variavel().tipo().registro().variavel().IDENT().getText();
+                   //nomes.add(nome);
+                   linha = ctx.variavel().tipo().registro().variavel().IDENT().getSymbol().getLine();
+                   if(ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                   {
+                       tipo = ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                   }else
+                   {
+                       tipo = ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   }
+                   
+                   if(!tabelaDoRegistro.existeSimbolo(nome))
+                   {
+                       tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   }else
+                   {
+                       out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                   }
+                   
+                   for(int i = 0; i<ctx.variavel().tipo().registro().variavel().mais_var().IDENT().size(); i++)
+                   {
+                       nome = ctx.variavel().tipo().registro().variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDoRegistro.existeSimbolo(nome))
+                       {
+                           tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                       }
+                   }
+                   
+                   for(int i = 0; i < ctx.variavel().tipo().registro().mais_variaveis().variavel().size(); i++) 
+                   {
+                        nome = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).IDENT().getText();
+                        //nomes.add(nome);
+                        linha = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).IDENT().getSymbol().getLine();
+                        if(ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                        {
+                            tipo = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                        }else
+                        {
+                            tipo = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                        }
+                   
+                        if(!tabelaDoRegistro.existeSimbolo(nome))
+                        {
+                            tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                        }else
+                        {
+                            out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                        }
+                   
+                        for(int j = 0; j<ctx.variavel().tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT().size(); j++)
+                        {
+                            nome = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT(i).getText();
+                            if(!tabelaDoRegistro.existeSimbolo(nome))
+                            {
+                                tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                            }
+                        }
+                }
+            } 
+        }        
+            tabelaDeSimbolosAtual.adicionarSimbolo(nomeDoReg, nomeDoReg, null, tabelaDoRegistro);
+                
     }
     
-    @Override
+    
+    
+    public void AdicionarSimbolo(LAParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual)
+    {
+        String nome;
+        String tipo;
+        int linha;
+        
+            if(ctx.variavel().tipo().registro()==null)       
+            {      nome = ctx.variavel().IDENT().getText();
+                   System.out.println("Simbolo sendo adicionado: "+nome);
+                   //nomes.add(nome);
+                   linha = ctx.variavel().IDENT().getSymbol().getLine();
+                   if(ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                   {
+                       tipo = ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                       System.out.println("Tipo da variavel: "+tipo);
+                       if(!pilhaDeTabelas.existeSimbolo(tipo))
+                       {
+                           out.println("Linha "+linha+ ": tipo "+tipo+" nao declarado");
+                       }
+                   }else
+                   {
+                       tipo = ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                       System.out.println("Tipo da variavel: "+tipo);
+                   }
+                   
+                   if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                   {
+                       tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipo, null, null);
+                   }else
+                   {
+                       out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                   }
+                   
+                   for(int i = 0; i<ctx.variavel().mais_var().IDENT().size(); i++)
+                   {
+                       nome = ctx.variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                       {
+                           tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipo, null, null);
+                       }else
+                       {
+                           out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                       }
+                   }
+            }else{
+                
+                nome = ctx.variavel().IDENT().getText();
+                linha = ctx.variavel().IDENT().getSymbol().getLine();
+                
+                if(!pilhaDeTabelas.existeSimbolo(nome))
+                {
+                    AdicionarSimboloRegistro(ctx, tabelaDeSimbolosAtual, nome, linha);
+                }
+                
+                for(int i = 0; i<ctx.variavel().mais_var().IDENT().size(); i++)
+                   {
+                       nome = ctx.variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                       {
+                           AdicionarSimboloRegistro(ctx, tabelaDeSimbolosAtual, nome, linha);
+                       }else
+                       {
+                           out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                       }
+                   }
+            }       
+    }
+
+    
+     @Override
     public void enterCmd(LAParser.CmdContext ctx)
     {   
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         int linha;
-        String nomeVar;
+        String nome;
+        String tipo;
         
-        if(ctx.IDENT()!=null)
+        if(ctx.getStart().getText().equals("leia"))
         {
-            nomeVar = ctx.IDENT().getText();
-            nomeSubRotina = nomeVar;
-            linha = ctx.IDENT().getSymbol().getLine();
-            Linha = linha;
-            System.out.println("Nome Cmd: "+nomeVar+" linha "+linha);
-        
-            if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                out.println("Linha "+linha+": identificador "+nomeVar+" nao declarado");
+            VerificaSimbolo(ctx);
+        }else
+        {
+            if(ctx.expressao()!=null && ctx.IDENT()!=null)
+            {
+                nome = ctx.IDENT().getText();
+                tipo = pilhaDeTabelas.getTipo(nome);
+                nome = "^" + nome;
+                linha = ctx.IDENT().getSymbol().getLine();
+                
+                if(ctx.outros_ident().identificador()!=null)
+                {
+                    //pilhaDeTabelas.getTipo(nome);
+                    TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipo);
+                    String Outronome = ctx.outros_ident().identificador().IDENT().getText();
+                    tipo = tabelaDoRegistro.getTipo(Outronome);
+                    nome = nome + "." + Outronome;
+                    
+                }
+                
+                VerificaAtribuicao(ctx.expressao(), nome, linha, tipo);
+                
+                
+            }else
+            {
+              if(ctx.chamada_atribuicao()!=null)  
+              {  if(ctx.chamada_atribuicao().expressao()!=null)
+                {
+                    nome = ctx.IDENT().getText();
+                    tipo = pilhaDeTabelas.getTipo(nome);
+                    if(tipo == null)
+                    {
+                        tipo = "tipo_indefinido";
+                    }
+                    linha = ctx.IDENT().getSymbol().getLine();
+                    
+                    if(!pilhaDeTabelas.existeSimbolo(nome))
+                    {
+                        //Linha 19: identificador media_final nao declarado
+                        out.println("Linha "+linha+": identificador "+nome+" nao declarado");
+                    }
+                
+                    if(ctx.chamada_atribuicao().outros_ident().identificador()!=null)
+                    {
+                        //pilhaDeTabelas.getTipo(nome);
+                        TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipo);
+                        String Outronome = ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
+                        tipo = tabelaDoRegistro.getTipo(Outronome);
+                        nome = nome + "." + Outronome;
+                    
+                    }
+                    
+//                    String exp;
+//                    if(ctx.dimensao()!=null)
+//                    {
+//                        if(ctx.dimensao().exp_aritmetica() != null)
+//                        {   exp = ctx.dimensao().exp_aritmetica(0).termo().fator().parcela().parcela_unario().NUM_INT().getText();
+//                            nome = nome +"["+exp+"]";
+//                        }
+//                    }else{
+//                        if(ctx.chamada_atribuicao()!=null)
+//                        {
+//                            if(ctx.chamada_atribuicao().dimensao()!=null)
+//                            {
+//                                if(ctx.chamada_atribuicao().dimensao().exp_aritmetica()!=null)
+//                                {
+//                                    if(ctx.dimensao().exp_aritmetica() != null)
+//                                    {   exp = ctx.chamada_atribuicao().dimensao().exp_aritmetica(0).termo().fator().parcela().parcela_unario().NUM_INT().getText();
+//                                        nome = nome +"["+exp+"]";
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }    
+                
+                    VerificaAtribuicao(ctx.chamada_atribuicao().expressao(), nome, linha, tipo);
+                }
+            }else
+              {
+                  if(ctx.getStart().getText().equals("retorne"))
+                  {
+                      linha = ctx.getStop().getLine();
+                      if(EhFuncao == 0)
+                      {
+                          out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
+                      }
+                      
+                  }
+              }
+          }    
         }
         
         
         
-                if(ctx.getStart().getText().equals("retorne"))
+    }
+    
+    public void VerificaAtribuicao(LAParser.ExpressaoContext ctx, String nome, int linha, String Tipo)
+    {
+        VerificadorDeTipos verificador = new VerificadorDeTipos();
+        
+        String TipoAtribuido = verificador.verificaTipo(ctx);
+        
+        System.out.println("Tipo expressao : "+Tipo);
+        System.out.println("Tipo atribuicao : "+TipoAtribuido);
+        System.out.println("Linha "+linha);
+        
+        if(!Tipo.equals(TipoAtribuido))
+        {
+            if(!Tipo.equals("tipo_indefinido"))
+            {
+                if(Tipo.equals("literal") || TipoAtribuido.equals("literal") || TipoAtribuido.equals("tipo_invalido"))
                 {
-                   // if(!ctx.getParent().getParent().getStart().getText().equals("funcao"))
-                   // {
-                        if(EhFuncao == 0)
-                        {    linha = ctx.getStop().getLine();
-                            out.println("Linha "+linha+": comando retorne nao permitido nesse escopo");
-                        }
-                   // }
+                    //Linha 11: atribuicao nao compativel para valor[0]
+                    out.println("Linha "+linha+": atribuicao nao compativel para "+nome);
                 }
+            }
             
+        }
         
     }
     
-//    @Override
-//    public void exitRegistro( LAParser.RegistroContext ctx)
-//    {
-//        pilhaDeTabelas.desempilhar();
-//    }
     
+    public void VerificaSimbolo(LAParser.CmdContext ctx)
+    {
+        String nome = ctx.identificador().IDENT().getText();
+        int linha = ctx.identificador().IDENT().getSymbol().getLine();
+        String tipo = pilhaDeTabelas.getTipo(nome);
+        String nomeOutrosIdent = null;
+        
+        if(ctx.outros_ident()!=null)
+        {
+            if(ctx.outros_ident().identificador().IDENT()!=null)
+            {nomeOutrosIdent = ctx.outros_ident().identificador().IDENT().getText();
+            TabelaDeSimbolos tabReg = pilhaDeTabelas.getSubtabela(tipo);
+            if(!tabReg.existeSimbolo(nomeOutrosIdent))
+            {
+                out.println("Linha "+linha+": identificador "+nome+"."+nomeOutrosIdent+" nao declarado");  
+          }
+            }
+        }
+        
+        if(!pilhaDeTabelas.existeSimbolo(nome))
+        {
+            if(nomeOutrosIdent!=null)
+            {
+                nome = nome + "." + nomeOutrosIdent;
+                nomeOutrosIdent = null;
+            }
+            out.println("Linha "+linha+": identificador "+nome+" nao declarado");            
+        }
+        
+        for(int i = 0; i < ctx.mais_ident().identificador().size(); i++)
+        {
+            nome = ctx.mais_ident().identificador(i).IDENT().getText();
+            linha = ctx.mais_ident().identificador(i).IDENT().getSymbol().getLine();
+            if(ctx.mais_ident().identificador(i).outros_ident()!=null)
+            {
+                if(ctx.mais_ident().identificador(i).outros_ident().identificador()!=null)
+                {nomeOutrosIdent = ctx.mais_ident().identificador(i).outros_ident().identificador().IDENT().getText();
+                TabelaDeSimbolos tabReg = pilhaDeTabelas.getSubtabela(tipo);
+                if(!tabReg.existeSimbolo(nomeOutrosIdent))
+                {
+                    out.println("Linha "+linha+": identificador "+nome+"."+nomeOutrosIdent+" nao declarado");  
+                }
+                }
+            }
+        
+            if(!pilhaDeTabelas.existeSimbolo(nome))
+            {
+                if(nomeOutrosIdent!=null)
+                {
+                    nome = nome + "." + nomeOutrosIdent;
+                    nomeOutrosIdent = null;
+                }
+                out.println("Linha "+linha+": identificador "+nome+" nao declarado");            
+            }
+            
+        }
+        
+    }
+    
+    
+    @Override
+    public void enterChamada_atribuicao(LAParser.Chamada_atribuicaoContext ctx)
+    {
+        String nome;
+        String tipo;
+        int linha;
+        
+        if(ctx.getStart().getText().equals("("))
+        {
+            
+        }
+    }
+    
+    
+    
+        
     @Override
     public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx)
     {
         String nome = ctx.IDENT().getText();
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-        
-        tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada = tabelaDeSimbolosAtual;
-        
+        List<String> listaNomePar = new ArrayList<>();
+        List<String> listaTipoPar = new ArrayList<>();
         if (ctx.getStart().getText().equals("procedimento"))
         {
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
-               // tabelaDeSimbolosAtual.adicionarSimbolo(nome, "procedimento", null, null);
-                NomeDecSubRotina = nome;
-                TipoFuncao = null;
+                if(ctx.parametros_opcional()!=null)
+                {   
+                    AdicionarTiposParametros(ctx,listaNomePar,listaTipoPar);
+                }
+                
+                tabelaDeSimbolosAtual.adicionarSimbolo(nome, null, listaTipoPar, null);
                 TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento"+nome);
+                for(int i = 0; i < listaNomePar.size(); i++)
+                {
+                    if(!tabelaDeSimbolosProcedimento.existeSimbolo(listaNomePar.get(i)))
+                    {
+                        tabelaDeSimbolosProcedimento.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                    }
+                }
                 pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
+                
             }else
             {
                 out.println("identificador "+nome+" ja declarado anteriormente");
             }
-                
-            
-//            List<String> listaPar = new ArrayList<String>();
-//            TabelaDeSimbolos tabelaDeSimbolosGlobal = pilhaDeTabelas.topo();
-//                
-//            if(!tabelaDeSimbolosGlobal.existeSimbolo(nome))
-//            {
-//                TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento "+nome);
-//                
-//                for (int i=0; i<ctx.parametros_opcional().parametros.size(); i++)      
-//                {
-//                    String nomePar = ctx.parametros_opcional().parametros.get(i);
-//                    String tipoPar = ctx.parametros_opcional().tipo_parametros.get(i);
-//                    
-//                    System.out.println("Nome par: "+nomePar);
-//                    
-//                    if(!tabelaDeSimbolosProcedimento.existeSimbolo(nomePar))
-//                    {
-//                        tabelaDeSimbolosProcedimento.adicionarSimbolo(nomePar, tipoPar, null, null);
-//                        listaPar.add(tipoPar);
-//                    }
-//                    else
-//                    {
-//                        out.println("identificador "+nomePar+" ja declarado anteriormente");
-//                    }
-//                }
-//                tabelaDeSimbolosGlobal.adicionarSimbolo(nome, "procedimento", listaPar, null);
-//                   
-//                pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
-//
-//            }else 
-//                out.println("identificador "+nome+" ja declarado anteriormente");
         }else{
             if(ctx.getStart().getText().equals("funcao"))
-            {
-                EhFuncao = 1;
+            {   EhFuncao = 1;
                 if(!pilhaDeTabelas.existeSimbolo(nome))
                 {
-                   // tabelaDeSimbolosAtual.adicionarSimbolo(nome, "funcao", null, null);
-                    NomeDecSubRotina = nome;
-                    if(ctx.tipo_estendido().tipo_basico_ident().tipo_basico()==null)
-                    {
-                        TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
-                    }else
-                    {
-                        TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                    if(ctx.parametros_opcional()!=null)
+                    {   
+                        AdicionarTiposParametros(ctx,listaNomePar,listaTipoPar);
                     }
+                    String TipoFuncao;
+                    if(ctx.tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                        TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
+                    else
+                        TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
                     
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, TipoFuncao, listaTipoPar, null);
                     TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao"+nome);
+                    
+                    for(int i = 0; i < listaNomePar.size(); i++)
+                    {
+                        if(!tabelaDeSimbolosFuncao.existeSimbolo(listaNomePar.get(i)))
+                        {
+                            tabelaDeSimbolosFuncao.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                        }
+                    }
                     pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);  
-                 }else
-                 {
-                    out.println("identificador "+nome+" ja declarado anteriormente");
-                 }
                 
-//                List<String> listaPar = new ArrayList<String>();
-//            TabelaDeSimbolos tabelaDeSimbolosGlobal = pilhaDeTabelas.topo();
-//                
-//            if(!tabelaDeSimbolosGlobal.existeSimbolo(nome))
-//            {
-//                TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao "+nome);
-//                
-//                for (int i=0; i<ctx.parametros_opcional().parametros.size(); i++)      
-//                {
-//                    String nomePar = ctx.parametros_opcional().parametros.get(i);
-//                    String tipoPar = ctx.parametros_opcional().tipo_parametros.get(i);
-//                    
-//                    System.out.println("Nome par: "+nomePar);
-//                    
-//                    if(!tabelaDeSimbolosFuncao.existeSimbolo(nomePar))
-//                    {
-//                        tabelaDeSimbolosFuncao.adicionarSimbolo(nomePar, tipoPar, null, null);
-//                        listaPar.add(tipoPar);
-//                    }
-//                    else
-//                    {
-//                        out.println("identificador "+nomePar+" ja declarado anteriormente");
-//                    }
-//                }
-//                tabelaDeSimbolosGlobal.adicionarSimbolo(nome, "funcao", listaPar, null);
-//                   
-//                pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);  
-//
-//            }else 
-//                out.println("identificador "+nome+" ja declarado anteriormente");
-            }
-        }
-        
-            
-    }
-    
-    @Override
-    public void enterMais_var(LAParser.Mais_varContext ctx)
-    {
-        TabelaDeSimbolos tabelaDeSimbolosAtual = tabelaDoReg;
-        if(Registro == 0)
-        {
-            tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-        }
-        for(int i=0; i< ctx.IDENT().size(); i++)
-        {
-            
-            String nome = ctx.IDENT(i).getText();
-            System.out.println("Nome var "+nome);
-            int linha = ctx.IDENT(i).getSymbol().getLine();
- 
-         if(EhRegistro == 0)   
-         {   
-             if(tipoVar.equals("literal") || tipoVar.equals("inteiro") || tipoVar.equals("logico") || tipoVar.equals("real"))
-            {
-                if(!pilhaDeTabelas.existeSimbolo(nome))
-                {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);
-                    System.out.println("Var adicionada "+nome+" "+tipoVar+" linha: "+linha);
-                }    
-                else //ERRO 1
-                      out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
-            }
-            else
-            {
-                if(!pilhaDeTabelas.existeSimbolo(tipoVar))
-                {
-                    System.out.println(tabelaDeSimbolosAtual.toString());
-                    out.println("Linha "+linha +  ": tipo "+tipoVar+" nao declarado");
-                    /*Duvida aqui, pq essa variavel nao podia ser adicionada, mas no teste do professor ela foi */
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipoVar, null, null);
                 }else
                 {
-                    if(!pilhaDeTabelas.existeSimbolo(nome))
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipoVar, null, null);	
-                    else //ERRO 1
-                        out.println("Linha "+linha+": identificador "+nome+" ja declarado anteriormente");
+                    out.println("identificador "+nome+" ja declarado anteriormente");
                 }
             }
-        }else
-         {
-             tipoDoReg.add(nome);
-         }
-         
-        }  
+        }
+        
+            
     }
     
-    
-    @Override
-    public void enterParametros_opcional(LAParser.Parametros_opcionalContext ctx)
-    {
-       // if(ctx.parametro()!=null)
-       // {
-            EhParametro = 1;
-       // }
-        
-    };
-    
-    @Override
-    public void enterParametro(LAParser.ParametroContext ctx)
-    {
-       if(ctx.tipo_estendido().tipo_basico_ident().tipo_basico()!=null) 
-       {  TipoPar = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
-           System.out.println("Tipo do Parametro no enterParametro: "+TipoPar);
-       }   
-       else
-       {
-           TipoPar = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
-           System.out.println("Tipo do Parametro no enterParametro: "+TipoPar);
-       }
-    };
-    
-    @Override
-    public void exitParametros_opcional(LAParser.Parametros_opcionalContext ctx)
-    {
-        
-            EhParametro = 0;
-            //TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-            System.out.println("Nome da subrotina que está sendo adicionada a lista de parametros "+NomeDecSubRotina);
-            tabelaPraAdicionarONomeDaSubrotinaEsuaListaDeParametrosAssociada.adicionarSimbolo(NomeDecSubRotina, TipoFuncao, listaPar, null);
-            
-            System.out.println("Tipos dos parametros adicionados com o nome "+NomeDecSubRotina);
-            
-            for( int i = 0; i < listaPar.size(); i++)
-            {
-                System.out.println(listaPar.get(i));
-            }
-            
-            
-            listaPar.clear();
-        
-    };
-
-
     @Override
     public void exitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         pilhaDeTabelas.desempilhar();
         EhFuncao = 0;
     }
     
-    @Override
-    public void enterChamada_atribuicao(LAParser.Chamada_atribuicaoContext ctx)
-    {
-        if(ctx.getStart().getText().equals("("))
-            PassouParametro = 1;
-        
-    }
-    
-    @Override
-    public void exitChamada_atribuicao(LAParser.Chamada_atribuicaoContext ctx)
-    {
-        
-        if(PassouParametro == 1)
-        {
-            List<String> EspecificacaoParametros = new ArrayList<String>();
-        
-            EspecificacaoParametros = pilhaDeTabelas.getListaPar(nomeSubRotina);
-        
-            if(EspecificacaoParametros.size() != TipoArg.size())
-            {
-                out.println("Linha "+Linha+": incompatibilidade de parametros na chamada de "+ nomeSubRotina);
-            }else
-            {
-                for(int i=0; i< EspecificacaoParametros.size(); i++)
-                {
-                    String tipo1 = EspecificacaoParametros.get(i);
-                    String tipo2 = TipoArg.get(i);
-                
-                    if(!tipo1.equals(tipo2))
-                    {
-                        out.println("Linha "+Linha+": incompatibilidade de parametros na chamada de "+ nomeSubRotina);
-                    }
-                }
-            }
-        
-             //Linha 44: incompatibilidade de parametros na chamada
-        
-            TipoArg.clear();
-            EspecificacaoParametros.clear();
-        }
-        
-            PassouParametro = 0;
-        
-        
-    }
     
     @Override
     public void enterChamada_partes(LAParser.Chamada_partesContext ctx)
     {
         if(ctx.getStart().getText().equals("("))
-            PassouParametro = 1;
-    }
-    
-    @Override
-    public void exitChamada_partes(LAParser.Chamada_partesContext ctx)
-    {
-        if(PassouParametro == 1)
         {
-            List<String> EspecificacaoParametros = new ArrayList<String>();
+            List<String> ParametrosFormais = new ArrayList<>();
+            String nomeSubRotina = ctx.getParent().getStart().getText();
+            int Linha = ctx.getParent().getStart().getLine();
+            System.out.println("Linha "+Linha+" Subrotina "+nomeSubRotina);
             System.out.println("Nome da subrotina no chamada Partes: "+ nomeSubRotina);
-            EspecificacaoParametros = pilhaDeTabelas.getListaPar(nomeSubRotina);
+            ParametrosFormais = pilhaDeTabelas.getListaPar(nomeSubRotina);
             
-            
-            
-            for(int j = 0; j < EspecificacaoParametros.size(); j++)
-            {
-                System.out.println("Parametros: "+EspecificacaoParametros.get(j));
+            List<String> ParametrosReais = new ArrayList<>();
+            ParametrosReais.add(VerificadorDeTipos.verificaTipo(ctx.expressao()));
+            for(LAParser.ExpressaoContext eCtx : ctx.mais_expressao().expressao()) {
+                ParametrosReais.add(VerificadorDeTipos.verificaTipo(eCtx));
             }
             
-            for(int j = 0; j < TipoArg.size(); j++)
-            {
-                System.out.println("Parametros: "+TipoArg.get(j));
-            }
-        
-            
-            if(EspecificacaoParametros.size() != TipoArg.size())
+            if(ParametrosFormais.size() != ParametrosReais.size())
             {
                  out.println("Linha "+Linha+": incompatibilidade de parametros na chamada de "+ nomeSubRotina);
             }else
             {
-                for(int i=0; i< EspecificacaoParametros.size(); i++)
+                for(int i=0; i< ParametrosReais.size(); i++)
                  {
-                     String tipo1 = EspecificacaoParametros.get(i);
-                     String tipo2 = TipoArg.get(i);
+                     String tipo1 = ParametrosReais.get(i);
+                     String tipo2 = ParametrosFormais.get(i);
                 
                     if(!tipo1.equals(tipo2))
                     {
@@ -554,213 +611,93 @@ public class AnalisadorSemantico extends LABaseListener {
                     }
                 }
             }
-        
-        //Linha 44: incompatibilidade de parametros na chamada
-        
-            TipoArg.clear();
-            EspecificacaoParametros.clear();
         }
-        PassouParametro = 0;
-        
     }
     
-    
-    
-    
-//    @Override
-//    public void exitDeclaracoes_locais(LAParser.Declaracoes_locaisContext ctx)
-//    {
-//        pilhaDeTabelas.desempilhar();
-//    }
-
-//    private String detectarTipo(LAParser.ExpressaoContext ctx) {
-//         String tipo = null;
-//         TabelaDeSimbolos tabelaDeSimbolosAtual2 = pilhaDeTabelas.topo();
-//        
-//        for (String nome : ctx.nome_par)
-//        {
-//            if (nome != null)
-//            {
-//                
-//                //ctx.tipo_par.add(tipo);
-//            }
-//        }
-//        return tipo;
-//    }
-    
-    @Override
-    public void enterExpressao(LAParser.ExpressaoContext ctx)
+    public void AdicionarTiposParametros(LAParser.Declaracao_globalContext ctx, List<String> ListaNomePar, List<String> ListaTipoPar)
     {
-        VerificadorDeTipos verificador = new VerificadorDeTipos();
-        String tipo = verificador.verificaTipo(ctx);
-        
-        
-            
-    };
-    
-    @Override
-    public void enterIdentificador(LAParser.IdentificadorContext ctx)
-    {
-        TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
-        if(tabelaAtual == null)
-            System.out.println("NULOOOOOOO!!!");
-        
-        String nome = ctx.IDENT().getText();
-        
-        
-        System.out.println("Nome do identificador: "+nome);
-        String tipo  = tabelaAtual.getTipo(nome);
-                if(tipo !=null)
-                {
-                    tipoDoRegistro = tipo;
-                }    
-                System.out.println("Tipo "+tipo);
-        
+        String nome;
+        String tipo;
         int linha;
-
-        linha = ctx.IDENT().getSymbol().getLine();
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         
-        if(EhParametro == 0)
-        {    if(!tabelaAtual.existeSimbolo(nome))
-            {
-                if(tabelaDoRegistro != null)
-                {
-                    if(!tabelaDoRegistro.existeSimbolo(nome))
-                    {
-                        out.println("Linha "+linha+": identificador "+nomeVarPai+"."+nome+" nao declarado");
-                    }
-                }else
-                {   
-                    out.println("Linha "+linha+": identificador "+nome+" nao declarado");
-                }
-                   
-            }
-            nomeVarPai = nome;
-            
-        }else{
-            if(!tabelaAtual.existeSimbolo(nome))
-                    {
-                        tipo = TipoPar;
-                        tipoDoRegistro = TipoPar;
-                        System.out.println("Tipo do parametro "+tipo);
-                        tabelaAtual.adicionarSimbolo(nome, tipo, null, null);
-                        listaPar.add(tipo);
-                    }
-                    else
-                    {
-                        out.println("identificador "+nome+" ja declarado anteriormente");
-                    }
-        }    
-        
-//        else
-//        {
-//            if(ctx.outros_ident().identificador() != null)
-//            {
-//               TabelaDeSimbolos tabelaDoReg =  pilhaDeTabelas.getSubtabela(tipo);  
-//               
-//               if(tabelaDoReg == null)
-//               {
-//                   System.out.println("NULOOOO");
-//               }
-//               
-//               linha = ctx.outros_ident().identificador().IDENT().getSymbol().getLine();//ctx.outros_ident().identificador().IDENT().getSymbol().getLine();
-//               System.out.println("LINHA outrosIdent "+linha);
-//               
-//               //nome = ctx.outros_ident().id_outros_id;   //ctx.outros_ident().identificador().IDENT().getText();
-//               System.out.println("nome outrosIdent "+nome);
-//               
-//               if(!tabelaDoReg.existeSimbolo(nome))
-//               {
-//                   out.println("Linha "+linha+": identificador "+nome+" não declarado");
-//               }
-//               
-//            }
-//        }
-            
-//            for(int i=0; i < ctx.mais_ident().array_id.size(); i++)
-//            {
-//                
-//                nomeVar = ctx.mais_ident().array_id.get(i);
-//                System.out.println("Parametro passado, nome: "+nomeVar);
-//                linha = ctx.identificador().IDENT().getSymbol().getLine();
-//                if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-//                {
-//                    out.println("Linha "+linha+": identificador "+nomeVar+" não declarado");
-//                }
-//            }    
-        
-        
-    }
-    
-    @Override
-    public void enterOutros_ident(LAParser.Outros_identContext ctx)
-    {
-        
-        TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
-        String nome; // = ctx.getParent().
-        //System.out.println("Nome outrosIdent " +nome);
-        //String tipo  = tabelaAtual.getTipo(nome);
-        System.out.println("Tipo "+tipoDoRegistro);
-        int linha;
-        tabelaDoRegistro =  pilhaDeTabelas.getSubtabela(tipoDoRegistro); 
-               
-        if(tabelaDoRegistro == null)
+        nome = ctx.parametros_opcional().parametro().identificador().IDENT().getText();
+        linha = ctx.parametros_opcional().parametro().identificador().IDENT().getSymbol().getLine();
+        if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
         {
-            System.out.println("NULOOOO");
+            ListaNomePar.add(nome);
+        }else{
+            
+            out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
         }
-               
-//        linha = ctx.identificador().IDENT().getSymbol().getLine();
-//        nome = ctx.identificador().getText();
-//        System.out.println("Nome outrosIdent 2 " + nome);
-//              
-//               
-//        if(!tabelaDoReg.existeSimbolo(nome))
-//        {
-//            out.println("Linha "+linha+": identificador "+nome+" não declarado");
-//        }
-    }
+        
+        if(ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+        {
+            tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT().getText();
+        }else
+        {
+            tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+        }
+        
+        ListaTipoPar.add(tipo);
+        
+        for(int i = 0; i<ctx.parametros_opcional().parametro().mais_ident().identificador().size(); i++)
+        {
+            nome = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getText();
+            linha = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getSymbol().getLine();
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            {
+                ListaNomePar.add(nome);
+            }else{
+            
+                out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+            }
+            ListaTipoPar.add(tipo);
+        }
+        
+        if(ctx.parametros_opcional().parametro().mais_parametros().parametro()!=null)
+        {
+            nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getText();
+            linha = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getSymbol().getLine();
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            {
+                ListaNomePar.add(nome);
+            }else{
+            
+                out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+            }
+        
+            if(ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+            {
+                tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT().getText();
+            }else
+            {
+                tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+            }
+        
+            ListaTipoPar.add(tipo);
+        
+        for(int i = 0; i < ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador().size(); i++)
+        {
+            nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getText();
+            linha = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getSymbol().getLine();
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            {
+                ListaNomePar.add(nome);
+            }else{
+            
+                out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+            }
+            ListaTipoPar.add(tipo);
+        }
+            
+            
     
-//    @Override
-//    public void enterMais_ident(LAParser.Mais_identContext ctx)
-//    {
-//        TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
-//        String nome; // = ctx.identificador().get(1).IDENT().getText();
-//        String tipo; //  = tabelaAtual.getTipo(nome);
-//        int linha;
-//        
-//        for(int i =0; i < ctx.identificador().size(); i++)
-//        {
-//            nome = ctx.identificador().get(i).IDENT().getText();
-//            tipo  = tabelaAtual.getTipo(nome);
-//            linha = ctx.identificador().get(i).IDENT().getSymbol().getLine();
-//            if(!tabelaAtual.existeSimbolo(nome))
-//            {
-//                out.println("Linha "+linha+": identificador "+nome+" não declarado");
-//            }
-//            if(ctx.identificador().get(i).outros_ident().identificador() != null)
-//            {
-//               TabelaDeSimbolos tabelaDoReg =  pilhaDeTabelas.getSubtabela(tipo);   //verificar isso, pq registro vai estar no global
-//               
-//               nome = ctx.identificador().get(i).outros_ident().identificador().IDENT().getText();
-//               linha = ctx.identificador().get(i).outros_ident().identificador().IDENT().getSymbol().getLine();
-//               
-//               if(!tabelaDoReg.existeSimbolo(nome))
-//               {
-//                   out.println("Linha "+linha+": identificador "+nome+" não declarado");
-//               }
-//               
-//            }
-//        }
-//        
-//    }
+        }
+      }
     
-//    @Override
-//    public void enterArgumentos_opcional(LAParser.Argumentos_opcionalContext ctx)
-//    {
-//        //percorrer a lista de nomes 
-//    }
     
-    @Override
+     @Override
     public void enterParcela_unario(LAParser.Parcela_unarioContext ctx)
     {
         String tipo = null;
@@ -768,14 +705,8 @@ public class AnalisadorSemantico extends LABaseListener {
         if(ctx.IDENT()!=null)
         {
             String nome = ctx.IDENT().getText();
-            if(ctx.chamada_partes().getStart().getText().equals("("))
-            {
-                nomeSubRotina = nome;
-                System.out.println("Nome da subrotina: "+nomeSubRotina);
-            }
             System.out.println("Nome parcela_unario "+nome);
             int linha = ctx.IDENT().getSymbol().getLine();
-            Linha = linha;
             System.out.println("Nome parcela_unario "+nome+" linha"+linha);
             tipo = pilhaDeTabelas.getTipo(nome);
             System.out.println("Tipo recuperado "+tipo);
@@ -784,7 +715,7 @@ public class AnalisadorSemantico extends LABaseListener {
                 if(ctx.chamada_partes()!=null)
                 {
                     if (ctx.chamada_partes().outros_ident().identificador() != null)
-                    {   nomeVarPai = nome;
+                    {
                         nome = nome + '.' + ctx.chamada_partes().outros_ident().identificador().IDENT().getText();
                     }
                 }
@@ -792,31 +723,9 @@ public class AnalisadorSemantico extends LABaseListener {
                 out.println("Linha "+linha+": identificador "+nome+" nao declarado");
             }
         }
-        
-        if(PassouParametro == 1)
-        {
-            if(ctx.NUM_INT()!=null)
-            {
-                tipo = "inteiro";
-            }else{
-                if(ctx.NUM_REAL()!=null)
-                {
-                    tipo = "real";
-                }else
-                {
-                    if(ctx.expressao()!=null)
-                    {
-                        tipo = verificador.verificaTipo(ctx.expressao());
-                    }
-                }
-            }
             
-            TipoArg.add(tipo);
-        }
-        
-        
-        
     }
+        
     
     @Override
     public void enterParcela_nao_unario(LAParser.Parcela_nao_unarioContext ctx)
@@ -833,23 +742,14 @@ public class AnalisadorSemantico extends LABaseListener {
             {
                 if (ctx.outros_ident().identificador()!= null)
                 {   
-                    nomeVarPai = nome;
                     nome = nome + '.' + ctx.outros_ident().identificador().IDENT().getText();
                 }
                 
                 out.println("Linha "+linha+": identificador "+nome+" nao declarado");
             }
         }
-        
-        if(PassouParametro == 1)
-        {
-            if(ctx.CADEIA()!=null)
-            {
-                tipo = "literal";
-            }
-            TipoArg.add(tipo);
-        }
     }
 
+  
 }
 
