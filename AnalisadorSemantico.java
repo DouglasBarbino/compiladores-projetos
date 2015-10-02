@@ -6,8 +6,8 @@ package trabalho1;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.antlr.runtime.RecognitionException;
 import trabalho1.LAParser.Declaracao_localContext;
+import trabalho1.LAParser.DimensaoContext;
 
 /**
  *
@@ -356,6 +356,16 @@ public class AnalisadorSemantico extends LABaseListener {
                         nome = nome + "." + Outronome;
                     
                     }
+                   // if(ctx.dimensao()!=null)
+                   // {
+                    DimensaoContext dCtx = ctx.chamada_atribuicao().dimensao();
+                    if(dCtx != null) {
+                        LAParser.Exp_aritmeticaContext eCtx = dCtx.exp_aritmetica(0);
+                        if(eCtx != null) {
+                            String txt = eCtx.getText();
+                            nome = nome +"["+txt+"]";
+                        }
+                   }
                     
 //                    String exp;
 //                    if(ctx.dimensao()!=null)
