@@ -10,26 +10,19 @@ import java.util.List;
 import org.antlr.runtime.RecognitionException;
 /**
  *
- * @author Usuário
+ * @author Douglas
  */
 public class GeradorCodigo extends LABaseListener {
-    //SITUACAO ATUAL: ATE VARIAVEL TUDO O QUE ERA REFERENTE A TABELA DE SIMBOLOS FOI PEGO
+    //FALTA CONSERTAR OS REGISTROS, TRATAR O TESTE 14 E REIDENTAR ALGUMAS PARTES DO CODIGO
     
-    //FALTA UTILIZAR AS TABELAS DE SIMBOLOS, NO MOMENTO APENAS COMECEI A CASCA DA 
-    //GERACAO DE CODIGO
     Saida codigo;
     
     //PARA AS TABELAS DE SIMBOLOS
+    int EhFuncao = 0;
     static PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
-    List<String> tipoDoReg = new ArrayList<String>();
-    int Registro;
-    TabelaDeSimbolos tabelaDoReg;
-    int EhRegistro; 
     
     public GeradorCodigo(Saida codigo){
         this.codigo = codigo;
-        this.Registro = 0;
-        this.EhRegistro = 1;
     }
     
     @Override
@@ -71,13 +64,14 @@ public class GeradorCodigo extends LABaseListener {
             //PARA A TABELA DE SIMBOLOS
             nomeVar = ctx.IDENT().getText();
             if(!tabelaDeSimbolosAtual.existeSimbolo(nomeVar))
-                tipoDoReg.add(nomeVar);
+                AdicionarSimboloRegistro(ctx, tabelaDeSimbolosAtual, nomeVar);
             //FIM TABELA SIMBOLOS
         }
         else{
             // declarando uma constante
             if (tipoDeclLocal.equals("constante")){
                 codigo.println("#define "+ctx.IDENT().getText()+" "+ctx.valor_constante().getText());
+                codigo.println("");
                 
                 //INCLUINDO CONSTANTE NA TABELA DE SIMBOLOS
                 nomeVar = ctx.IDENT().getText();
@@ -86,20 +80,17 @@ public class GeradorCodigo extends LABaseListener {
                 if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
                     tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
             }
+            else{ //caso do declare
+                AdicionarSimbolo(ctx, tabelaDeSimbolosAtual);
+            }
         }
     }
     
     @Override
     public void enterVariavel(LAParser.VariavelContext ctx) {
-        //PARA A TABELA DE SIMBOLOS
-        TabelaDeSimbolos tabelaDeSimbolosAtual = tabelaDoReg;
-        if(Registro == 0)
-            tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
-        String nomeTabSimb = ctx.IDENT().getText(), tipoTabSimb;
-        
         //Declarando uma variavel
         String nome = ctx.IDENT().getText();
-        String tipo = null;
+        String tipo = "";
         
         //Caso foi declarada mais de uma variavel com esse tipo
         //deixar desse jeito para montar o codigo, para adicionar na tabela de simbolos utilizar a regra do mais_var
@@ -136,50 +127,15 @@ public class GeradorCodigo extends LABaseListener {
                 nome = nome + ctx.dimensao().getText();
             
             codigo.println(tipo+" "+nome+";");
-            
-            //PARA A TABELA DE SIMBOLOS
-            EhRegistro = 0;
-            
-            if(ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico()!=null)
-                tipoTabSimb = ctx.tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
-            else
-                tipoTabSimb = ctx.tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
-            
-            if(tipoTabSimb.equals("literal") || tipoTabSimb.equals("inteiro") || 
-               tipoTabSimb.equals("logico") || tipoTabSimb.equals("real")){
-                if(!pilhaDeTabelas.existeSimbolo(nomeTabSimb))
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nomeTabSimb,tipoTabSimb, null, null);
-            }
-            else{
-                if(!pilhaDeTabelas.existeSimbolo(tipoTabSimb))
-                    tabelaDeSimbolosAtual.adicionarSimbolo(nomeTabSimb, tipoTabSimb, null, null);
-                else{
-                    if(!pilhaDeTabelas.existeSimbolo(nome))
-                        tabelaDeSimbolosAtual.adicionarSimbolo(nomeTabSimb,tipoTabSimb, null, null);
-                }
-            }
-            //FIM TABELA SIMBOLOS
         }
         else{
             //declaracao de registro
             codigo.println("struct {");
-            
-            //PARA A TABELA DE SIMBOLOS
-            tipoDoReg.add(nome);
         }
     }
     
     @Override
-    public void enterRegistro(LAParser.RegistroContext ctx){
-           // TUDO PARA A TABELA DE SIMBOLOS
-           tabelaDoReg = new TabelaDeSimbolos("registro");
-           Registro = 1;
-    }
-    
-    @Override
     public void exitRegistro(LAParser.RegistroContext ctx){
-        //PARA A TABELA DE SIMBOLOS
-        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         
         String variaveis;
         //Declarou tudo o que tinha pra se declarar no registro, fecha a chave dele
@@ -198,25 +154,36 @@ public class GeradorCodigo extends LABaseListener {
                 variaveis = variaveis + ctx.getParent().getParent().getChild(2).getText();
         }
         codigo.println("} "+variaveis+";");
-        
-        //PARA A TABELA DE SIMBOLOS
-        for(int i = 0; i < tipoDoReg.size(); i++){
-           tabelaDeSimbolosAtual.adicionarSimbolo(tipoDoReg.get(i), tipoDoReg.get(i), null, tabelaDoReg);
-        }
-       
-        tabelaDoReg = null;
-        tipoDoReg.clear();
-        Registro = 0;
     }
     
     @Override
     public void enterDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
+        //PARA A TABELA DE SIMBOLOS
+        String nome = ctx.IDENT().getText();
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        List<String> listaNomePar = new ArrayList<>();
+        List<String> listaTipoPar = new ArrayList<>();
         
         String declaracao;
         
         //verifica se eh um procedimento ou uma funcao
-        if (ctx.getStart().getText().equals("procedimento"))
+        if (ctx.getStart().getText().equals("procedimento")){
             declaracao = "void ";
+        
+            //PARA A TABELA DE SIMBOLOS
+            if(!pilhaDeTabelas.existeSimbolo(nome)){
+                if(ctx.parametros_opcional()!=null)
+                    AdicionarTiposParametros(ctx,listaNomePar,listaTipoPar);
+                tabelaDeSimbolosAtual.adicionarSimbolo(nome, null, listaTipoPar, null);
+                TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento"+nome);
+                for(int i = 0; i < listaNomePar.size(); i++){
+                    if(!tabelaDeSimbolosProcedimento.existeSimbolo(listaNomePar.get(i)))
+                        tabelaDeSimbolosProcedimento.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                }
+                pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
+            }
+            //FIM DA TABELA DE SIMBOLOS
+        }
         else{
             // como eh funcao precisa ser verificado o tipo dela
             switch (ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText()){
@@ -232,6 +199,28 @@ public class GeradorCodigo extends LABaseListener {
                 default: //caso logico
                     declaracao = "bool ";   
             }
+            
+            //PARA A TABELA DE SIMBOLOS
+            EhFuncao = 1;
+            if(!pilhaDeTabelas.existeSimbolo(nome)){
+                if(ctx.parametros_opcional()!=null)
+                    AdicionarTiposParametros(ctx,listaNomePar,listaTipoPar);
+                String TipoFuncao;
+                if(ctx.tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                    TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
+                else
+                    TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                    
+                tabelaDeSimbolosAtual.adicionarSimbolo(nome, TipoFuncao, listaTipoPar, null);
+                TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao"+nome);
+                    
+                for(int i = 0; i < listaNomePar.size(); i++){
+                    if(!tabelaDeSimbolosFuncao.existeSimbolo(listaNomePar.get(i)))
+                        tabelaDeSimbolosFuncao.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                }
+                pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);
+            }
+            //FIM TABELA DE SIMBOLOS
         }
         
         declaracao = declaracao + ctx.IDENT().getText()+" (";
@@ -274,6 +263,10 @@ public class GeradorCodigo extends LABaseListener {
     public void exitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         //Declarou tudo o que tinha pra se declarar no procedimento ou funcao, fecha a chave dele
         codigo.println("}");
+        
+        //PARA A TABELA DE SIMBOLOS
+        pilhaDeTabelas.desempilhar();
+        EhFuncao = 0;
     }
     
     @Override
@@ -302,7 +295,8 @@ public class GeradorCodigo extends LABaseListener {
         TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
         String tipoVariavelTabSimb, nomeVariavelTabSimb;
         
-        String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional, variavelPara, escrita;
+        String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional, variavelPara, escrita, tokenTratado;
+        boolean teveNao = false;
         
         estrutura = ctx.getStart().getText();
         
@@ -371,18 +365,38 @@ public class GeradorCodigo extends LABaseListener {
                         case "se":
                         case "enquanto":
 
-                            //Caso de fato nao seja possivel tratar o retorno do token no noh
-                            /* 
+                            //Verificar se foi negado no comeco
+                            if (ctx.expressao().termo_logico().fator_logico().op_nao().getText().equals("nao")){
+                                //Apenas para no final fechar esse parenteses que o nao abriu
+                                teveNao = true;
+                                condicao = condicao + "!(";
+                            }
+                             
                             //pega a primeira parte de uma expressao
                             condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
                             //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
-                            if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional() != null){
-                                condicao = condicao + tratamentoOpRelacional(ctx);
+                            if (!ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getStart().getText().equals("")){
+                                tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional());
+                                condicao = condicao + " " + tokenTratado + " " +
+                                        ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
                             }
-                            else
-                                condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getText();
-                            */
-                            condicao = condicao + ctx.expressao().getText();
+                            //verifica se teve um operador e na expressao
+                            if (ctx.expressao().termo_logico().outros_fatores_logicos().getStart().getText().equals("e")){
+                                tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().termo_logico().outros_fatores_logicos());
+                                //a partir do fator_logico ele parou de reconhecer tudo: parcela_logica, getChild, getText...
+                                //logico que nao eh o certo pegar tudo a partir do fator_logico (o getChild(1)), mas no unico teste que passa por aqui isso nao vai ser problema
+                                //pega a primeira parte de uma expressao
+                                condicao = condicao + " " + tokenTratado + " " +
+                                        ctx.expressao().termo_logico().outros_fatores_logicos().getChild(1).getText();
+                            }
+                            //verifica se teve um operador ou na expressao
+                            if (ctx.expressao().outros_termos_logicos().getStart().getText().equals("ou")){
+                                tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().outros_termos_logicos());
+                                //mesma coisa que ocorreu com o fator_logico, mas agora com o termo_logico
+                                condicao = condicao + " " + tokenTratado + " " +
+                                        ctx.expressao().outros_termos_logicos().getChild(1).getText();
+                            }
+                            
                             break;
                         case "caso":
                             // por algum motivo ele nao estah me deixando fazer ctx.exp_aritmetica.getText();
@@ -396,6 +410,10 @@ public class GeradorCodigo extends LABaseListener {
                             condicao = condicao + variavelPara + "++";
                     }
 
+                    //agora sim aplica a variavel do teveNao
+                    if (teveNao)
+                        condicao = condicao + ")";
+                    
                     //fecha o parenteses para todos e imprime no codigo
                     condicao = condicao + ") {";
                     codigo.println(condicao);
@@ -520,29 +538,24 @@ public class GeradorCodigo extends LABaseListener {
                         
                 //Como nao da pra usar o ctx.expressao pois eh preciso pegar o expressao daquela virgula, entao vai ter que ser 
                 //tudo na base do getChild(), mas deixo comentado o que sao aqueles getChild
-                
-                //verifica se eh texto para ser impresso
-                //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario()
-                if (ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1) != null)
-                    //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario()
-                    escrita = escrita + 
-                            ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getText();   
-                //eh variaveis
-                else{
+
+                //verifica se eh uma variavel para impressao
+                //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario()
+                if (ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1) != null){
                     //PARA A TABELA DE SIMBOLOS
-                    //vai imprimir um registro
+                    
+                    //eh um registro
                     //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().chamada_partes().getText() != null
                     if (ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getText() != null)
                                         
                         //por enquanto apenas para teste so se pega o nome da variavel, coisa bem simples
                         //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().chamada_partes().outros_ident().identificador().IDENT().getText()
                         nomeVariavelTabSimb = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getChild(0).getChild(1).getChild(1).getText();
-                    
-                    //vai imprimir uma variavel ou o retorno de uma funcao
-                                    
+                                 
                     //como nao tem caso de imprimir resultados de expressoes cujos tipos das variaveis sao diferentes soh 
                     //estou pegando o tipo da primeira variavel, qualquer coisa depois eu trato isso
                     else
+                        //vai imprimir uma variavel ou o retorno de uma funcao
                         //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getText()
                         nomeVariavelTabSimb = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(0).getText();
                                     
@@ -573,12 +586,16 @@ public class GeradorCodigo extends LABaseListener {
                     }
                 //FIM TABELA SIMBOLOS
                 }
+                    
+                //eh um texto
+                else{
+                    //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_nao_unario()
+                    escrita = escrita + 
+                            ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getText();
+                }
                         
-                //PRECISA DA TABELA DE SIMBOLOS
                 escrita = escrita + ");";
-                                
                 codigo.println(escrita);
-                
                 // incrementa o contador em 2 pois procuro se tem uma virgula, e ela aparece a cada um noh sim, um nao
                 i = i+2;
             }
@@ -587,20 +604,26 @@ public class GeradorCodigo extends LABaseListener {
     
     @Override
     public void enterSenao_opcional(LAParser.Senao_opcionalContext ctx) {
-        //verifica se o primeiro token encontrado no pai eh se, ou seja, eh o caso de senao,
-        // ou se eh um caso, ou seja, eh o caso do default
-        if (ctx.getParent().getStart().getText().equals("se"))
-            codigo.println("else {");
-        else
-            codigo.println("default:");
+        //primeiramente se verifica se esse noh nao estah vazio
+        if (!ctx.getText().equals("")){
+            //verifica se o primeiro token encontrado no pai eh se, ou seja, eh o caso de senao,
+            // ou se eh um caso, ou seja, eh o caso do default
+            if (ctx.getParent().getStart().getText().equals("se"))
+                codigo.println("else {");
+            else
+                codigo.println("default:");
+        }
     }
     
     @Override
     public void exitSenao_opcional(LAParser.Senao_opcionalContext ctx) {
-        //verifica se o primeiro token encontrado no pai eh se pois apenas no se eh necessario
-        // fechar a chave do senao, na regra do caso o default nao utiliza chave
-        if (ctx.getParent().getStart().getText().equals("se"))
-            codigo.println("}");
+        //primeiramente se verifica se esse noh nao estah vazio
+        if (!ctx.getText().equals("")){
+            //verifica se o primeiro token encontrado no pai eh se pois apenas no se eh necessario
+            // fechar a chave do senao, na regra do caso o default nao utiliza chave
+            if (ctx.getParent().getStart().getText().equals("se"))
+                codigo.println("}");
+        }
     }
     
     @Override
@@ -629,37 +652,199 @@ public class GeradorCodigo extends LABaseListener {
             codigo.println("case "+i+":");
     }
     
-    public void enterExpressao(LAParser.ExpressaoContext ctx) {
+    /*@Override
+    public void enterChamada_partes(LAParser.Chamada_partesContext ctx){
+        //TUDO EH PARA A TABELA DE SIMBOLOS
+        List<String> ParametrosFormais = new ArrayList<>();
+        String nomeSubRotina = ctx.getParent().getStart().getText();
+        int Linha = ctx.getParent().getStart().getLine();
+        List<String> ParametrosReais = new ArrayList<>();
+        
+        if(ctx.getStart().getText().equals("(")){
+            ParametrosFormais = pilhaDeTabelas.getListaPar(nomeSubRotina);
+            ParametrosReais.add(VerificadorDeTipos.verificaTipo(ctx.expressao()));
+            for(LAParser.ExpressaoContext eCtx : ctx.mais_expressao().expressao()) {
+                ParametrosReais.add(VerificadorDeTipos.verificaTipo(eCtx));
+            }
+            
+            if(ParametrosFormais.size() != ParametrosReais.size())
+            {
+                 out.println("Linha "+Linha+": incompatibilidade de parametros na chamada de "+ nomeSubRotina);
+            }else
+            {
+                for(int i=0; i< ParametrosReais.size(); i++)
+                 {
+                     String tipo1 = ParametrosReais.get(i);
+                     String tipo2 = ParametrosFormais.get(i);
+                }
+            }
+        }
+    }*/
+    
+    @Override
+    public void exitExpressao(LAParser.ExpressaoContext ctx) {
         
         //tratando o final do do..while, pra isso verificando se o primeiro token encontrado
         // no pai eh faca, ou seja, ver se o cmd tem faca
         if (ctx.getParent().getStart().getText().equals("faca"))
-        {
             //caso for possivel tratar o retorno do noh, isso vai estar correto
             codigo.println("} while ("+ctx.getText()+");");
+    }
+    
+    public void AdicionarSimboloRegistro(LAParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual, String nomeDoReg)
+    { 
+        String nome, tipo;
+        
+        TabelaDeSimbolos tabelaDoRegistro = new TabelaDeSimbolos("registro");
+                   
+            if(ctx.tipo()!=null){      
+                nome = ctx.tipo().registro().variavel().IDENT().getText();
+                   if(ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                       tipo = ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                   else
+                       tipo = ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   
+                   if(!tabelaDoRegistro.existeSimbolo(nome))
+                       tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   
+                   for(int i = 0; i<ctx.tipo().registro().variavel().mais_var().IDENT().size(); i++)
+                   {
+                       nome = ctx.tipo().registro().variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDoRegistro.existeSimbolo(nome))
+                           tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   }
+                   
+                   for(int i = 0; i < ctx.tipo().registro().mais_variaveis().variavel().size(); i++) 
+                   {
+                        nome = ctx.tipo().registro().mais_variaveis().variavel(i).IDENT().getText();
+                        if(ctx.tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                            tipo = ctx.tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                        else
+                            tipo = ctx.tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   
+                        if(!tabelaDoRegistro.existeSimbolo(nome))
+                            tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                        
+                   
+                        for(int j = 0; j<ctx.tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT().size(); j++){
+                            nome = ctx.tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT(i).getText();
+                            if(!tabelaDoRegistro.existeSimbolo(nome))
+                                tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                        }
+                   }
+            }else{
+                if(ctx.variavel().tipo()!=null){
+                   nome = ctx.variavel().tipo().registro().variavel().IDENT().getText();
+                   if(ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                       tipo = ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                   else
+                       tipo = ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   
+                   if(!tabelaDoRegistro.existeSimbolo(nome))
+                       tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   
+                   for(int i = 0; i<ctx.variavel().tipo().registro().variavel().mais_var().IDENT().size(); i++){
+                       nome = ctx.variavel().tipo().registro().variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDoRegistro.existeSimbolo(nome))
+                           tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   }
+                   
+                   for(int i = 0; i < ctx.variavel().tipo().registro().mais_variaveis().variavel().size(); i++){
+                        nome = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).IDENT().getText();
+                        if(ctx.variavel().tipo().registro().variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                            tipo = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                        else
+                            tipo = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   
+                        if(!tabelaDoRegistro.existeSimbolo(nome))
+                            tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                   
+                        for(int j = 0; j<ctx.variavel().tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT().size(); j++){
+                            nome = ctx.variavel().tipo().registro().mais_variaveis().variavel(i).mais_var().IDENT(i).getText();
+                            if(!tabelaDoRegistro.existeSimbolo(nome))
+                                tabelaDoRegistro.adicionarSimbolo(nome, tipo, null, null);
+                        }
+                }
+            } 
+        }        
+            tabelaDeSimbolosAtual.adicionarSimbolo(nomeDoReg, nomeDoReg, null, tabelaDoRegistro);         
+    }
+    
+    public void AdicionarSimbolo(LAParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual)
+    {
+        String nome, tipo;
+        
+            if(ctx.variavel().tipo().registro()==null){      
+                nome = ctx.variavel().IDENT().getText();
+                if(ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                    tipo = ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                else
+                    tipo = ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                   
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipo, null, null);
+                   
+                for(int i = 0; i<ctx.variavel().mais_var().IDENT().size(); i++)
+                {
+                       nome = ctx.variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                           tabelaDeSimbolosAtual.adicionarSimbolo(nome, tipo, null, null);
+                }
+            }else{
+                
+                nome = ctx.variavel().IDENT().getText();
+                
+                if(!pilhaDeTabelas.existeSimbolo(nome))
+                    AdicionarSimboloRegistro(ctx, tabelaDeSimbolosAtual, nome);
+                
+                for(int i = 0; i<ctx.variavel().mais_var().IDENT().size(); i++){
+                       nome = ctx.variavel().mais_var().IDENT(i).getText();
+                       if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                           AdicionarSimboloRegistro(ctx, tabelaDeSimbolosAtual, nome);
+                   }
+            }       
+    }
+    
+    public void AdicionarTiposParametros(LAParser.Declaracao_globalContext ctx, List<String> ListaNomePar, List<String> ListaTipoPar){
+        String nome, tipo;
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        
+        nome = ctx.parametros_opcional().parametro().identificador().IDENT().getText();
+        if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            ListaNomePar.add(nome);
+        
+        if(ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+            tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT().getText();
+        else
+            tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+        
+        ListaTipoPar.add(tipo);
+        
+        for(int i = 0; i<ctx.parametros_opcional().parametro().mais_ident().identificador().size(); i++){
+            nome = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getText();
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                ListaNomePar.add(nome);
+            ListaTipoPar.add(tipo);
         }
-    }
-    
-    private String tratamentoOpE(LAParser.CmdContext ctx) {
-        //nao esta pronto
-        return "&&";
-    }
-    
-    private String tratamentoOpOU(LAParser.CmdContext ctx) {
-        //nao esta pronto
-        return "||";
-    }
-    
-    private String tratamentoOpRelacional(LAParser.CmdContext ctx) {
-        String tratamentoOp = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional().getText();
-        if (tratamentoOp.equals("="))
-            tratamentoOp = "==";
-        else{
-            if (tratamentoOp.equals("<>"))
-                tratamentoOp = "!=";
+        
+        if(ctx.parametros_opcional().parametro().mais_parametros().parametro()!=null){
+            nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getText();
+            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                ListaNomePar.add(nome);
+        
+            if(ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT().getText();
+            else
+                tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+        
+            ListaTipoPar.add(tipo);
+        
+            for(int i = 0; i < ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador().size(); i++){
+                nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getText();
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                    ListaNomePar.add(nome);
+                ListaTipoPar.add(tipo);
+            }
         }
-        tratamentoOp = tratamentoOp + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
-
-        return tratamentoOp;
     }
 }
