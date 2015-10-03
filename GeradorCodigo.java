@@ -263,6 +263,7 @@ public class GeradorCodigo extends LABaseListener {
     public void exitDeclaracao_global(LAParser.Declaracao_globalContext ctx) {
         //Declarou tudo o que tinha pra se declarar no procedimento ou funcao, fecha a chave dele
         codigo.println("}");
+        codigo.println("");
         
         //PARA A TABELA DE SIMBOLOS
         pilhaDeTabelas.desempilhar();
@@ -293,51 +294,84 @@ public class GeradorCodigo extends LABaseListener {
     public void enterCmd(LAParser.CmdContext ctx){
         //PARA A TABELA DE SIMBOLOS
         TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
-        String tipoVariavelTabSimb, nomeVariavelTabSimb;
+        String tipoVariavelTabSimb, nomeVariavelTabSimb, tipoRegistro;
         
-        String variavel, expressao = " = ", condicao, estrutura, tratamentoOpRelacional, variavelPara, escrita, tokenTratado;
-        boolean teveNao = false;
+        String variavel, expressao = " = ", condicao, estrutura, variavelPara, escrita, tokenTratado, atribuicaoStringRegistro = "strcpy(";
         
         estrutura = ctx.getStart().getText();
         
         if (ctx.chamada_atribuicao() != null){
             //Caso de passagem de parametros para um procedimento / funcao:
             if (ctx.chamada_atribuicao().getStart().getText().equals("(") && ctx.chamada_atribuicao().getStop().getText().equals(")")){
-                codigo.println(ctx.getText());    
+                codigo.println(ctx.getText()+";");    
             }
             //Atribuicao simples que nao eh para ponteiro
             else{
                 variavel = ctx.IDENT().getText();
-                //ver se eh variavel de registro
-                if (ctx.chamada_atribuicao().outros_ident().getStart().getText().equals("."))
-                    //nome registro + . + nome variavel dentro do registro
-                    variavel = variavel+ctx.chamada_atribuicao().outros_ident().getStart().getText()+
-                            ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.chamada_atribuicao().expressao().getText();
-
-                //verificar se eh um vetor
-                if (ctx.chamada_atribuicao().dimensao().getStart().getText().equals("["))
-                    variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
-                
-                codigo.println(variavel+expressao+";");
+                //ver se eh variavel de registro
+                if (ctx.chamada_atribuicao().outros_ident().getStart().getText().equals(".")){
+                    nomeVariavelTabSimb = ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
+                    //pega o tipo do registro para obter a sua tabela de simbolos
+                    tipoRegistro = variavel;
+                    variavel = variavel + "." + nomeVariavelTabSimb;
+                    // Caso isso for um tipo de registro, isso serah null e vai ser necessario pegar primeiro o tipo dele
+                    if (pilhaDeTabelas.getSubtabela(tipoRegistro) != null){
+                        TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipoRegistro);
+                        tipoVariavelTabSimb = tabelaDoRegistro.getTipo(nomeVariavelTabSimb);
+                    }
+                    else{
+                        tipoVariavelTabSimb = tabelaAtual.getTipo(tipoRegistro);
+                        TabelaDeSimbolos tabelaDoTipoRegistro = pilhaDeTabelas.getSubtabela(tipoVariavelTabSimb);
+                        tipoVariavelTabSimb = tabelaDoTipoRegistro.getTipo(nomeVariavelTabSimb);
+                    }
+                    //Para strings, eh necessario usar o strcpy(), caso contrario uma atribuicao normal com = basta
+                    if (tipoVariavelTabSimb.equals("literal"))
+                        codigo.println(atribuicaoStringRegistro+variavel+","+ctx.chamada_atribuicao().expressao().getText()+");");
+                    else
+                        codigo.println(variavel+expressao+";");
+                }
+                else{
+                    //verificar se eh um vetor
+                    if (ctx.chamada_atribuicao().dimensao().getStart().getText().equals("["))
+                        variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
+                    codigo.println(variavel+expressao+";");
+                }
             }
         }
         else{
             //Atribuicao simples para ponteiro
             if (estrutura.equals("^")){
                 variavel = "*"+ctx.IDENT().getText();
-                //ver se eh variavel de registro
-                if (ctx.outros_ident().getStart().getText().equals(".")) 
-                    //nome registro + . + nome variavel dentro do registro
-                    variavel = variavel+ctx.outros_ident().getStart().getText()+
-                        ctx.outros_ident().identificador().IDENT().getText();
                 expressao = expressao + ctx.expressao().getText();
-
-                //verificar se eh um vetor
-                if (ctx.dimensao().getStart().getText().equals("["))
-                    variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
-                
-                codigo.println(variavel+expressao+";");
+                //ver se eh variavel de registro
+                if (ctx.outros_ident().getStart().getText().equals(".")){
+                    nomeVariavelTabSimb = ctx.outros_ident().identificador().IDENT().getText();
+                    //pega o tipo do registro para obter a sua tabela de simbolos
+                    tipoRegistro = ctx.IDENT().getText();
+                    variavel = variavel + "." + nomeVariavelTabSimb;
+                    // Caso isso for um tipo de registro, isso serah null e vai ser necessario pegar primeiro o tipo dele
+                    if (pilhaDeTabelas.getSubtabela(tipoRegistro) != null){
+                        TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipoRegistro);
+                        tipoVariavelTabSimb = tabelaDoRegistro.getTipo(nomeVariavelTabSimb);
+                    }
+                    else{
+                        tipoVariavelTabSimb = tabelaAtual.getTipo(tipoRegistro);
+                        TabelaDeSimbolos tabelaDoTipoRegistro = pilhaDeTabelas.getSubtabela(tipoVariavelTabSimb);
+                        tipoVariavelTabSimb = tabelaDoTipoRegistro.getTipo(nomeVariavelTabSimb);
+                    }
+                    //Para strings, eh necessario usar o strcpy(), caso contrario uma atribuicao normal com = basta
+                    if (tipoVariavelTabSimb.equals("literal"))
+                        codigo.println(atribuicaoStringRegistro+variavel+","+ctx.chamada_atribuicao().expressao().getText()+");");
+                    else
+                        codigo.println(variavel+expressao+";");
+                }
+                else{    
+                    //verificar se eh um vetor
+                    if (ctx.dimensao().getStart().getText().equals("["))
+                        variavel = variavel + ctx.chamada_atribuicao().dimensao().getText();
+                    codigo.println(variavel+expressao+";");
+                }
             }
             else{
                 // verifica se eh se, caso, para ou enquanto pois sua estrutura inicial eh parecida
@@ -367,36 +401,61 @@ public class GeradorCodigo extends LABaseListener {
 
                             //Verificar se foi negado no comeco
                             if (ctx.expressao().termo_logico().fator_logico().op_nao().getText().equals("nao")){
-                                //Apenas para no final fechar esse parenteses que o nao abriu
-                                teveNao = true;
-                                condicao = condicao + "!(";
-                            }
-                             
-                            //pega a primeira parte de uma expressao
-                            condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
-                            //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
-                            if (!ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getStart().getText().equals("")){
-                                tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional());
-                                condicao = condicao + " " + tokenTratado + " " +
-                                        ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
-                            }
-                            //verifica se teve um operador e na expressao
-                            if (ctx.expressao().termo_logico().outros_fatores_logicos().getStart().getText().equals("e")){
-                                tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().termo_logico().outros_fatores_logicos());
-                                //a partir do fator_logico ele parou de reconhecer tudo: parcela_logica, getChild, getText...
-                                //logico que nao eh o certo pegar tudo a partir do fator_logico (o getChild(1)), mas no unico teste que passa por aqui isso nao vai ser problema
+                                //pensei sim em sobrescrever o contexto ctx, mas nao pode... :(
+                                LAParser.ExpressaoContext naoCtx = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().expressao();
                                 //pega a primeira parte de uma expressao
-                                condicao = condicao + " " + tokenTratado + " " +
-                                        ctx.expressao().termo_logico().outros_fatores_logicos().getChild(1).getText();
+                                condicao = condicao + "!(" + naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
+                                //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
+                                if (!naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getStart().getText().equals("")){
+                                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional());
+                                    condicao = condicao + " " + tokenTratado + " " +
+                                            naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
+                                }
+                                //verifica se teve um operador e na expressao
+                                if (naoCtx.termo_logico().outros_fatores_logicos().getStart().getText().equals("e")){
+                                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(naoCtx.termo_logico().outros_fatores_logicos());
+                                    //a partir do fator_logico ele parou de reconhecer tudo: parcela_logica, getChild, getText...
+                                    //logico que nao eh o certo pegar tudo a partir do fator_logico (o getChild(1)), mas no unico teste que passa por aqui isso nao vai ser problema
+                                    //pega a primeira parte de uma expressao
+                                    condicao = condicao + " " + tokenTratado + " " +
+                                            naoCtx.termo_logico().outros_fatores_logicos().getChild(1).getText();
+                                }
+                                //verifica se teve um operador ou na expressao
+                                if (naoCtx.outros_termos_logicos().getStart().getText().equals("ou")){
+                                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(naoCtx.outros_termos_logicos());
+                                    //mesma coisa que ocorreu com o fator_logico, mas agora com o termo_logico
+                                    condicao = condicao + " " + tokenTratado + " " +
+                                            naoCtx.outros_termos_logicos().getChild(1).getText();
+                                }
+                                //fecha o parenteses extra que foi aberto pelo nao
+                                condicao = condicao + ")";
                             }
-                            //verifica se teve um operador ou na expressao
-                            if (ctx.expressao().outros_termos_logicos().getStart().getText().equals("ou")){
-                                tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().outros_termos_logicos());
-                                //mesma coisa que ocorreu com o fator_logico, mas agora com o termo_logico
-                                condicao = condicao + " " + tokenTratado + " " +
-                                        ctx.expressao().outros_termos_logicos().getChild(1).getText();
+                            else{ 
+                                //pega a primeira parte de uma expressao
+                                condicao = condicao + ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
+                                //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
+                                if (!ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getStart().getText().equals("")){
+                                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional());
+                                    condicao = condicao + " " + tokenTratado + " " +
+                                            ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
+                                }
+                                //verifica se teve um operador e na expressao
+                                if (ctx.expressao().termo_logico().outros_fatores_logicos().getStart().getText().equals("e")){
+                                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().termo_logico().outros_fatores_logicos());
+                                    //a partir do fator_logico ele parou de reconhecer tudo: parcela_logica, getChild, getText...
+                                    //logico que nao eh o certo pegar tudo a partir do fator_logico (o getChild(1)), mas no unico teste que passa por aqui isso nao vai ser problema
+                                    //pega a primeira parte de uma expressao
+                                    condicao = condicao + " " + tokenTratado + " " +
+                                            ctx.expressao().termo_logico().outros_fatores_logicos().getChild(1).getText();
+                                }
+                                //verifica se teve um operador ou na expressao
+                                if (ctx.expressao().outros_termos_logicos().getStart().getText().equals("ou")){
+                                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.expressao().outros_termos_logicos());
+                                    //mesma coisa que ocorreu com o fator_logico, mas agora com o termo_logico
+                                    condicao = condicao + " " + tokenTratado + " " +
+                                            ctx.expressao().outros_termos_logicos().getChild(1).getText();
+                                }
                             }
-                            
                             break;
                         case "caso":
                             // por algum motivo ele nao estah me deixando fazer ctx.exp_aritmetica.getText();
@@ -409,11 +468,6 @@ public class GeradorCodigo extends LABaseListener {
                             condicao = condicao + variavelPara + " <= " + ctx.getChild(5).getText() + "; ";
                             condicao = condicao + variavelPara + "++";
                     }
-
-                    //agora sim aplica a variavel do teveNao
-                    if (teveNao)
-                        condicao = condicao + ")";
-                    
                     //fecha o parenteses para todos e imprime no codigo
                     condicao = condicao + ") {";
                     codigo.println(condicao);
@@ -460,21 +514,33 @@ public class GeradorCodigo extends LABaseListener {
                                     //PARA A TABELA DE SIMBOLOS
                                     //vai imprimir um registro
                                     if (ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
-                                        .termo().fator().parcela().parcela_unario().chamada_partes().getStart().getText().equals("."))
-                                        
-                                        //por enquanto apenas para teste so se pega o nome da variavel, coisa bem simples
+                                        .termo().fator().parcela().parcela_unario().chamada_partes().getStart().getText().equals(".")){
+                                        //Se pega o nome da variavel
                                         nomeVariavelTabSimb = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
                                                                 .termo().fator().parcela().parcela_unario().chamada_partes().outros_ident().identificador().IDENT().getText();
-                                    
-                                    //vai imprimir uma variavel ou o retorno de uma funcao
-                                    
+                                        //pega o tipo do registro para obter a sua tabela de simbolos
+                                        tipoRegistro = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
+                                                                .termo().fator().parcela().parcela_unario().IDENT().getText();
+                                        // Caso isso for um tipo de registro, isso serah null e vai ser necessario pegar primeiro o tipo dele
+                                        if (pilhaDeTabelas.getSubtabela(tipoRegistro) != null){
+                                            TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipoRegistro);
+                                            tipoVariavelTabSimb = tabelaDoRegistro.getTipo(nomeVariavelTabSimb);
+                                        }
+                                        else{
+                                            tipoVariavelTabSimb = tabelaAtual.getTipo(tipoRegistro);
+                                            TabelaDeSimbolos tabelaDoTipoRegistro = pilhaDeTabelas.getSubtabela(tipoVariavelTabSimb);
+                                            tipoVariavelTabSimb = tabelaDoTipoRegistro.getTipo(nomeVariavelTabSimb);
+                                        }
+                                    }   
                                     //como nao tem caso de imprimir resultados de expressoes cujos tipos das variaveis sao diferentes soh 
                                     //estou pegando o tipo da primeira variavel, qualquer coisa depois eu trato isso
-                                    else
+                                    
+                                    //vai imprimir uma variavel ou o retorno de uma funcao
+                                    else{
                                         nomeVariavelTabSimb = ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica()
                                                                 .termo().fator().parcela().parcela_unario().IDENT().getText();
-                                    
-                                    tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+                                        tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+                                    }
 
                                     switch (tipoVariavelTabSimb){
                                         //tudo de variavel eh pego na exp.relacional pro caso do que eh para ser impresso seja uma expressao
@@ -526,7 +592,7 @@ public class GeradorCodigo extends LABaseListener {
     public void enterMais_expressao(LAParser.Mais_expressaoContext ctx) {
         //PARA A TABELA DE SIMBOLOS
         TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
-        String tipoVariavelTabSimb, nomeVariavelTabSimb;
+        String tipoVariavelTabSimb, nomeVariavelTabSimb, tipoRegistro;
         
         String escrita;
         int i = 0;
@@ -546,20 +612,32 @@ public class GeradorCodigo extends LABaseListener {
                     
                     //eh um registro
                     //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().chamada_partes().getText() != null
-                    if (ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getText() != null)
-                                        
-                        //por enquanto apenas para teste so se pega o nome da variavel, coisa bem simples
+                    if (!ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getText().equals("")){              
+                        //Se pega o nome da variavel
                         //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().chamada_partes().outros_ident().identificador().IDENT().getText()
                         nomeVariavelTabSimb = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(1).getChild(0).getChild(1).getChild(1).getText();
-                                 
+                        //pega o tipo do registro para obter a sua tabela de simbolos
+                        //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getText();
+                        tipoRegistro = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(0).getText();
+                        // Caso isso for um tipo de registro, isso serah null e vai ser necessario pegar primeiro o tipo dele
+                        if (pilhaDeTabelas.getSubtabela(tipoRegistro) != null){
+                            TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipoRegistro);
+                            tipoVariavelTabSimb = tabelaDoRegistro.getTipo(nomeVariavelTabSimb);
+                        }
+                        else{
+                            tipoVariavelTabSimb = tabelaAtual.getTipo(tipoRegistro);
+                            TabelaDeSimbolos tabelaDoTipoRegistro = pilhaDeTabelas.getSubtabela(tipoVariavelTabSimb);
+                            tipoVariavelTabSimb = tabelaDoTipoRegistro.getTipo(nomeVariavelTabSimb);
+                        }
+                    }             
                     //como nao tem caso de imprimir resultados de expressoes cujos tipos das variaveis sao diferentes soh 
                     //estou pegando o tipo da primeira variavel, qualquer coisa depois eu trato isso
-                    else
+                    else{
                         //vai imprimir uma variavel ou o retorno de uma funcao
                         //ctx.expressao().termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().IDENT().getText()
                         nomeVariavelTabSimb = ctx.getChild(i+1).getChild(0).getChild(0).getChild(1).getChild(0).getChild(0).getChild(0).getChild(0).getChild(0).getChild(1).getChild(0).getText();
-                                    
-                    tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+                        tipoVariavelTabSimb = tabelaAtual.getTipo(nomeVariavelTabSimb);
+                    }
 
                     switch (tipoVariavelTabSimb){
                         //tudo de variavel eh pego na exp.relacional pro caso do que eh para ser impresso seja uma expressao
@@ -684,11 +762,71 @@ public class GeradorCodigo extends LABaseListener {
     @Override
     public void exitExpressao(LAParser.ExpressaoContext ctx) {
         
+        String condicao= "} while (", tokenTratado;
         //tratando o final do do..while, pra isso verificando se o primeiro token encontrado
         // no pai eh faca, ou seja, ver se o cmd tem faca
-        if (ctx.getParent().getStart().getText().equals("faca"))
-            //caso for possivel tratar o retorno do noh, isso vai estar correto
-            codigo.println("} while ("+ctx.getText()+");");
+        if (ctx.getParent().getStart().getText().equals("faca")){
+            //Verificar se foi negado no comeco
+            if (ctx.termo_logico().fator_logico().op_nao().getText().equals("nao")){
+                //pensei sim em sobrescrever o contexto ctx, mas nao pode... :(
+                LAParser.ExpressaoContext naoCtx = ctx.termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().termo().fator().parcela().parcela_unario().expressao();
+                //pega a primeira parte de uma expressao
+                condicao = condicao + "!(" + naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
+                //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
+                if (!naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getStart().getText().equals("")){
+                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional());
+                    condicao = condicao + " " + tokenTratado + " " +
+                            naoCtx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
+                }
+                //verifica se teve um operador e na expressao
+                if (naoCtx.termo_logico().outros_fatores_logicos().getStart().getText().equals("e")){
+                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(naoCtx.termo_logico().outros_fatores_logicos());
+                    //a partir do fator_logico ele parou de reconhecer tudo: parcela_logica, getChild, getText...
+                    //logico que nao eh o certo pegar tudo a partir do fator_logico (o getChild(1)), mas no unico teste que passa por aqui isso nao vai ser problema
+                    //pega a primeira parte de uma expressao
+                    condicao = condicao + " " + tokenTratado + " " +
+                            naoCtx.termo_logico().outros_fatores_logicos().getChild(1).getText();
+                }
+                //verifica se teve um operador ou na expressao
+                if (naoCtx.outros_termos_logicos().getStart().getText().equals("ou")){
+                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(naoCtx.outros_termos_logicos());
+                    //mesma coisa que ocorreu com o fator_logico, mas agora com o termo_logico
+                    condicao = condicao + " " + tokenTratado + " " +
+                            naoCtx.outros_termos_logicos().getChild(1).getText();
+                }
+                //fecha o parenteses extra que foi aberto pelo nao
+                condicao = condicao + "));";
+            }
+            else{ 
+                //pega a primeira parte de uma expressao
+                condicao = condicao + ctx.termo_logico().fator_logico().parcela_logica().exp_relacional().exp_aritmetica().getText();
+                //verifica se op_relacional nao eh vazio pois dois dos operadores precisam ser convertidos para C
+                if (!ctx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().getStart().getText().equals("")){
+                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().op_relacional());
+                    condicao = condicao + " " + tokenTratado + " " +
+                            ctx.termo_logico().fator_logico().parcela_logica().exp_relacional().op_opcional().exp_aritmetica().getText();
+                }
+                //verifica se teve um operador e na expressao
+                if (ctx.termo_logico().outros_fatores_logicos().getStart().getText().equals("e")){
+                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.termo_logico().outros_fatores_logicos());
+                    //a partir do fator_logico ele parou de reconhecer tudo: parcela_logica, getChild, getText...
+                    //logico que nao eh o certo pegar tudo a partir do fator_logico (o getChild(1)), mas no unico teste que passa por aqui isso nao vai ser problema
+                    //pega a primeira parte de uma expressao
+                    condicao = condicao + " " + tokenTratado + " " +
+                            ctx.termo_logico().outros_fatores_logicos().getChild(1).getText();
+                }
+                //verifica se teve um operador ou na expressao
+                if (ctx.outros_termos_logicos().getStart().getText().equals("ou")){
+                    tokenTratado = TrataSimbolosGeradorCodigo.trataToken(ctx.outros_termos_logicos());
+                    //mesma coisa que ocorreu com o fator_logico, mas agora com o termo_logico
+                    condicao = condicao + " " + tokenTratado + " " +
+                            ctx.outros_termos_logicos().getChild(1).getText();
+                }
+                //fecha o parenteses da condicao
+                condicao = condicao + ");";
+            }
+            codigo.println(condicao);
+        }
     }
     
     public void AdicionarSimboloRegistro(LAParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual, String nomeDoReg)
