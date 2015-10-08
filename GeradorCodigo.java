@@ -68,7 +68,7 @@ public class GeradorCodigo extends LABaseListener {
                 
                 //INCLUINDO CONSTANTE NA TABELA DE SIMBOLOS
                 nomeVar = ctx.IDENT().getText();
-                tipo = ctx.tipo_basico().tipo_var;
+                tipo = ctx.tipo_basico().getText();
                 
                 if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
                     tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
