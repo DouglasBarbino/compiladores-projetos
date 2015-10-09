@@ -1,15 +1,16 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package trabalho1;
 
 /**
- *
- * @author Breno
+ *A classe VerificadorDeTipos, tem o intuito de receber algum contexto, e atraves de metodos polimorficos,
+ * determinar o tipo daquele contexto. A logica segue a ideia de se descer na arvore da gramatica, ate chegar
+ * a um ponto em que seja possivel determinar  tipo. Se o contexto passado for composto por um unico elemento
+ * o tipo desse elemento e retornado, senao, uma comparacao dos elementos dois a dois e feita, para poder determinar
+ * o tipo desse conjunto dessa expressao.
  */
 public class VerificadorDeTipos {
+    //O metodo verificaTipo e um metodo polimorfico.Seu comportamento e determinado pelo contexto que e passado como
+    //parametro.
     public static String verificaTipo(LAParser.ExpressaoContext ctx) {
         String tipoExp = verificaTipo(ctx.termo_logico());
         
