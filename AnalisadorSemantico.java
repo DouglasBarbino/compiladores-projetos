@@ -427,8 +427,9 @@ public class AnalisadorSemantico extends LABaseListener {
                         out.println("Linha "+linha+": identificador "+nome+" nao declarado");
                     }
                     //se a regra outros_ident() for diferente de null, temos que que o nome eh composto. O nome entao
-                    //deve ser escrito pela combinacao identificador . outros_ident e o tipo da variavel e o tipo
-                    // do nome mais interno, entao, a tabela do registro do tipo
+                    //deve ser escrito pela combinacao identificador . outros_ident e o tipo da variavel eh o tipo
+                    // do nome mais interno, entao, a tabela do registro do tipo da primeria variavel deve ser recuperada
+                    //para verificar o tipo do nome mais interno.
                     if(ctx.chamada_atribuicao().outros_ident().identificador()!=null)
                     {
                         TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipo);
@@ -437,6 +438,8 @@ public class AnalisadorSemantico extends LABaseListener {
                         nome = nome + "." + Outronome;
                     
                     }
+                    //Esse trecho de codigo e para os casos de existirem vetores, ou ate mesmo variaveis com maior dimensao,
+                    //para recuperar a expressao interior dessa dimensao e reescrever o nome da maneira correta
                     DimensaoContext dCtx = ctx.chamada_atribuicao().dimensao();
                     if(dCtx != null) {
                         LAParser.Exp_aritmeticaContext eCtx = dCtx.exp_aritmetica(0);
@@ -446,10 +449,18 @@ public class AnalisadorSemantico extends LABaseListener {
                         }
                    }
                 
+                   // Com o contexto da expressao, e o tipo da variavel que recebe a atribuicao, e possivel realizar a 
+                   // verificacao dessa atribuicao, se os tipos sao compativeis com o uso do metodo VerificaAtribuicao.
+                   //Tambem e passado como parametro o nome da variavel e a linha para poder reportar erros
                     VerificaAtribuicao(ctx.chamada_atribuicao().expressao(), nome, linha, tipo);
                 }
             }else
               {
+                  //Um comando pode ser retorne. Eh necessario verificar se esse retorne foi colocado no escopo correto,
+                  // pois se houver algum retorne em algoritmo e procedimento, deve ser reportado um erro. Quando for escopo
+                  // de funcao, esse retorne esta no escopo correto, o atributo EhFuncao, que funciona como uma flag, recebe 
+                  //o valor 1 quando uma funcao e declarada. Se nao, ele continua com 0. A verificacao feita, entao, e se o atributo
+                  //e igual a 0, se for, o comando retorne esta em um escopo nao permitido.
                   if(ctx.getStart().getText().equals("retorne"))
                   {
                       linha = ctx.getStop().getLine();
