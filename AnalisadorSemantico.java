@@ -433,8 +433,6 @@ public class AnalisadorSemantico extends LABaseListener {
                         nome = nome + "." + Outronome;
                     
                     }
-                   // if(ctx.dimensao()!=null)
-                   // {
                     DimensaoContext dCtx = ctx.chamada_atribuicao().dimensao();
                     if(dCtx != null) {
                         LAParser.Exp_aritmeticaContext eCtx = dCtx.exp_aritmetica(0);
@@ -460,56 +458,86 @@ public class AnalisadorSemantico extends LABaseListener {
               }
           }    
         }
-        
-        
-        
     }
     
+    /**
+     * O metodo VerificaAtribuicao e usado para verificar compatibilidade de tipos quando ocorre uma atribuicao.
+     * Para isso, deve se verificar se o tipo da cabeca da atribuicao e compativel com o que esta sendo atribuido 
+     * a ela. Recebe como parametros o contexto da expressao a ser analisada, o nome da variavel que esta recebendo
+     * a atribuicao (para reportar erros), a linha, e o tipo da variavel que esta recebendo a atribuicao para realizar
+     * a comparacao.
+     */
     public void VerificaAtribuicao(LAParser.ExpressaoContext ctx, String nome, int linha, String Tipo)
     {
+        //Para realizar a verificacao de tipos, foi criada uma classe que retorna o tipo de uma expressao (mais explicacoes na classe)
         VerificadorDeTipos verificador = new VerificadorDeTipos();
-        
+    
+        //O tipo da expressao e retornado pelo metodo verificatipo (que recebe o contexto da expressao como parametro, 
+        //na verdade, esse metodo e polimorfico, e depende do contexto que e passado para determinar seu comportamento.)
+        // da classe VerificadorDeTipos
         String TipoAtribuido = verificador.verificaTipo(ctx);
         
-        System.out.println("Tipo expressao : "+Tipo);
-        System.out.println("Tipo atribuicao : "+TipoAtribuido);
-        System.out.println("Linha "+linha);
-        
+        //A primeira verificacao feita entre os tipos da variavel que esta recebendo a atribuicao e o tipo retornado
+        //da expressao, eh se esses tipos sao iguais. Se eles foram, nenhum teste mais necessita ser feito, a atribuicao
+        //e valida. Se nao forem, a atribuicao ainda pode ser valida se os tipos forem compativeis, entao e necessario 
+        //continuar os testes.
         if(!Tipo.equals(TipoAtribuido))
         {
+            //se o tipo da variavel que recebe a atribuicao nao foi recuperado da tabela, ele e indefinido, e deve resultar
+            //em uma atribuicao invalida
             if(!Tipo.equals("tipo_indefinido"))
             {
+                //Se o tipo retornado pelo verificador de tipos foi tipo_indefinido, isso significa que em algum ponto da analise
+                //dentro da expressao, os tipos interiores dessa expressao sao incompativeis, a expressao em si nao tem tipo valido.
+                //Se algum dos tipos for literal (lembrando que os dois nao podem ser iguais ao mesmo tempo nesse ponto), entao a
+                //atribuicao naoe equivalente.
                 if(Tipo.equals("literal") || TipoAtribuido.equals("literal") || TipoAtribuido.equals("tipo_invalido"))
                 {
-                    //Linha 11: atribuicao nao compativel para valor[0]
                     out.println("Linha "+linha+": atribuicao nao compativel para "+nome);
                 }
+            }else
+            {
+                out.println("Linha "+linha+": atribuicao nao compativel para "+nome);
             }
             
         }
         
     }
     
-    
+    /**
+     * O metodo verifica simbolo tem intencao de realizar a verificacao de tipos para identificadores. O metodo
+     * foi criado com intuito de modularizar esses comandos. Ele e chamado quando existe um comando leia, entao
+     * o contexto passado e o contexto de comando.
+     */
     public void VerificaSimbolo(LAParser.CmdContext ctx)
     {
+        //recuperando o nome o identificador
         String nome = ctx.identificador().IDENT().getText();
         int linha = ctx.identificador().IDENT().getSymbol().getLine();
-        String tipo = pilhaDeTabelas.getTipo(nome);
+        String tipo = pilhaDeTabelas.getTipo(nome);  //recuperando seu tipo
         String nomeOutrosIdent = null;
         
+        //se for um nome composto, e necessario recuperar o restante do nome, e mais importante ainda,
+        //A partir do tipo (lembrando que o nome do registro e salvo no campo tipo), procura-se a tabela
+        //do registro na pilha de tabelas e a recupera, pois o nome retornado por outros_ident() deve ser procurado
+        //na tabela de simbolos do registro equivalente
         if(ctx.outros_ident()!=null)
         {
             if(ctx.outros_ident().identificador().IDENT()!=null)
-            {nomeOutrosIdent = ctx.outros_ident().identificador().IDENT().getText();
-            TabelaDeSimbolos tabReg = pilhaDeTabelas.getSubtabela(tipo);
-            if(!tabReg.existeSimbolo(nomeOutrosIdent))
-            {
-                out.println("Linha "+linha+": identificador "+nome+"."+nomeOutrosIdent+" nao declarado");  
-          }
+            {   nomeOutrosIdent = ctx.outros_ident().identificador().IDENT().getText();
+                //obtendo a subtabela
+                TabelaDeSimbolos tabReg = pilhaDeTabelas.getSubtabela(tipo);
+                //se o nome nao existir na subtabela, reportar o erro
+                if(!tabReg.existeSimbolo(nomeOutrosIdent))
+                {
+                    out.println("Linha "+linha+": identificador "+nome+"."+nomeOutrosIdent+" nao declarado");  
+                }
             }
         }
         
+        //O mesmo vale para o nome principal, se ele nao foi declarado, declarar erro. Importante notar que a
+        //declaracao de erros e feita tanto com o nome principal, quanto com o subnome, mesmo que apenas um dos
+        //dois nao tenha sido declarado.
         if(!pilhaDeTabelas.existeSimbolo(nome))
         {
             if(nomeOutrosIdent!=null)
@@ -520,6 +548,9 @@ public class AnalisadorSemantico extends LABaseListener {
             out.println("Linha "+linha+": identificador "+nome+" nao declarado");            
         }
         
+        //Para poder garantir a repeticao de identificadores dentro desses comandos, existe a regra mais_ident().
+        //A mesma verificacao que foi feita pro identificador anteriormente, deve ser feita para cada um dos identificadores
+        //retornados por essa regra.
         for(int i = 0; i < ctx.mais_ident().identificador().size(); i++)
         {
             nome = ctx.mais_ident().identificador(i).IDENT().getText();
