@@ -12,6 +12,9 @@ import java.util.List;
  *
  * @author (versao original): Daniel
  * @author (modificacoes): Grupo 3
+ * A classe EntradaTabelaDeSimbolos representa uma entrada na tabela de simbolos, que eh composta de quatro campos: o nome do simbolo,
+ * o tipo do simbolo, a lista de parametros associada ao nome, no caso de o nome ser de uma funcao ou um procedimento e uma tabela de simbolos
+ * associada ao nome, no caso de o nome representar um registro. Esses campos podem assumir o valor null quando nao forem necessarios.
  */
 public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
@@ -29,6 +32,7 @@ public class EntradaTabelaDeSimbolos {
             this.parametros = listaPassada;
         }else
         {
+	    //inicializacao dos parametros
             this.parametros = new ArrayList<String>();
         
             for(int i=0; i< listaPassada.size(); i++)
@@ -36,9 +40,7 @@ public class EntradaTabelaDeSimbolos {
                this.parametros.add(i,listaPassada.get(i));
             }
         }
-        
 
-//parametros;
         
     }
     
