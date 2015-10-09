@@ -410,23 +410,27 @@ public class AnalisadorSemantico extends LABaseListener {
               if(ctx.chamada_atribuicao()!=null)  
               {  if(ctx.chamada_atribuicao().expressao()!=null)
                 {
+                    //recuperando o nome da variavel que recebe a atribuicao
                     nome = ctx.IDENT().getText();
+                    //recuperando o seu tipo da tabela de simbolos
                     tipo = pilhaDeTabelas.getTipo(nome);
                     if(tipo == null)
                     {
+                        //se nao ha registro para o tipo, ou para o nome na tabela de simbolos, o tipo
+                        //passa a ser indefinido
                         tipo = "tipo_indefinido";
                     }
                     linha = ctx.IDENT().getSymbol().getLine();
-                    
+                    //verificacao para saber se o identificador ja foi declarado anteriormente
                     if(!pilhaDeTabelas.existeSimbolo(nome))
                     {
-                        //Linha 19: identificador media_final nao declarado
                         out.println("Linha "+linha+": identificador "+nome+" nao declarado");
                     }
-                
+                    //se a regra outros_ident() for diferente de null, temos que que o nome eh composto. O nome entao
+                    //deve ser escrito pela combinacao identificador . outros_ident e o tipo da variavel e o tipo
+                    // do nome mais interno, entao, a tabela do registro do tipo
                     if(ctx.chamada_atribuicao().outros_ident().identificador()!=null)
                     {
-                        //pilhaDeTabelas.getTipo(nome);
                         TabelaDeSimbolos tabelaDoRegistro = pilhaDeTabelas.getSubtabela(tipo);
                         String Outronome = ctx.chamada_atribuicao().outros_ident().identificador().IDENT().getText();
                         tipo = tabelaDoRegistro.getTipo(Outronome);
