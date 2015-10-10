@@ -215,7 +215,7 @@ public class VerificadorDeTipos {
                                 {
                                     if(ctx.getStart().getText().equals("("))
                                     {
-                                        tipo = verificaTipo(ctx.expressao());                 //Isso aqui parece estar errado, dar uma olhada nisso depois
+                                        tipo = verificaTipo(ctx.expressao());                 
                                     }
                                 }
                             }
