@@ -55,7 +55,6 @@ public class LALexer extends Lexer {
 	};
 
 
-
 		private void stop(String msg)
 		{
 			throw new ParseCancellationException(msg);

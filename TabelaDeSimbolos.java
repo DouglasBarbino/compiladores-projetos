@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package trabalho1;
 
 import java.util.ArrayList;
@@ -18,7 +14,7 @@ import java.util.List;
 
 /**
  *
- * @author daniel
+ * Classe tabela de simbolos representa um escopo. 
  */
 public class TabelaDeSimbolos {
     private String escopo;
@@ -39,6 +35,7 @@ public class TabelaDeSimbolos {
         }
     }
     
+    //Metodo para recuperar um tipo associado a um nome por meio de uma pesquisa nos simbolos da tabela.	
     public String getTipo(String nome)
     {
         String tipo = null;
@@ -50,6 +47,7 @@ public class TabelaDeSimbolos {
         return tipo;
     }
     
+    //Metodo para recuperar uma subtabela a partir de um tipo informado nos simbolos da tabela
     public TabelaDeSimbolos getSubtabela(String tipo)
     {
         for(int i = 0; i < simbolos.size(); i++) {
@@ -61,6 +59,7 @@ public class TabelaDeSimbolos {
         return null;
     }
     
+    //metodo para recuperar a lista de parametros associada a um nome de uma subrotina
     public List<String> getListaPar(String nomeSubrotina)
     {
         List<String> ListaPar = new ArrayList<String>();
@@ -74,15 +73,7 @@ public class TabelaDeSimbolos {
         
        return null; 
     }
-    
-//    public TabelaDeSimbolos getTabela(String tipo)
-//    {
-//        for(EntradaTabelaDeSimbolos etds:simbolos) {
-//            if(etds.getNome().equals(tipo)) {
-//                return true;
-//            }
-//        }
-//    }
+
         
     public boolean existeSimbolo(String nome) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {

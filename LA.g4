@@ -1,5 +1,5 @@
 /*
-	Versao 1: Grupo 3 (Luazinha)
+	Gramatica linguagem LA: Grupo 3 (Luazinha)
 */
 
 grammar LA;
@@ -33,7 +33,7 @@ CADEIA 	: '"' ( ~('"') )* '"';
 COMENTARIO : '{' ~('{' | '}')* '}' {skip();}; 
 // Definindo espacos para serem ignorados:
 ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
-// Definindo quando ocorre erro no comentario
+// Definindo quando ocorre erro no comentario:
 COMENTARIO_ERRADO
     : '{' ~('\r'|'\n'|'}')* '\n' 
       { stop("Linha "+getLine()+": comentario nao fechado"); }
@@ -44,63 +44,63 @@ ERROR
 
 /*****************************SINTATICO*****************************************/
 
-programa :              declaracoes 'algoritmo' corpo 'fim_algoritmo'
+programa 		:   declaracoes 'algoritmo' corpo 'fim_algoritmo'
 			;
 			
-declaracoes :           (decl_local_global)*
+declaracoes 		: (decl_local_global)*
 			; 
 
-decl_local_global :     declaracao_local 
+decl_local_global	: declaracao_local 
 			| declaracao_global
 			;
 			
-declaracao_local :      'declare' variavel 
-			| 'constante' IDENT  ':'  tipo_basico '=' valor_constante 
+declaracao_local    	: 'declare' variavel
+			| 'constante' IDENT  ':'  tipo_basico '=' valor_constante
 			| 'tipo' IDENT ':' tipo
 			;
 			
-variavel :              IDENT  dimensao  mais_var  ':' t = tipo 
+variavel 		:  IDENT  dimensao  mais_var  ':' tipo 
 			;
 			
-mais_var :              (',' IDENT  dimensao mais_var)*
+mais_var       		: (',' IDENT dimensao)*
 			;
 
-identificador : 	ponteiros_opcionais IDENT dimensao outros_ident
+identificador  		: ponteiros_opcionais IDENT dimensao outros_ident
 			;
 			
-ponteiros_opcionais :   ('^')* 
+ponteiros_opcionais	: ('^')* 
 			;
 			
-outros_ident : 		('.' identificador)? 
+outros_ident 		: ('.' identificador)? 
 			;
 			
-dimensao : 		('[' exp_aritmetica ']' )*
+dimensao 		: ('[' exp_aritmetica ']' )*
 			;
 
-tipo :                  registro 
+tipo                    : registro 
 			| tipo_estendido 
 			;
 			
-mais_ident : 		(',' identificador)* // mais ident
+mais_ident  		:	(',' identificador)* 
 			;
 			
-mais_variaveis : 	(variavel)* //mais variaveis
+mais_variaveis 		: 	(variavel)* 
 			;
 			
-tipo_basico :           'literal' 
-			| 'inteiro' 
-			| 'real'    
-			| 'logico'  
+tipo_basico   		: 'literal' 
+			| 'inteiro'
+			| 'real'   
+			| 'logico' 
 			;
 			
-tipo_basico_ident :     tipo_basico 
+tipo_basico_ident    	: tipo_basico
 			| IDENT 
 			;
 
-tipo_estendido :        ponteiros_opcionais tipo_basico_ident 
+tipo_estendido 		: ponteiros_opcionais tipo_basico_ident
 			;
 			
-valor_constante : 	CADEIA 
+valor_constante 	: CADEIA 
 			| NUM_INT 
 			| NUM_REAL 
 			| 'verdadeiro' 
@@ -110,34 +110,33 @@ valor_constante : 	CADEIA
 registro : 		'registro' variavel mais_variaveis 'fim_registro'
 			;
 			
-declaracao_global : 	'procedimento' IDENT '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
-			| 'funcao' IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+declaracao_global 	: 'procedimento' IDENT '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
+        		| 'funcao'  IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
+                        ;
+
+
+parametros_opcional 	: (parametro)?
 			;
 
-parametros_opcional : 	(parametro)?
-			;
-
-parametro : 		var_opcional identificador 
-			mais_ident ':' tipo_estendido 
-			mais_parametros 
+parametro 		: var_opcional identificador mais_ident ':' tipo_estendido mais_parametros 
 			;
 			
 var_opcional : 		'var'?
 			;
 
-mais_parametros : 	(',' parametro )?
-			;
+mais_parametros 	: (',' parametro)?
+                        ;
 			
 declaracoes_locais : 	(declaracao_local)*
 			;
 			
-corpo :                 declaracoes_locais comandos
+corpo : declaracoes_locais comandos
 			;
 			
-comandos : 		(cmd)*
+comandos                : (retornoCMD = cmd)*
 			;
 			
-cmd : 			'leia' '(' identificador mais_ident ')' 
+cmd 			: 'leia' '(' identificador mais_ident ')' 
 			| 'escreva' '(' expressao mais_expressao ')' 
 			| 'se' expressao 'entao' comandos senao_opcional 'fim_se' 
 			| 'caso' exp_aritmetica 'seja' selecao senao_opcional 'fim_caso' 
@@ -149,14 +148,14 @@ cmd : 			'leia' '(' identificador mais_ident ')'
 			| 'retorne' expressao
 			;
 			
-mais_expressao : 	(',' expressao)*
+mais_expressao          : (',' expressao)*
 			;
 			
 senao_opcional : 	('senao' comandos)?
 			;
 			
-chamada_atribuicao : 	'(' argumentos_opcional ')' 
-			| outros_ident dimensao '<-' expressao
+chamada_atribuicao	: 	'(' argumentos_opcional ')'
+			| outros_ident dimensao '<-' expressao 
 			;
 			
 argumentos_opcional : 	(expressao mais_expressao)?
@@ -183,10 +182,10 @@ intervalo_opcional : 	('..' op_unario NUM_INT)?
 op_unario : 		('-')?
 			;
 			
-exp_aritmetica : 	termo outros_termos
+exp_aritmetica          : termo outros_termos 
 			;
 			
-op_multiplicacao : 	'*' 
+op_multiplicacao 	: '*' 
 			| '/'
 			;
 			
@@ -194,48 +193,48 @@ op_adicao : 		'+'
 			| '-'
 			;
 			
-termo : 		fator outros_fatores
+termo 		        : fator outros_fatores  
 			;
 			
-outros_termos : 	(op_adicao termo)*
+outros_termos		: (op_adicao termo )*
 			;
 			
-fator : 		parcela outras_parcelas
+fator                   : parcela outras_parcelas 
 			;
 			
-outros_fatores : 	(op_multiplicacao fator)*
+outros_fatores 		: (op_multiplicacao fator )*
 			;
 			
-parcela : 		op_unario parcela_unario 
-			| parcela_nao_unario
+parcela 		: op_unario parcela_unario
+			| parcela_nao_unario 
 			;
 			
-parcela_unario : 	'^' IDENT outros_ident dimensao 
-			| IDENT chamada_partes 
-			| NUM_INT 
+parcela_unario 		: '^' IDENT  outros_ident dimensao 
+			| IDENT  chamada_partes 
+			| NUM_INT  
 			| NUM_REAL 
 			| '(' expressao ')'
 			;
 			
-parcela_nao_unario : 	'&' IDENT outros_ident dimensao 
-			| CADEIA
+parcela_nao_unario	: '&' IDENT outros_ident dimensao 
+			|  CADEIA 
 			;
 			
-outras_parcelas : 	('%' parcela)*
-			;
+outras_parcelas         : ('%'  parcela)*
+         		;
 			
-chamada_partes : 	'(' expressao mais_expressao ')' 
+chamada_partes		: '(' expressao mais_expressao ')' 
 			|  outros_ident dimensao 
-			|  /* vazio*/
+			|  /* vazio*/ 
 			;
 			
-exp_relacional :	exp_aritmetica op_opcional
+exp_relacional          : exp_aritmetica  op_opcional 
 			;
 			
-op_opcional : 		(op_relacional exp_aritmetica)?
+op_opcional 		: (op_relacional exp_aritmetica)?
 			;
 			
-op_relacional : 	'=' 
+op_relacional 		:  '=' 
 			| '<>' 
 			| '>=' 
 			| '<=' 
@@ -243,25 +242,26 @@ op_relacional : 	'='
 			| '<'
 			;
 			
-expressao : 		termo_logico outros_termos_logicos
+expressao               : termo_logico outros_termos_logicos
 			;
 			
 op_nao : 		'nao'?
 			;
 			
-termo_logico : 		fator_logico outros_fatores_logicos
+termo_logico            : fator_logico outros_fatores_logicos 
 			;
 			
-outros_termos_logicos : ('ou' termo_logico)*
+outros_termos_logicos 
+                        : ('ou' termo_logico)*
 			;
 			
-outros_fatores_logicos : ('e' fator_logico)*
+outros_fatores_logicos  : ('e' fator_logico )*
 			;
 			
-fator_logico : 		op_nao parcela_logica
+fator_logico            : op_nao parcela_logica 
 			;
 			
-parcela_logica : 	'verdadeiro' 
+parcela_logica		: 'verdadeiro' 
 			| 'falso' 
-			| exp_relacional
+			| exp_relacional 
 			;

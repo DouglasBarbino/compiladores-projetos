@@ -159,7 +159,7 @@ public class AnalisadorSemantico extends LABaseListener {
                    }
                    
                    //O mesmo processo realizado anteriormente para a regra variavel, deve ser realizado para a 
-                   // regra mais_variaveis, que permite a inclusao de outras variaveis de diferente tipo no mesmo
+                   // regra mais_variaveis, que permite a inclusao de outras variaveis de diferentes tipo no mesmo
                    // declare
                    
                    for(int i = 0; i < ctx.tipo().registro().mais_variaveis().variavel().size(); i++) 
@@ -510,9 +510,6 @@ public class AnalisadorSemantico extends LABaseListener {
                 {
                     out.println("Linha "+linha+": atribuicao nao compativel para "+nome);
                 }
-            }else
-            {
-                out.println("Linha "+linha+": atribuicao nao compativel para "+nome);
             }
             
         }
@@ -664,6 +661,8 @@ public class AnalisadorSemantico extends LABaseListener {
                     tabelaDeSimbolosAtual.adicionarSimbolo(nome, TipoFuncao, listaTipoPar, null);
                     TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao"+nome);
                     
+		    //Adicionando a lista de parametros que foram recuperados anteriormente ao escopo da funcao, pois esses
+		    //nomes tambem sao visiveis dentro do escopo das funcoes	
                     for(int i = 0; i < listaNomePar.size(); i++)
                     {
                         if(!tabelaDeSimbolosFuncao.existeSimbolo(listaNomePar.get(i)))
@@ -693,30 +692,35 @@ public class AnalisadorSemantico extends LABaseListener {
         EhFuncao = 0;
     }
     
-    
+
+    /**
+    * Metodo sobrescrito do listener que e percorrido pelo parser tree walker quando existe uma chamada a uma subrotina, para verficar
+    * se os parametros passados possuem tipos compativeis com os parametros declarados
+    */    
     @Override
     public void enterChamada_partes(LAParser.Chamada_partesContext ctx)
     {
         if(ctx.getStart().getText().equals("("))
-        {
+        {   //a verificacao dos parametros deve ser feita se a regra iniciar-se com "("
             List<String> ParametrosFormais = new ArrayList<>();
             String nomeSubRotina = ctx.getParent().getStart().getText();
             int Linha = ctx.getParent().getStart().getLine();
-            System.out.println("Linha "+Linha+" Subrotina "+nomeSubRotina);
-            System.out.println("Nome da subrotina no chamada Partes: "+ nomeSubRotina);
             ParametrosFormais = pilhaDeTabelas.getListaPar(nomeSubRotina);
-            
+            //Declarando uma lista para armazenar cada um dos parametros passados
             List<String> ParametrosReais = new ArrayList<>();
             ParametrosReais.add(VerificadorDeTipos.verificaTipo(ctx.expressao()));
+	    //Obtendo o tipo de cada um dos nomes passados como parametro
             for(LAParser.ExpressaoContext eCtx : ctx.mais_expressao().expressao()) {
                 ParametrosReais.add(VerificadorDeTipos.verificaTipo(eCtx));
             }
-            
+
+	    //realizando as comparacoes para determinar se a chamada e equivalente a declaracao, se nao tiverem a mesma quantidade
+            //isso ja representa um erro            
             if(ParametrosFormais.size() != ParametrosReais.size())
             {
                  out.println("Linha "+Linha+": incompatibilidade de parametros na chamada de "+ nomeSubRotina);
             }else
-            {
+            { //Se a quantidade for a mesma, e necessario verificar, parametro por parametro se eles sao de tipos iguais, se nao forem, isso constitui um erro
                 for(int i=0; i< ParametrosReais.size(); i++)
                  {
                      String tipo1 = ParametrosReais.get(i);
@@ -731,6 +735,10 @@ public class AnalisadorSemantico extends LABaseListener {
         }
     }
     
+    //Metodo criado para modularizar a adicao de parametros de uma subrotina, recebendo como parametro uma lista de nomes (para adicionar
+    // os identificadores ao escopo do procedimento, juntamente com seu tipo) e uma lista de tipos, parra ser armazenada associada ao
+    //nome da sunrotina. Assim  como em identificadores e variaveis, sao feitas as mesmas verificacoes e, se existe alguma regra para
+    // repeticao, entao essas etapas sao feitas em todas as regras repetidas.
     public void AdicionarTiposParametros(LAParser.Declaracao_globalContext ctx, List<String> ListaNomePar, List<String> ListaTipoPar)
     {
         String nome;
@@ -813,7 +821,9 @@ public class AnalisadorSemantico extends LABaseListener {
         }
       }
     
-    
+    /**
+     * Metodo sobrescrito do listener para tratar os identificadores, verificar se eles foram declarados anteriormente.
+     */
      @Override
     public void enterParcela_unario(LAParser.Parcela_unarioContext ctx)
     {
@@ -821,12 +831,10 @@ public class AnalisadorSemantico extends LABaseListener {
         VerificadorDeTipos verificador = new VerificadorDeTipos();
         if(ctx.IDENT()!=null)
         {
+            //Obtendo o nome do identificador, e verificando se ele ja foi declarado anteriormente
             String nome = ctx.IDENT().getText();
-            System.out.println("Nome parcela_unario "+nome);
             int linha = ctx.IDENT().getSymbol().getLine();
-            System.out.println("Nome parcela_unario "+nome+" linha"+linha);
             tipo = pilhaDeTabelas.getTipo(nome);
-            System.out.println("Tipo recuperado "+tipo);
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
                 if(ctx.chamada_partes()!=null)
@@ -843,7 +851,10 @@ public class AnalisadorSemantico extends LABaseListener {
             
     }
         
-    
+    /**
+    * Metodo sobrescrito do listener, para poder fazer as mesmas verificacoes feitas no enterParcela_unario, pois nessa regra tambem e possivel
+    * ter identificadores.
+    */
     @Override
     public void enterParcela_nao_unario(LAParser.Parcela_nao_unarioContext ctx)
     {
@@ -869,4 +880,3 @@ public class AnalisadorSemantico extends LABaseListener {
 
   
 }
-

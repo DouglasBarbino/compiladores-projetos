@@ -6,7 +6,8 @@ package trabalho1;
 
 /**
  *
- * @author daniel
+ * @author (versao original): Daniel
+ * @author (modificacoes): Grupo 3
  */
 public class Saida {
     private StringBuffer texto = new StringBuffer();
