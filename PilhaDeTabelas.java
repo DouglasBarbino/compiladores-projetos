@@ -1,8 +1,4 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
+
 package trabalho1;
 
 import java.util.LinkedList;
@@ -12,6 +8,7 @@ import java.util.*;
  *
  * @author (versao original): Daniel
  * @author (modificacoes): Grupo 3
+ *Classe que representa a pilha de tabelas necessaria para a analise semantica.
  */
 public class PilhaDeTabelas {
 
@@ -29,6 +26,7 @@ public class PilhaDeTabelas {
         return pilha.peek();
     }
     
+   // metodo que procura em todas as tabelas da pilha um tipo a partir de um nome fornecido.
     public String getTipo(String nome)
     {
         String tipo = null;
@@ -41,6 +39,7 @@ public class PilhaDeTabelas {
         return tipo;
     }
     
+   //Metodo que recupera a lista de parametros associada a um nome de uma subrotina pela busca em todas as tabelas da pilha.
     public List<String> getListaPar(String subRotina)
     {
         List<String> parametros = new ArrayList<String>();
@@ -62,6 +61,7 @@ public class PilhaDeTabelas {
         return false;
     }
     
+   //Metodo que recupera uma subtabela a partir de um tipo informado pela busca em todas as tabelas da pilha
     public TabelaDeSimbolos getSubtabela(String tipo)
     {
         for(int i = 0; i < pilha.size(); i++) {
