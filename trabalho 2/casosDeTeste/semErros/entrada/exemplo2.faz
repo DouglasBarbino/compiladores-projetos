@@ -1,0 +1,13 @@
+constante pinSom: inteiro = 5
+constante BREATH_DELAY: inteiro = 5
+
+algoritmo
+	ativar(led, pinSom)
+	para i de 0 ate 256 faca
+		ligar(led, pinSom, i) 
+		esperar(BREATH_DELAY) 
+	fimpara
+
+	esperar(100)	
+	desativar(led, pinSom)
+fim_algoritmo

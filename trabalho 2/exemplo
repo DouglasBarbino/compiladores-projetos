@@ -1,0 +1,44 @@
+
+
+//‘ativarBotao’ porta
+//‘desativarBotao’ porta
+//‘ativarSensorToque’ porta
+//‘desativarSensorToque’ porta
+//‘ativarPotenciometro’ porta
+//‘desativarPotenciometro’ porta
+ 
+
+//‘esperar’ tempo 
+
+//‘ligarLuz’ porta voltagem?
+//‘desligarLuz’ porta
+//‘ligarSom’ porta voltagem?
+//‘desligarSom’ porta
+
+//‘lerBotao’ porta
+//‘lerSensorToque’ porta 
+//‘lerPotenciometro’ porta
+
+
+‘ligarLuz’ porta voltagem?
+‘desligarLuz’ porta
+‘ligarSom’ porta voltagem?
+‘desligarSom’ porta
+
+‘ativarBotao’ porta
+‘desativarBotao’ porta
+‘ativarSensorToque’ porta
+‘desativarSensorToque’ porta
+‘ativarPotenciometro’ porta
+‘desativarPotenciometro’ porta
+‘lerBotao’ porta
+‘lerSensorToque’ porta 
+‘lerPotenciometro’ porta
+‘definirCorLCD’ porta cor
+‘escreverLCD’ porta frase
+‘esperar’ tempo 
+
+
+
+
+

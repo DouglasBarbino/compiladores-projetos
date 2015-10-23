@@ -192,7 +192,7 @@ dispositivoEntrada	: 'botao'
 			;
 
 
-comandoLCD		: 'definirCor' '(' 'LCD,' PORTA ',' COR ')'
+comandoLCD		: 'definirCor' '(' 'LCD,' PORTA ',' cor ')'
 			| 'escrever' '(' 'LCD' ',' PORTA  ',' CADEIA ')'
 			;
 
