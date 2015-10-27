@@ -1,8 +1,8 @@
 /*
-	Gramatica linguagem LA: Grupo 3 (Luazinha)
+	Gramatica linguagem FAZEDORES: Grupo 3 (Luazinha)
 */
 
-grammar LA;
+grammar FAZEDORES;
 
 @members
 {
@@ -35,11 +35,17 @@ CADEIA 	: '"' ( ~('"') )* '"';
 // Definindo porta:
 PORTA	: 'I2C' | ('0'..'8');
 
+fragment REGRA_255: (('0'|'1')?('0' .. '9')?('0' .. '9'))	
+	| ('2'(('0'..'4')('0'..'9')) | ('5'('0'..'5'))) 
+	;
+
 // Definindo voltagem: 
-VOLT	: ('0' .. '255');
+VOLT	: REGRA_255
+	;
 
 // Definindo cor:
-COR	: ('0'..'255'',''0'..'255'',''0'..'255');
+COR	: (REGRA_255',' REGRA_255',' REGRA_255)
+	;
 
 // Definindo comentarios:
 COMENTARIO : '{' ~('{' | '}')* '}' {skip();}; 
@@ -58,7 +64,7 @@ ERROR
 
 /*****************************SINTATICO*****************************************/
 
-programa 		:   declaracoes 'algoritmo' corpo 'fim_algoritmo'
+programa 		: declaracoes 'comando_setup' comandoSetup 'fim_comando_setup' 'comando_loop' comandoLoop 'fim_comando_loop'
 			;
 			
 declaracoes 		: (decl_local_global)*
@@ -73,7 +79,7 @@ declaracao_local    	: 'declare' variavel
 			| 'tipo' IDENT ':' tipo
 			;
 			
-variavel 		:  IDENT  dimensao  mais_var  ':' tipo 
+variavel 		: IDENT  dimensao  mais_var  ':' tipo 
 			;
 			
 mais_var       		: (',' IDENT dimensao)*
@@ -98,7 +104,7 @@ tipo                    : registro
 mais_ident  		: (',' identificador)* 
 			;
 			
-mais_variaveis 		: 	(variavel)* 
+mais_variaveis 		: (variavel)* 
 			;
 			
 tipo_basico   		: 'literal' 
@@ -121,7 +127,7 @@ valor_constante 	: CADEIA
 			| 'falso'
 			;
 			
-registro : 		'registro' variavel mais_variaveis 'fim_registro'
+registro 		: 'registro' variavel mais_variaveis 'fim_registro'
 			;
 			
 declaracao_global 	: 'procedimento' IDENT '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
@@ -135,19 +141,19 @@ parametros_opcional 	: (parametro)?
 parametro 		: var_opcional identificador mais_ident ':' tipo_estendido mais_parametros 
 			;
 			
-var_opcional : 		'var'?
+var_opcional 		: 'var'?
 			;
 
 mais_parametros 	: (',' parametro)?
                         ;
 			
-declaracoes_locais : 	(declaracao_local)*
+declaracoes_locais 	: (declaracao_local)*
 			;
 			
 corpo 			: declaracoes_locais comandos
 			;
 			
-comandos                : (retornoCMD = cmd)*
+comandos                : (cmd)*
 			;
 			
 cmd 			: 'leia' '(' identificador mais_ident ')' 
@@ -167,13 +173,13 @@ comandosArduino		: comandoSetup
 			| comandoLoop
 			; 
 
-comandoSetup		: ('ativar' '(' dispositivo ',' PORTA ')')*;
-
+comandoSetup		: ('ativar' '(' dispositivo ',' PORTA ')')+
+			;
  
 comandoLoop		: ('ligar' | 'desligar') '(' dispositivoSaida ',' PORTA (',' VOLT)? ')'
 			| 'ler' dispositivoEntrada
 			| 'esperar' NUM_INT
-			| comandoLCD; 
+			| comandoLCD
 			;
 
 dispositivo		: dispositivoSaida
@@ -188,9 +194,8 @@ dispositivoSaida	: 'luz'
 
 dispositivoEntrada	: 'botao'
 			| 'sensortoque'
-			| 'potenciometro
+			| 'potenciometro'
 			;
-
 
 comandoLCD		: 'definirCor' '(' 'LCD,' PORTA ',' COR ')'
 			| 'escrever' '(' 'LCD' ',' PORTA  ',' CADEIA ')'
@@ -199,35 +204,35 @@ comandoLCD		: 'definirCor' '(' 'LCD,' PORTA ',' COR ')'
 mais_expressao          : (',' expressao)*
 			;
 			
-senao_opcional : 	('senao' comandos)?
+senao_opcional 		: ('senao' comandos)?
 			;
 			
-chamada_atribuicao	: 	'(' argumentos_opcional ')'
+chamada_atribuicao	: '(' argumentos_opcional ')'
 			| outros_ident dimensao '<-' expressao 
 			;
 			
-argumentos_opcional : 	(expressao mais_expressao)?
+argumentos_opcional 	: (expressao mais_expressao)?
 			;
 			
-selecao : 		constantes ':' comandos mais_selecao
+selecao 		: constantes ':' comandos mais_selecao
 			;
 			
-mais_selecao : 		(selecao)?
+mais_selecao 		: (selecao)?
 			;
 			
-constantes : 		numero_intervalo mais_constantes
+constantes 		: numero_intervalo mais_constantes
 			;
 			
-mais_constantes : 	(',' constantes)?
+mais_constantes 	: (',' constantes)?
 			;
 			
-numero_intervalo : 	op_unario NUM_INT intervalo_opcional
+numero_intervalo 	: op_unario NUM_INT intervalo_opcional
 			;
 			
-intervalo_opcional : 	('..' op_unario NUM_INT)?
+intervalo_opcional 	: ('..' op_unario NUM_INT)?
 			;
 			
-op_unario : 		('-')?
+op_unario 		: ('-')?
 			;
 			
 exp_aritmetica          : termo outros_termos 
@@ -237,7 +242,7 @@ op_multiplicacao 	: '*'
 			| '/'
 			;
 			
-op_adicao : 		'+' 
+op_adicao 		: '+' 
 			| '-'
 			;
 			
@@ -282,7 +287,7 @@ exp_relacional          : exp_aritmetica  op_opcional
 op_opcional 		: (op_relacional exp_aritmetica)?
 			;
 			
-op_relacional 		:  '=' 
+op_relacional 		: '=' 
 			| '<>' 
 			| '>=' 
 			| '<=' 
@@ -293,14 +298,13 @@ op_relacional 		:  '='
 expressao               : termo_logico outros_termos_logicos
 			;
 			
-op_nao : 		'nao'?
+op_nao 			: 'nao'?
 			;
 			
 termo_logico            : fator_logico outros_fatores_logicos 
 			;
 			
-outros_termos_logicos 
-                        : ('ou' termo_logico)*
+outros_termos_logicos 	: ('ou' termo_logico)*
 			;
 			
 outros_fatores_logicos  : ('e' fator_logico )*
