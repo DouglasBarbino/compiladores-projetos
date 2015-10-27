@@ -23,44 +23,45 @@ grammar FAZEDORES;
 /******************************LEXICO*******************************************/
 
 // Definindo o identificador:
-IDENT	: ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
+IDENT       : ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
 
 // Definindo numero inteiro e numero real:
-NUM_INT : ('0'..'9')+;
-NUM_REAL: ('0'..'9')+ '.' ('0'..'9')+;
+NUM_INT     : ('0'..'9')+;
+NUM_REAL    : ('0'..'9')+ '.' ('0'..'9')+;
 
 // Definindo cadeia de caracteres:
-CADEIA 	: '"' ( ~('"') )* '"';
+CADEIA      : '"' ( ~('"') )* '"';
 
 // Definindo porta:
-PORTA	: 'I2C' | ('0'..'8');
+PORTA       : 'I2C' | ('0'..'8');
 
-fragment REGRA_255: (('0'|'1')?('0' .. '9')?('0' .. '9'))	
-	| ('2'(('0'..'4')('0'..'9')) | ('5'('0'..'5'))) 
-	;
+fragment 
+REGRA_255   : (('0'|'1')?('0' .. '9')?('0' .. '9'))	
+            | ('2'(('0'..'4')('0'..'9')) | ('5'('0'..'5'))) 
+            ;
 
 // Definindo voltagem: 
-VOLT	: REGRA_255
-	;
+VOLT        : REGRA_255
+            ;
 
 // Definindo cor:
-COR	: (REGRA_255',' REGRA_255',' REGRA_255)
-	;
+COR         : (REGRA_255',' REGRA_255',' REGRA_255)
+            ;
 
 // Definindo comentarios:
-COMENTARIO : '{' ~('{' | '}')* '}' {skip();}; 
+COMENTARIO  : '{' ~('{' | '}')* '}' {skip();}; 
 
 // Definindo espacos para serem ignorados:
-ESPACOS	: (' ' | '\t' | '\r' | '\n') {skip();};
+ESPACOS     : (' ' | '\t' | '\r' | '\n') {skip();};
 
 // Definindo quando ocorre erro no comentario:
-COMENTARIO_ERRADO
-    : '{' ~('\r'|'\n'|'}')* '\n' 
-      { stop("Linha "+getLine()+": comentario nao fechado"); }
-    ;
-ERROR
-    : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
-    ;
+COMENTARIO_ERRADO   
+            : '{' ~('\r'|'\n'|'}')* '\n' 
+                { stop("Linha "+getLine()+": comentario nao fechado"); }
+            ;
+
+ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
+            ;
 
 /*****************************SINTATICO*****************************************/
 
@@ -94,7 +95,7 @@ ponteiros_opcionais	: ('^')*
 outros_ident 		: ('.' identificador)? 
 			;
 			
-dimensao 		: ('[' exp_aritmetica ']' )*
+dimensao 		: ('[' exp_aritmetica ']')*
 			;
 
 tipo                    : registro 
@@ -175,8 +176,11 @@ comandosArduino		: comandoSetup
 
 comandoSetup		: ('ativar' '(' dispositivo ',' PORTA ')')+
 			;
- 
-comandoLoop		: ('ligar' | 'desligar') '(' dispositivoSaida ',' PORTA (',' VOLT)? ')'
+
+comandoLoop		: (cmdLoop)+
+			;
+
+cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' PORTA (',' VOLT)? ')'
 			| 'ler' dispositivoEntrada
 			| 'esperar' NUM_INT
 			| comandoLCD
@@ -249,13 +253,13 @@ op_adicao 		: '+'
 termo 		        : fator outros_fatores  
 			;
 			
-outros_termos		: (op_adicao termo )*
+outros_termos		: (op_adicao termo)*
 			;
 			
 fator                   : parcela outras_parcelas 
 			;
 			
-outros_fatores 		: (op_multiplicacao fator )*
+outros_fatores 		: (op_multiplicacao fator)*
 			;
 			
 parcela 		: op_unario parcela_unario
@@ -307,7 +311,7 @@ termo_logico            : fator_logico outros_fatores_logicos
 outros_termos_logicos 	: ('ou' termo_logico)*
 			;
 			
-outros_fatores_logicos  : ('e' fator_logico )*
+outros_fatores_logicos  : ('e' fator_logico)*
 			;
 			
 fator_logico            : op_nao parcela_logica 
