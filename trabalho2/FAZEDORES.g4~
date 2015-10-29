@@ -207,8 +207,8 @@ dispositivoEntrada	: 'botao'
 			| 'potenciometro'
 			;
 
-comandoLCD		: 'definirCor' '(' 'LCD,' PORTA ',' COR ')'
-			| 'escrever' '(' 'LCD' ',' PORTA  ',' CADEIA ')'
+comandoLCD		: 'definirCor' '(' 'LCD,' NUM_INT ',' COR ')'
+			| 'escrever' '(' 'LCD' ',' NUM_INT  ',' CADEIA ')'
 			;
 
 mais_expressao          : (',' expressao)*
