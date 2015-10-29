@@ -1,0 +1,49 @@
+Grupo: Luazinha
+
+* Nomes dos integrantes do grupo:
+
+Breno da Silveira Souza	- 551481
+Douglas Antonio Martins Barbino	- 551511
+Gabriela Vanessa Pereira Alves Mattos - 551570
+Thiago Arraiol Casaes - 551880
+
+* Passo-a-passo para baixar e instalar o gerador:
+
+1- Para este trabalho foi utilizado o ANTLRWorks 2.1. Seu download pode ser feito no link http://tunnelvisionlabs.com/products/demo/antlrworks, clicando no botão "Download ANTLRWorks 2";
+2- Extraia o ANTLRWorks que foi baixado em uma pasta cujo caminho não contenha nenhuma pasta com acento;
+3- Para executar o ANTLRWorks, dê um duplo clique em antlrworks2.exe (ou antlrworks264.exe dependendo da versão do seu Sistema Operacional) que se encontra em [PASTA ONDE FOI EXTRAIDO O ANTLRWorks 2.1]\antlrworks_2_1\antlrworks2\bin .
+
+* Passo-a-passo para compilar/interpretar o compilador e executá-lo:
+
+1- Para gerar os códigos do compilador de LA, é necessário o arquivo .jar do ANTLR. Ele pode ser encontrado em http://www.antlr.org/download.html, onde está escrito "Complete ANTLR [numero da versão] Java binaries jar";
+
+2- Após o download do .jar, coloque-o em uma pasta de sua preferência;
+
+3- Para este trabalho, os códigos do compilador foram gerados por meio do terminal, então é necessário abrir uma janela de terminal em seu Sistema Operacional;
+	3.1- No Windows: Abra o menu iniciar e na barra de pesquisa de programas e arquivos digite cmd;
+	3.2- No Linux: Vá em Aplicações -> Acessórios -> Terminal;
+	3.3- No MAC: Vá em Aplicações -> Utilitários -> Terminal;
+
+4- No terminal, entre na pasta onde está localizado o arquivo [nomeDoNossoTrabalho].g4 ;
+
+5- Feito isso, digite: java -jar [caminho do .jar do antlr, incluindo o arquivo .jar] -package [nome da pasta onde está o código fonte] [nome do arquivo .g4].g4 -listener -visitor ;
+	No caso do nosso trabalho use: java -jar antlr-4.2.2-complete.jar -package trabalho1 LA.g4 -listener -visitor
+
+6- Caso não tenha sido apresentada nenhuma mensagem de erro, os arquivos foram gerados;
+
+7- Para executar o compilador, foi utilizado o compilador NetBeans. Ele pode ser encontrado no link https://netbeans.org/downloads/ e clicando no botão de download de alguma das versões que contém o Java;
+
+8- Após feito o download, é necessário instalá-lo;
+
+9- Com o NetBeans instalado, abra-o. Na tela inicial que aparecer, vá para o menu superior e selecione Menu -> Abrir projeto;
+
+10- Na janela que abrir, selecione a pasta onde está o projeto do compilador;
+
+11- Do lado esquerdo aparecerá a estrutura do projeto. Clique com o botão esquerdo do mouse no sinal de mais localizado ao lado da xicara de café com o nome do projeto e depois clique com o botão direito sobre a pasta Bibliotecas -> Adicionar JAR/Pasta ;
+
+12- Na janela que abrir, selecione a pasta onde está o arquivo .jar do ANTLR;
+
+13- Para gerar o .jar do projeto do compilador basta apertar F11 e será gerado o executável .jar;
+
+14- Para teste de algum arquivo basta usar a seguinte linha em um Terminal:
+	java -jar [arquivo jar gerado].jar [arquivo de entrada que deseja testar] [arquivo que apresentará a saída]
