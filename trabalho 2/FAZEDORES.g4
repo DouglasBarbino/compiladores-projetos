@@ -22,16 +22,6 @@ grammar FAZEDORES;
 
 /******************************LEXICO*******************************************/
 
-// Definindo o identificador:
-IDENT       : ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
-
-// Definindo numero inteiro e numero real:
-NUM_INT     : ('0'..'9')+;
-NUM_REAL    : ('0'..'9')+ '.' ('0'..'9')+;
-
-// Definindo cadeia de caracteres:
-CADEIA      : '"' ( ~('"') )* '"';
-
 // Definindo porta:
 PORTA       : 'I2C' | ('0'..'8');
 
@@ -48,6 +38,16 @@ VOLT        : REGRA_255
 COR         : (REGRA_255',' REGRA_255',' REGRA_255)
             ;
 
+// Definindo o identificador:
+IDENT       : ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
+
+// Definindo numero inteiro e numero real:
+NUM_INT     : ('0'..'9')+;
+NUM_REAL    : ('0'..'9')+ '.' ('0'..'9')+;
+
+// Definindo cadeia de caracteres:
+CADEIA      : '"' ( ~('"') )* '"';
+
 // Definindo comentarios:
 COMENTARIO  : '{' ~('{' | '}')* '}' {skip();}; 
 
@@ -57,7 +57,7 @@ ESPACOS     : (' ' | '\t' | '\r' | '\n') {skip();};
 // Definindo quando ocorre erro no comentario:
 COMENTARIO_ERRADO   
             : '{' ~('\r'|'\n'|'}')* '\n' 
-                { stop("Linha "+getLine()+": comentario nao fechado"); }
+              { stop("Linha "+getLine()+": comentario nao fechado"); }
             ;
 
 ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
@@ -182,8 +182,9 @@ comandoLoop		: (cmdLoop)+
 
 cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' PORTA (',' VOLT)? ')'
 			| 'ler' dispositivoEntrada
-			| 'esperar' NUM_INT
+			| 'esperar' '(' NUM_INT ')'
 			| comandoLCD
+                        //| cmd
 			;
 
 dispositivo		: dispositivoSaida
