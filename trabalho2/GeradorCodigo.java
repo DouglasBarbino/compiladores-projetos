@@ -195,7 +195,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //ctx.dispositivo().getText().equals("led")
             if (ctx.getChild(i+2).getText().equals("led"))
                 //ctx.PORTA().getText()
-                setup = "pinmode(" + ctx.getChild(i+4).getText() + ", OUTPUT);";
+                setup = "\tpinmode(" + ctx.getChild(i+4).getText() + ", OUTPUT);";
             
             codigo.println(setup);
             
@@ -228,20 +228,22 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         String regra = ctx.getStart().getText();
         String loop = "";
         
-        if (regra.equals("ligar") || regra.equals("desligar")){
+        if (regra.equals("ligar") || regra.equals("desligar"))
+        {
             //Verifica se existe o volt por meio do sexto filho, se eh ',' ou ')'
-            if (ctx.getChild(5).getText().equals(",")){
+            if (ctx.getChild(5).getText().equals(","))
+            {
                 //Caso do analogWrite
                 //Verifica se o dispositivoSaida eh um led
                 if (ctx.getChild(2).getText().equals("led")){
                     //Aqui nao existe diferenca entre ligar ou desligar (fonte: iot.pdf, pag 22)
-                    loop = "analogWrite(" + ctx.PORTA().getText() + ", " + ctx.VOLT().getText() +");";
+                    loop = "\tanalogWrite(" + ctx.NUM_INT(0).getText() + ", " + ctx.NUM_INT(0).getText() +");";
                 }
             }
             else{
                 //Verifica se o dispositivoSaida eh um led
                 if (ctx.getChild(2).getText().equals("led")){
-                    loop = "digitalWrite(" + ctx.PORTA().getText();
+                    loop = "\tdigitalWrite(" + ctx.NUM_INT(0).getText();
                     if (regra.equals("ligar"))
                         loop = loop + ", HIGH);";
                     else
@@ -253,7 +255,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             if (regra.equals("esperar")){
                 /*Por enquanto ainda nao estah sendo tratado a opcao de que o
                   tempo pode vir em uma constante*/
-                loop = "delay(" + ctx.NUM_INT().getText() + ");";
+                loop = "\tdelay(" + ctx.NUM_INT().toString() + ");";
             }
         }
         codigo.println(loop);

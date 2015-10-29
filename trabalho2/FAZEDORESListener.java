@@ -1,5 +1,5 @@
 // Generated from FAZEDORES.g4 by ANTLR 4.2.2
-package trabalho1;
+package trabalho3;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeListener;
 
@@ -405,17 +405,6 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	void exitVar_opcional(@NotNull FAZEDORESParser.Var_opcionalContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link FAZEDORESParser#comandosArduino}.
-	 * @param ctx the parse tree
-	 */
-	void enterComandosArduino(@NotNull FAZEDORESParser.ComandosArduinoContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FAZEDORESParser#comandosArduino}.
-	 * @param ctx the parse tree
-	 */
-	void exitComandosArduino(@NotNull FAZEDORESParser.ComandosArduinoContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#parcela_unario}.
 	 * @param ctx the parse tree
 	 */
@@ -636,17 +625,6 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	void exitMais_constantes(@NotNull FAZEDORESParser.Mais_constantesContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link FAZEDORESParser#op_adicao}.
-	 * @param ctx the parse tree
-	 */
-	void enterOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FAZEDORESParser#op_adicao}.
-	 * @param ctx the parse tree
-	 */
-	void exitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
 	 * @param ctx the parse tree
 	 */
@@ -656,6 +634,17 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#op_adicao}.
+	 * @param ctx the parse tree
+	 */
+	void enterOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#op_adicao}.
+	 * @param ctx the parse tree
+	 */
+	void exitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#dimensao}.

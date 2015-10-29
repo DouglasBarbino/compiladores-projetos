@@ -1,5 +1,5 @@
 // Generated from FAZEDORES.g4 by ANTLR 4.2.2
-package trabalho1;
+package trabalho3;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.misc.NotNull;
@@ -485,19 +485,6 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterComandosArduino(@NotNull FAZEDORESParser.ComandosArduinoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitComandosArduino(@NotNull FAZEDORESParser.ComandosArduinoContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterParcela_unario(@NotNull FAZEDORESParser.Parcela_unarioContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -758,19 +745,6 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -778,6 +752,19 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

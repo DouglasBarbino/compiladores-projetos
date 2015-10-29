@@ -1,5 +1,5 @@
 // Generated from FAZEDORES.g4 by ANTLR 4.2.2
-package trabalho1;
+package trabalho3;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -306,14 +306,6 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitComandosArduino(@NotNull FAZEDORESParser.ComandosArduinoContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
 	@Override public T visitParcela_unario(@NotNull FAZEDORESParser.Parcela_unarioContext ctx) { return visitChildren(ctx); }
 
 	/**
@@ -474,7 +466,7 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -482,7 +474,7 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { return visitChildren(ctx); }
+	@Override public T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}

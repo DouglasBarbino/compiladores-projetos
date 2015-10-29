@@ -70,7 +70,7 @@ COR         : '('NUM_INT',' NUM_INT',' NUM_INT')'
 
 /*****************************SINTATICO*****************************************/
 
-programa 		: declaracoes 'comando_setup' comandoSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop'
+programa 		: declaracoes 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop'
 			;
 			
 declaracoes 		: (decl_local_global)*
@@ -155,10 +155,7 @@ mais_parametros 	: (',' parametro)?
 			
 declaracoes_locais 	: (declaracao_local)*
 			;
-			
-corpo 			: declaracoes_locais comandos
-			;
-			
+						
 comandos                : (cmd)*
 			;
 			
@@ -171,11 +168,15 @@ cmd 			: 'leia' '(' identificador mais_ident ')'
 			| 'faca' comandos 'ate' expressao 
 			| '^' IDENT outros_ident dimensao '<-' expressao 
 			| IDENT chamada_atribuicao
-			| comandosLoop
+			| comandoLoop
 			| 'retorne' expressao
 			;
 
+comandosSetup		: (comandoSetup)+
+			;
+
 comandoSetup		: ('ativar' '(' dispositivo ',' NUM_INT ')')+
+			| declaracoes_locais
 			;
 
 comandoLoop		: (cmdLoop)+
@@ -317,3 +318,9 @@ outros_fatores_logicos  : ('e' fator_logico)*
 			;
 			
 fator_logico            : op_nao parcela_logica 
+			;
+			
+parcela_logica		: 'verdadeiro' 
+			| 'falso' 
+			| exp_relacional 
+			;

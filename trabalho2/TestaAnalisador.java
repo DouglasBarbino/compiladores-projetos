@@ -71,7 +71,7 @@ public class TestaAnalisador {
             ptwGC.walk(gc, raizGC);
          
             //PrintWriter pwGC = new PrintWriter(new File(args[1]));
-            PrintWriter pwGC = new PrintWriter(new File("saidaGC.txt"));
+            PrintWriter pwGC = new PrintWriter(new File("/home/gabriela/trabalho2/trabalho2/src/trabalho3/saidaGC.txt"));
             pwGC.print(codigo.getTexto());
             pwGC.flush();
             pwGC.close();

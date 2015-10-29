@@ -1,5 +1,5 @@
 // Generated from FAZEDORES.g4 by ANTLR 4.2.2
-package trabalho1;
+package trabalho3;
 import org.antlr.v4.runtime.misc.NotNull;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -264,13 +264,6 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	T visitVar_opcional(@NotNull FAZEDORESParser.Var_opcionalContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link FAZEDORESParser#comandosArduino}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitComandosArduino(@NotNull FAZEDORESParser.ComandosArduinoContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#parcela_unario}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -411,18 +404,18 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	T visitMais_constantes(@NotNull FAZEDORESParser.Mais_constantesContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link FAZEDORESParser#op_adicao}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#op_adicao}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#dimensao}.

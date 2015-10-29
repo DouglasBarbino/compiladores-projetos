@@ -5,6 +5,6 @@ Regras semanticas:
 2- Porta utilizada não ser analogica/digital, depende do dispositivo; (deve verificar no ativar também)
 3- Portas PWM (digital que pode ser analogica) se for 3, 5, ou 6;
 4- Portas 'ativar' repetidas;
-5- 
+5- Verificação de portas, volt e cores
 
 
