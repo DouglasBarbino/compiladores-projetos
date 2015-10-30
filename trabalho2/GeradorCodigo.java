@@ -255,7 +255,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             if (regra.equals("esperar")){
                 /*Por enquanto ainda nao estah sendo tratado a opcao de que o
                   tempo pode vir em uma constante*/
-                loop = "\tdelay(" + ctx.NUM_INT().toString() + ");";
+                loop = "\tdelay(" + ctx.NUM_INT(0).getText() + ");";
             }
         }
         codigo.println(loop);
