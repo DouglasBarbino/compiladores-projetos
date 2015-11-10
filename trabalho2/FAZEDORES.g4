@@ -23,7 +23,7 @@ grammar FAZEDORES;
 /******************************LEXICO*******************************************/
 
 
-//Essas regras serão testadas agora na parte semantica
+//Essas regras serao testadas agora na parte semantica
 /* Definindo porta:
 PORTA       : 'I2C' | ('0'..'8');
 
@@ -176,7 +176,7 @@ comandosSetup		: (comandoSetup)+
 			;
 
 comandoSetup		: ('ativar' '(' dispositivo ',' NUM_INT ')')+
-			| declaracoes_locais
+			| declaracao_local
 			;
 
 comandoLoop		: (cmdLoop)+
