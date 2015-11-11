@@ -9,6 +9,6 @@ comando_loop
     para i de 0 ate 256 faca
         ligar(led, pinSom, i)
         esperar(BREATH_DELAY)
-    fimpara
+    fim_para
     esperar(100)
 fim_comando_loop
