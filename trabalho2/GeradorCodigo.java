@@ -237,13 +237,13 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 //Verifica se o dispositivoSaida eh um led
                 if (ctx.getChild(2).getText().equals("led")){
                     //Aqui nao existe diferenca entre ligar ou desligar (fonte: iot.pdf, pag 22)
-                    loop = "\tanalogWrite(" + ctx.NUM_INT(0).getText() + ", " + ctx.NUM_INT(0).getText() +");";
+                    loop = "\tanalogWrite(" + ctx.pino(0).getText() + ", " + ctx.pino(1).getText() +");";
                 }
             }
             else{
                 //Verifica se o dispositivoSaida eh um led
                 if (ctx.getChild(2).getText().equals("led")){
-                    loop = "\tdigitalWrite(" + ctx.NUM_INT(0).getText();
+                    loop = "\tdigitalWrite(" + ctx.pino(0).getText();
                     if (regra.equals("ligar"))
                         loop = loop + ", HIGH);";
                     else
@@ -255,7 +255,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             if (regra.equals("esperar")){
                 /*Por enquanto ainda nao estah sendo tratado a opcao de que o
                   tempo pode vir em uma constante*/
-                loop = "\tdelay(" + ctx.NUM_INT(0).getText() + ");";
+                loop = "\tdelay(" + ctx.pino(0).getText() + ");";
             }
         }
         codigo.println(loop);
