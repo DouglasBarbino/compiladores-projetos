@@ -163,7 +163,7 @@ cmd 			: 'leia' '(' identificador mais_ident ')'
 			| 'escreva' '(' expressao mais_expressao ')' 
 			| 'se' expressao 'entao' comandos senao_opcional 'fim_se' 
 			| 'caso' exp_aritmetica 'seja' selecao senao_opcional 'fim_caso' 
-			| 'para' IDENT '<-' exp_aritmetica 'ate' exp_aritmetica 'faca' comandos 'fim_para' 
+			| 'para' IDENT 'de' exp_aritmetica 'ate' exp_aritmetica 'faca' comandos 'fim_para' 
 			| 'enquanto' expressao 'faca' comandos 'fim_enquanto' 
 			| 'faca' comandos 'ate' expressao 
 			| '^' IDENT outros_ident dimensao '<-' expressao 
@@ -175,16 +175,16 @@ cmd 			: 'leia' '(' identificador mais_ident ')'
 comandosSetup		: (comandoSetup)+
 			;
 
-comandoSetup		: ('ativar' '(' dispositivo ',' NUM_INT ')')+
+comandoSetup		: ('ativar' '(' dispositivo ',' pino ')')+
 			| declaracao_local
 			;
 
 comandoLoop		: (cmdLoop)+
 			;
 
-cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' NUM_INT (',' NUM_INT)? ')'
+cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino (',' pino)? ')'
 			| 'ler' dispositivoEntrada
-			| 'esperar' '(' NUM_INT ')'
+			| 'esperar' '(' pino ')'
 			| comandoLCD
                         //| cmd
 			;
@@ -207,6 +207,10 @@ dispositivoEntrada	: 'botao'
 comandoLCD		: 'definirCor' '(' 'LCD,' NUM_INT ',' COR ')'
 			| 'escrever' '(' 'LCD' ',' NUM_INT  ',' CADEIA ')'
 			;
+
+pino                    : NUM_INT
+                        | IDENT
+                        ;
 
 mais_expressao          : (',' expressao)*
 			;
