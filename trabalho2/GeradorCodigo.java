@@ -23,6 +23,12 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
     }
     
+    @Override 
+    public void exitPrograma(FAZEDORESParser.ProgramaContext ctx) { 
+        //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
+        codigo.println("}");
+    }
+    
     @Override
     public void enterDeclaracao_local(FAZEDORESParser.Declaracao_localContext ctx) {
         //Para a tabela de simbolos
@@ -180,12 +186,24 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     }
     
     @Override
+    public void enterComandosSetup(FAZEDORESParser.ComandosSetupContext ctx){
+        //Declaracao da funcao setup do Arduino
+        codigo.println("void setup() {");
+    }
+    
+    @Override
+    public void exitComandosSetup(FAZEDORESParser.ComandosSetupContext ctx){
+        //Terminou todas as declaracoes da funcao setup, eh fechada a chave dela
+        codigo.println("}");
+        //Uma linha em branco e declara a funcao loop do Arduino
+        codigo.println("");
+        codigo.println("void loop() {");
+    }
+    
+    @Override
     public void enterComandoSetup(FAZEDORESParser.ComandoSetupContext ctx){
         int i=0;
         String setup = "";
-
-        //Declaracao da funcao setup do Arduino
-        codigo.println("void setup() {");
         
         /*Por nao saber quantos 'ativar' existem aqui dentro, entao deve ser 
         utilizado este loop com getChild, mas por cima eu indico qual eh a 
@@ -202,24 +220,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //incrementa o i na quantidade de filhos que o ComandoSetup possui
             i = i+6;
         }
-    }
-    
-    @Override
-    public void exitComandoSetup(FAZEDORESParser.ComandoSetupContext ctx){
-        //Terminou todas as declaracoes da funcao setup, eh fechada a chave dela
-        codigo.println("}");
-    }
-    
-    @Override 
-    public void enterComandoLoop(FAZEDORESParser.ComandoLoopContext ctx){ 
-        //Declaracao da funcao loop do Arduino
-        codigo.println("void loop() {");
-    }
-	
-    @Override 
-    public void exitComandoLoop(FAZEDORESParser.ComandoLoopContext ctx) { 
-        //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
-        codigo.println("}");
     }
     
     @Override
