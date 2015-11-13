@@ -72,6 +72,17 @@ public class PilhaDeTabelas {
         
         return null;
     }
+    
+    public TabelaDeSimbolos getTabela(String escopo)
+    {
+        for(int i = 0; i < pilha.size(); i++) {
+            if(pilha.get(i).getEscopo().equals(escopo)) {
+                return pilha.get(i);
+            }
+        }
+        
+        return null;
+    }
 
     public void desempilhar() {
         TabelaDeSimbolos ret = pilha.pop();
