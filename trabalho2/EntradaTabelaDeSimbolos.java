@@ -20,12 +20,38 @@ public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
     private List<String> parametros;
     private TabelaDeSimbolos subTabeladoRegistro;
+    private int valor;
+    
+    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub, int valor) 
+    {
+        this.nome = nome;
+        this.tipo = tipo;
+        this.subTabeladoRegistro = sub;
+        this.valor = valor;
+        
+        if(listaPassada == null)
+        {
+            this.parametros = listaPassada;
+        }else
+        {
+	    //inicializacao dos parametros
+            this.parametros = new ArrayList<String>();
+        
+            for(int i=0; i< listaPassada.size(); i++)
+            {
+               this.parametros.add(i,listaPassada.get(i));
+            }
+        }
+
+        
+    }
     
     public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub) 
     {
         this.nome = nome;
         this.tipo = tipo;
         this.subTabeladoRegistro = sub;
+        //this.valor = valor;
         
         if(listaPassada == null)
         {
@@ -46,6 +72,11 @@ public class EntradaTabelaDeSimbolos {
     
     public String getNome() {
         return this.nome;
+    }
+    
+    public int getValor()
+    {
+        return this.valor;
     }
     
     public TabelaDeSimbolos getsubTabela()
