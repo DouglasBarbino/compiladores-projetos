@@ -1,6 +1,9 @@
 constante pinSom: inteiro = 5
 constante BREATH_DELAY: inteiro = 5
 
+declare
+	i: inteiro
+
 comando_setup
     ativar(led, pinSom)
 fim_comando_setup

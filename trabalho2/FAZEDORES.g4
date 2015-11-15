@@ -23,21 +23,6 @@ grammar FAZEDORES;
 /******************************LEXICO*******************************************/
 
 
-//Essas regras serao testadas agora na parte semantica
-/* Definindo porta:
-PORTA       : 'I2C' | ('0'..'8');
-
-fragment 
-REGRA_255   : (('0'|'1')?('0' .. '9')?('0' .. '9'))	
-            | ('2'(('0'..'4')('0'..'9')) | ('5'('0'..'5'))) 
-            ;
-
-// Definindo voltagem: 
-VOLT        : REGRA_255
-            ;
-*/
-
-
 // Definindo o identificador:
 IDENT       : ('a'..'z' | 'A'..'Z' | '_') ('a'..'z' | 'A'..'Z' | '0'..'9' | '_')*;
 
@@ -182,16 +167,15 @@ comandoSetup		: ('ativar' '(' dispositivo ',' pino ')')+
 comandoLoop		: (cmdLoop)+
 			;
 
-cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino (',' pino)? ')'
-			| 'ler' dispositivoEntrada
-			| 'esperar' '(' pino ')'
+cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino ')'
+			| 'ler' '(' dispositivoEntrada ',' pino ')'
+			| 'esperar' '(' tempo ')'
 			| comandoLCD
-                        //| cmd
 			;
 
 dispositivo		: dispositivoSaida
 			| dispositivoEntrada
-			| 'lcd'
+			| lcd
 			; 
 
 dispositivoSaida	: 'luz'
@@ -204,13 +188,22 @@ dispositivoEntrada	: 'botao'
 			| 'potenciometro'
 			;
 
-comandoLCD		: 'definirCor' '(' 'LCD,' NUM_INT ',' COR ')'
-			| 'escrever' '(' 'LCD' ',' NUM_INT  ',' CADEIA ')'
+lcd			: 'LCD'
+			| 'lcd'
+			| 'tela'
+			;
+
+comandoLCD		: 'definirCor' '(' lcd ',' pino ',' COR ')'
+			| 'escrever' '(' lcd ',' pino  ',' CADEIA ')'
 			;
 
 pino                    : NUM_INT
                         | IDENT
                         ;
+
+tempo			: NUM_INT
+			| IDENT
+			;
 
 mais_expressao          : (',' expressao)*
 			;

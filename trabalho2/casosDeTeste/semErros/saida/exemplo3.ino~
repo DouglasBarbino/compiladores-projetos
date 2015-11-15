@@ -1,0 +1,20 @@
+const int tempo=10;
+
+int x;
+
+void setup()
+{	
+	pinMode(3, OUTPUT);
+	pinMode(5, INPUT);
+}
+
+void loop()
+{
+	x = digitalRead(3)
+	for(int i=0; i<256; i++)
+	{
+		analogWrite(pinSom, i);
+		delay(BREATH_DELAY);
+	}
+	delay(100);
+}
