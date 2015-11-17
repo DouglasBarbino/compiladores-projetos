@@ -36,7 +36,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
 
         //PARA INCLUSAO DA CONSTANTE NA TABELA DE SIMBOLOS
-        nomeVar = ctx.IDENT().getText();
+        nomeVar = ctx.getChild(1).getText();
         String tipoDeclLocal = ctx.getStart().getText();
         
         // declarando uma constante
@@ -65,6 +65,25 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }
     }
     
+    @Override
+    public void exitComandos(FAZEDORESParser.ComandosContext ctx) {
+        //Ao contrario do caso, para ou enquanto onde se fecha a chave no exitCmd, o se
+        // se fecha a chave aqui devido a possibilidade do se possuir um senao
+        
+        //Nao se usa o getStart aqui pois o comandos tambem eh o que inicia a declaracao dos
+        // comandos apos a declaracao de variaveis no main(), o que poderia resultar em erros caso a 
+        // primeira coisa que se declara apos as variaveis eh um se, entao se pega o texto do primeiro filho
+        if (ctx.getParent().getChild(0).getText().equals("se"))
+            codigo.println("\t}");
+        else{
+            //Apos colocar todos os comandos dentro de um case do caso, eh necessario colocar um break
+            // entao para verificar se eh a situacao do caso se procura pelo irmao da esquerda do comandos,
+            // que na regra do caso eh o token ":"     
+            if (ctx.getParent().getChild(1).getText().equals(":"))
+                codigo.println("break;");
+        }
+    }
+    
     @Override 
     public void enterCmd(FAZEDORESParser.CmdContext ctx) {
         //PARA A TABELA DE SIMBOLOS
@@ -79,16 +98,16 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
 
             switch (estrutura){
                 case "se":
-                    condicao = "if";
+                    condicao = "\tif";
                     break;
                 case "caso":
-                    condicao = "switch";
+                    condicao = "\tswitch";
                     break;
                 case "para":
-                    condicao = "for";
+                    condicao = "\tfor";
                     break;
                 default: //enquanto
-                    condicao = "while";
+                    condicao = "\twhile";
             }
             //adiciona parenteses para todos
             condicao = condicao + " (";
@@ -211,9 +230,16 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         while (ctx.getChild(i) != null){
             
             //ctx.dispositivo().getText().equals("led")
-            if (ctx.getChild(i+2).getText().equals("led"))
+            if (ctx.getChild(i+2).getText().equals("led") || 
+                ctx.getChild(i+2).getText().equals("luz"))
                 //ctx.PORTA().getText()
                 setup = "\tpinmode(" + ctx.getChild(i+4).getText() + ", OUTPUT);";
+            else{
+                //ctx.dispositivo().getText().equals("botao")
+                if (ctx.getChild(i+2).getText().equals("botao"))
+                    //ctx.PORTA().getText()
+                    setup = "\tpinmode(" + ctx.getChild(i+4).getText() + ", INPUT);";
+            }
             
             codigo.println(setup);
             
@@ -237,13 +263,14 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 //Verifica se o dispositivoSaida eh um led
                 if (ctx.getChild(2).getText().equals("led")){
                     //Aqui nao existe diferenca entre ligar ou desligar (fonte: iot.pdf, pag 22)
-                    loop = "\tanalogWrite(" + ctx.pino(0).getText() + ", " + ctx.pino(1).getText() +");";
+                    //loop = "\tanalogWrite(" + ctx.pino(0).getText() + ", " + ctx.pino(1).getText() +");";
                 }
             }
             else{
-                //Verifica se o dispositivoSaida eh um led
-                if (ctx.getChild(2).getText().equals("led")){
-                    loop = "\tdigitalWrite(" + ctx.pino(0).getText();
+                //Verifica se o dispositivoSaida eh um led ou uma luz
+                if (ctx.getChild(2).getText().equals("led") ||
+                    ctx.getChild(2).getText().equals("luz")){
+                    loop = "\tdigitalWrite(" + ctx.pino().getText();
                     if (regra.equals("ligar"))
                         loop = loop + ", HIGH);";
                     else
@@ -255,7 +282,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             if (regra.equals("esperar")){
                 /*Por enquanto ainda nao estah sendo tratado a opcao de que o
                   tempo pode vir em uma constante*/
-                loop = "\tdelay(" + ctx.pino(0).getText() + ");";
+                loop = "\tdelay(" + ctx.tempo().getText() + ");";
             }
         }
         codigo.println(loop);
@@ -283,6 +310,28 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             if (ctx.getParent().getStart().getText().equals("se"))
                 codigo.println("}");
         }
+    }
+    
+    @Override 
+    public void enterChamada_atribuicao(FAZEDORESParser.Chamada_atribuicaoContext ctx) { 
+        
+        String atribuicao;
+        
+        //Busca a variavel que vai receber a atribuicao
+        atribuicao = "\t" + ctx.getParent().getChild(0).getText() + " = ";
+        
+        //Verifica se eh uma leitura
+        if (ctx.getChild(3).getChild(0).getText().equals("ler")){
+            //Tipo do que estah sendo lido determina a funcao de leitura
+            if (ctx.getChild(3).getChild(2).getText().equals("botao"))
+                atribuicao = atribuicao + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+            else{
+                if (ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
+                    atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+            }
+        }
+     
+        codigo.println(atribuicao);
     }
     
     // A partir de agora sao as tres funcoes utilizadas para adicionar simbolos nas tabelas de simbolos
