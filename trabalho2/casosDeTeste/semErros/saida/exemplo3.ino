@@ -10,7 +10,7 @@ void setup()
 
 void loop()
 {
-	x = digitalRead(3);
+	x = digitalRead(5);
 
 	if ( x==1)
 	{
