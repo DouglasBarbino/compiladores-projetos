@@ -212,7 +212,7 @@ senao_opcional 		: ('senao' comandos)?
 			;
 			
 chamada_atribuicao	: '(' argumentos_opcional ')'
-			| outros_ident dimensao '<-' expressao 
+			| outros_ident dimensao '<-' (expressao | cmdLoop) 
 			;
 			
 argumentos_opcional 	: (expressao mais_expressao)?
