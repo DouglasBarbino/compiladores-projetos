@@ -168,7 +168,7 @@ comandoLoop		: (cmdLoop)+
 			;
 
 cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino ')'
-			| 'ler' '(' dispositivoEntrada ',' pino ')'
+			| 'ler' '(' dispositivoEntrada ',' pino ( ',' volt )?')'
 			| 'esperar' '(' tempo ')'
 			| comandoLCD
 			;
@@ -204,6 +204,10 @@ pino                    : NUM_INT
 tempo			: NUM_INT
 			| IDENT
 			;
+
+volt			: NUM_INT
+			| IDENT
+			; 
 
 mais_expressao          : (',' expressao)*
 			;
