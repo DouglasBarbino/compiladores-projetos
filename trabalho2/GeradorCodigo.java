@@ -35,12 +35,12 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         String nomeVar, tipo, tipoConstante;
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
 
-        //PARA INCLUSAO DA CONSTANTE NA TABELA DE SIMBOLOS
-        nomeVar = ctx.getChild(1).getText();
         String tipoDeclLocal = ctx.getStart().getText();
         
         // declarando uma constante
         if (tipoDeclLocal.equals("constante")){
+            //PARA INCLUSAO DA CONSTANTE NA TABELA DE SIMBOLOS
+            nomeVar = ctx.getChild(1).getText();
             tipo = ctx.tipo_basico().getText();
             
             switch (tipo){
@@ -56,12 +56,42 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 default: //caso logico
                     tipoConstante = "bool ";   
             }
-            //
+            
+            //Impressao da constante
             codigo.println("const "+tipoConstante+nomeVar+" = "+ctx.valor_constante().getText()+";");
             codigo.println("");
             
             if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
                 tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
+        }
+        else{
+            //Declarando uma variavel
+            if (tipoDeclLocal.equals("declare")){
+                //PARA INCLUSAO DA VARIAVEL NA TABELA DE SIMBOLOS
+                nomeVar = ctx.variavel().IDENT().getText();
+                tipo = ctx.variavel().tipo().getText();
+
+                switch (tipo){
+                    case "literal":
+                        tipoConstante = "string ";
+                        break;
+                    case "inteiro":
+                        tipoConstante = "int ";
+                        break;
+                    case "real":
+                        tipoConstante = "float ";
+                        break;
+                    default: //caso logico
+                        tipoConstante = "bool ";   
+                }
+
+                //Impressao da variavel
+                codigo.println(tipoConstante + nomeVar + ";");
+                codigo.println("");
+
+                if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
+                    tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
+            }
         }
     }
     
@@ -231,14 +261,16 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             
             //ctx.dispositivo().getText().equals("led")
             if (ctx.getChild(i+2).getText().equals("led") || 
-                ctx.getChild(i+2).getText().equals("luz"))
+                ctx.getChild(i+2).getText().equals("luz") || 
+                ctx.getChild(i+2).getText().equals("som"))
                 //ctx.PORTA().getText()
-                setup = "\tpinmode(" + ctx.getChild(i+4).getText() + ", OUTPUT);";
+                setup = "\tpinMode(" + ctx.getChild(i+4).getText() + ", OUTPUT);";
             else{
                 //ctx.dispositivo().getText().equals("botao")
-                if (ctx.getChild(i+2).getText().equals("botao"))
+                if (ctx.getChild(i+2).getText().equals("botao") ||
+                    ctx.getChild(i+2).getText().equals("sensortoque"))
                     //ctx.PORTA().getText()
-                    setup = "\tpinmode(" + ctx.getChild(i+4).getText() + ", INPUT);";
+                    setup = "\tpinMode(" + ctx.getChild(i+4).getText() + ", INPUT);";
             }
             
             codigo.println(setup);
@@ -267,9 +299,10 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 }
             }
             else{
-                //Verifica se o dispositivoSaida eh um led ou uma luz
+                //Verifica se o dispositivoSaida eh um led, uma luz ou um som
                 if (ctx.getChild(2).getText().equals("led") ||
-                    ctx.getChild(2).getText().equals("luz")){
+                    ctx.getChild(2).getText().equals("luz") ||
+                    ctx.getChild(2).getText().equals("som")){
                     loop = "\tdigitalWrite(" + ctx.pino().getText();
                     if (regra.equals("ligar"))
                         loop = loop + ", HIGH);";
@@ -323,10 +356,11 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         //Verifica se eh uma leitura
         if (ctx.getChild(3).getChild(0).getText().equals("ler")){
             //Tipo do que estah sendo lido determina a funcao de leitura
-            if (ctx.getChild(3).getChild(2).getText().equals("botao"))
+            if (ctx.getChild(3).getChild(2).getText().equals("botao") ||
+                ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
                 atribuicao = atribuicao + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
             else{
-                if (ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
+                if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
                     atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");";
             }
         }
