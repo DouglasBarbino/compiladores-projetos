@@ -23,7 +23,7 @@ fim_comando_setup
 
 comando_loop	
 	y <- ler(potenciometro, pinoPot)
-	defineCor(lcd, pinoLCD, (10, 10, 10))
+	definirCor(lcd, pinoLCD, (10, 10, 10))
 	imprimeLCD(y)
 	esperar(tempo)
 fim_comando_loop
