@@ -403,13 +403,15 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //ctx.dispositivo().getText().equals("led")
             if (ctx.getChild(i+2).getText().equals("led") || 
                 ctx.getChild(i+2).getText().equals("luz") || 
-                ctx.getChild(i+2).getText().equals("som"))
+                ctx.getChild(i+2).getText().equals("som") || 
+                ctx.getChild(i+2).getText().equals("lcd"))
                 //ctx.PORTA().getText()
                 setup = "\tpinMode(" + ctx.getChild(i+4).getText() + ", OUTPUT);";
             else{
                 //ctx.dispositivo().getText().equals("botao")
                 if (ctx.getChild(i+2).getText().equals("botao") ||
-                    ctx.getChild(i+2).getText().equals("sensortoque"))
+                    ctx.getChild(i+2).getText().equals("sensortoque") ||
+                    ctx.getChild(i+2).getText().equals("potenciometro"))
                     //ctx.PORTA().getText()
                     setup = "\tpinMode(" + ctx.getChild(i+4).getText() + ", INPUT);";
             }
@@ -419,6 +421,11 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //incrementa o i na quantidade de filhos que o ComandoSetup possui
             i = i+6;
         }
+        
+        //PASSAR ISSO PRO EXIT COMANDOSSETUP
+        //Caso tenha sido declarado o LCD, eh necessario uma inicializacao especial
+        if (flagLCD)
+            codigo.println("lcd.begin(16,2);");
     }
     
     @Override
@@ -453,11 +460,8 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             }
         }
         else{
-            if (regra.equals("esperar")){
-                /*Por enquanto ainda nao estah sendo tratado a opcao de que o
-                  tempo pode vir em uma constante*/
+            if (regra.equals("esperar"))
                 loop = "\tdelay(" + ctx.tempo().getText() + ");";
-            }
         }
         codigo.println(loop);
     }
@@ -465,14 +469,14 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     @Override 
     public void enterComandoLCD(FAZEDORESParser.ComandoLCDContext ctx) { 
         //Verifica qual eh o comando LCD que serah gerado
-        if (ctx.getStart().getText().equals("definirCor")){
-            if (ctx.lcd().getText().equals("lcd"))
-                codigo.println(ctx.lcd().getText() + ".");
-        }
+        if (ctx.getStart().getText().equals("definirCor"))
+            /*Coloca a cor passada como parametro, note que os parenteses 
+            utilizados vem da propria regra cor*/
+            codigo.println("\tlcd.setRGB" + ctx.getChild(6).getText() + ";");
         //escrever
         else{
-            if (ctx.lcd().getText().equals("lcd"))
-                codigo.println(ctx.lcd().getText() + ".");
+            //Escreve a mensagem que estah sendo passado como parametro
+            codigo.println("\tlcd.print(" + ctx.getChild(6).getText() + ");");
         }
     }
     
@@ -521,14 +525,14 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                     atribuicao = atribuicao + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
                 else{
                     if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
-                        atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+                        atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");"
+                                     + "\n\t" + ctx.getParent().getChild(0).getText() + " = map("  + ctx.getParent().getChild(0).getText() + ", 0, 1023, 0, 255);";
                 }
             }
             else{
                 atribuicao = atribuicao + ctx.getChild(3).getText() + ";";
             }
         }
-     
         codigo.println(atribuicao);
     }
     
