@@ -1,0 +1,2 @@
+Linha 11: pino já utilizado
+Fim da compilacao

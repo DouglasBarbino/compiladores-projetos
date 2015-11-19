@@ -1,23 +1,10 @@
-constante tempo: inteiro = 10
-
-declare
-	x: inteiro
-
 comando_setup
-
-	ativar(luz, 3)
-	ativar(botao, 11)
-
+    ativar(led, 5)
 fim_comando_setup
 
 comando_loop
-
-	x <- ler(botao, 5)
-
-	se x = 1 entao 
-		ligar(luz, 3)
-		esperar(tempo)
-		desligar(luz, 3)
-	fim_se
-
+    ligar(led, 6)
+    esperar(1000)
+    desligar(led, 6)
+    esperar(1000)
 fim_comando_loop

@@ -1,19 +1,16 @@
 Regras semanticas:
 
-1- Uso dos comandos no escopo onde o 'ativar' não foi usado, isso inclui o 'desativar';
-2- Porta utilizada não ser analogica/digital, depende do dispositivo; (deve verificar no ativar também)
-3- Portas PWM (digital que pode ser analogica) se for 3, 5, ou 6;
-4- Portas 'ativar' repetidas;
-5- Verificação de portas, volt e cores
-6- Verificação de uso de portas repetidas
+1 - Erros que podem ser verificados no ativar:
+ * Porta utilizada não ser analogica/digital, depende do dispositivo; (deve verificar no ativar também)
+	- 0 a 10 são portas digitais (led, som, luz, botao)
+	- 3, 5, 3, 6 são portas PWM (led, som, luz, botao)
+	- 10 a 20 portas analogicas (potenciometro, sensor de toque)
+	- 21 porta I2C (usada para o LCD)
+ * Portas 'ativar' repetidas;
 
-Opcional:
-6- Verificar se a porta utilizada nos comandos loop é a mesma do setup
+2 - Verificação de volt: entre 0 e 255
+	* definição de volt só pode acontecer em portas analogicas
+3 - Verificação das cores: entre 0 e 255
+4 - Verificação se a porta utilizada nos comandos loop é a mesma do setup
+4 - Verificação de uso de portas repetidas
 
-
-Algumas caracteristicas da linguagem:
-
-- 0 a 10 são portas digitais
-- 3, 5, 3, 6 são portas PWM
-- 10 a 20 portas analogicas
-- 21 porta I2C (usada para o LED)
