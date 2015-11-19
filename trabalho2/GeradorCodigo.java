@@ -28,11 +28,11 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         utilizado este loop com getChild, mas por cima eu indico qual eh a 
         operacao que estou fazendo*/
         
-        //ctx.comandosSetup().comandoSetup().getChild()
-        while (ctx.getChild(2).getChild(0).getChild(i) != null){
+        //ctx.comandosSetup().comandoSetup()
+        while (ctx.getChild(2).getChild(i) != null){
             
             //ctx.comandosSetup().comandoSetup().dispositivo().getText().equals("lcd")
-            if (ctx.getChild(2).getChild(0).getChild(i+2).getText().equals("lcd")){
+            if (ctx.getChild(2).getChild(i).getChild(2).getText().equals("lcd")){
                 /*Encontrado um lcd sendo ativado, entao torna true sua flag e 
                 realiza seus includes no codigo */
                 flagLCD = true;
@@ -41,10 +41,11 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 codigo.println("#include \"rgb_lcd.h\"");
                 codigo.println("");
                 codigo.println("rgb_lcd lcd;");
+                codigo.println("");
             }
             
-            //incrementa o i na quantidade de filhos que o ComandoSetup possui
-            i = i+6;
+            //incrementa o i para verificar outros possiveis comandoSetup
+            i++;
         }
 
         //TABELA DE SIMBOLOS GLOBAL
@@ -461,6 +462,20 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         codigo.println(loop);
     }
     
+    @Override 
+    public void enterComandoLCD(FAZEDORESParser.ComandoLCDContext ctx) { 
+        //Verifica qual eh o comando LCD que serah gerado
+        if (ctx.getStart().getText().equals("definirCor")){
+            if (ctx.lcd().getText().equals("lcd"))
+                codigo.println(ctx.lcd().getText() + ".");
+        }
+        //escrever
+        else{
+            if (ctx.lcd().getText().equals("lcd"))
+                codigo.println(ctx.lcd().getText() + ".");
+        }
+    }
+    
     @Override
     public void enterSenao_opcional(FAZEDORESParser.Senao_opcionalContext ctx) {
         //primeiramente se verifica se esse noh nao estah vazio
@@ -493,15 +508,24 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         //Busca a variavel que vai receber a atribuicao
         atribuicao = "\t" + ctx.getParent().getChild(0).getText() + " = ";
         
-        //Verifica se eh uma leitura
-        if (ctx.getChild(3).getChild(0).getText().equals("ler")){
-            //Tipo do que estah sendo lido determina a funcao de leitura
-            if (ctx.getChild(3).getChild(2).getText().equals("botao") ||
-                ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
-                atribuicao = atribuicao + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+        //Verifica primeiro se nao eh uma chamada de funcao
+        if (ctx.getStart().getText().equals("(")){
+            
+        }
+        else{
+            //Verifica se eh uma leitura
+            if (ctx.getChild(3).getChild(0).getText().equals("ler")){
+                //Tipo do que estah sendo lido determina a funcao de leitura
+                if (ctx.getChild(3).getChild(2).getText().equals("botao") ||
+                    ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
+                    atribuicao = atribuicao + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+                else{
+                    if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
+                        atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+                }
+            }
             else{
-                if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
-                    atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+                atribuicao = atribuicao + ctx.getChild(3).getText() + ";";
             }
         }
      
