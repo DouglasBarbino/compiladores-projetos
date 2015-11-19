@@ -20,9 +20,9 @@ public class EntradaTabelaDeSimbolos {
     private String nome, tipo;
     private List<String> parametros;
     private TabelaDeSimbolos subTabeladoRegistro;
-    private int valor;
+    private String valor;
     
-    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub, int valor) 
+    public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub, String valor) 
     {
         this.nome = nome;
         this.tipo = tipo;
@@ -51,7 +51,7 @@ public class EntradaTabelaDeSimbolos {
         this.nome = nome;
         this.tipo = tipo;
         this.subTabeladoRegistro = sub;
-        //this.valor = valor;
+        this.valor = null;
         
         if(listaPassada == null)
         {
@@ -74,7 +74,7 @@ public class EntradaTabelaDeSimbolos {
         return this.nome;
     }
     
-    public int getValor()
+    public String getValor()
     {
         return this.valor;
     }
