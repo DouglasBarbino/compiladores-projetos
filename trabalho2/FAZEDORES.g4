@@ -48,10 +48,9 @@ COMENTARIO_ERRADO
 ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
             ;
 
-
 // Definindo cor:
-COR         : '('NUM_INT',' NUM_INT',' NUM_INT')'
-           ;
+COR         : '(' NUM_INT ',' NUM_INT ',' NUM_INT ')'
+            ;
 
 /*****************************SINTATICO*****************************************/
 
@@ -167,8 +166,8 @@ comandoSetup		: ('ativar' '(' dispositivo ',' pino ')')+
 comandoLoop		: (cmdLoop)+
 			;
 
-cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino ')'
-			| 'ler' '(' dispositivoEntrada ',' pino ( ',' volt )?')'
+cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino  (',' volt)? ')'
+			| 'ler' '(' dispositivoEntrada ',' pino ')'
 			| 'esperar' '(' tempo ')'
 			| comandoLCD
 			;
@@ -194,7 +193,7 @@ lcd			: 'LCD'
 			;
 
 comandoLCD		: 'definirCor' '(' lcd ',' pino ',' COR ')'
-			| 'escrever' '(' lcd ',' pino  ',' CADEIA ')'
+			| 'escrever' '(' lcd ',' pino ',' (CADEIA | IDENT) ')'
 			;
 
 pino                    : NUM_INT
