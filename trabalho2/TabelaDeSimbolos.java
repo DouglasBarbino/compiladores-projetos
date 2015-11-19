@@ -25,15 +25,17 @@ public class TabelaDeSimbolos {
         this.escopo = escopo;
     }
     
-    public void adicionarSimbolo(String nome, String tipo, List<String> parametros, TabelaDeSimbolos sub, int valor) {
+    public void adicionarSimbolo(String nome, String tipo, List<String> parametros, TabelaDeSimbolos sub, String valor) {
         simbolos.add(new EntradaTabelaDeSimbolos(nome,tipo, parametros, sub, valor));
     }
+    
+    
     
     public void adicionarSimbolo(String nome, String tipo, List<String> parametros, TabelaDeSimbolos sub) {
         simbolos.add(new EntradaTabelaDeSimbolos(nome,tipo, parametros, sub));
     }
     
-    public void adicionarSimbolos(List<String> nomes, String tipo, List<String> parametros, TabelaDeSimbolos sub, int valor) {
+    public void adicionarSimbolos(List<String> nomes, String tipo, List<String> parametros, TabelaDeSimbolos sub, String valor) {
         for(String s:nomes) {
             simbolos.add(new EntradaTabelaDeSimbolos(s, tipo, parametros, sub, valor));
         }
@@ -44,9 +46,14 @@ public class TabelaDeSimbolos {
     {
         String tipo = null;
         for(int i = 0; i < simbolos.size(); i++) {
-            if(simbolos.get(i).getNome().equals(nome)) {
-                tipo = simbolos.get(i).getTipo();
+            String n = simbolos.get(i).getNome();
+            if(n!=null)
+            {
+               if(simbolos.get(i).getNome().equals(nome)) {
+                    tipo = simbolos.get(i).getTipo();
+                } 
             }
+            
         }
         return tipo;
     }
@@ -86,20 +93,45 @@ public class TabelaDeSimbolos {
         
     public boolean existeSimbolo(String nome) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {
-            if(etds.getNome().equals(nome)) {
-                return true;
+            if(etds.getNome()!=null)
+            {
+                if(etds.getNome().equals(nome)) {
+                    return true;
+                }
             }
+            
         }
         return false;
     }
     
-    public boolean existePino(int valor) {
+    public boolean existePino(String valor) {
         for(EntradaTabelaDeSimbolos etds:simbolos) {
-            if(etds.getValor() == valor) {
-                return true;
-            }
+            //int num = Integer.parseInt(etds.getValor());
+            //if(etds.getTipo().equals("portaAnalogica") || etds.getTipo().equals("portaDigital") || etds.getTipo().equals("PWM")
+              //      || etds.getTipo().equals("I2C"))
+           // {
+                if(etds.getValor().equals(valor)) {
+                    return true;
+                }
+           // }    
         }
         return false;
+    }
+    
+    public String getValor(String nome)
+    {
+        String valor = null;
+        for(int i = 0; i < simbolos.size(); i++) {
+            String v = simbolos.get(i).getNome();
+            if(v!=null)
+            {
+                if(simbolos.get(i).getNome().equals(nome)) {
+                    valor = simbolos.get(i).getValor();
+                }
+            }
+            
+        }
+        return valor;
     }
     
     @Override
