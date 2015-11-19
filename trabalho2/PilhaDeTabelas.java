@@ -41,6 +41,18 @@ public class PilhaDeTabelas {
         return tipo;
     }
     
+    public String getValor(String nome)
+    {
+        String valor = null;
+        for(int i = 0; i < pilha.size(); i++) {
+            if(pilha.get(i).getValor(nome)!=null) {
+                valor = pilha.get(i).getValor(nome);
+            }
+        }
+        
+        return valor;
+    }
+    
     public List<String> getListaPar(String subRotina)
     {
         List<String> parametros = new ArrayList<String>();
