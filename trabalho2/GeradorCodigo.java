@@ -9,8 +9,10 @@ import org.antlr.runtime.RecognitionException;
  */
 public class GeradorCodigo extends FAZEDORESBaseListener {
     Saida codigo;
+    Boolean flagLCD = false; 
   
     //PARA AS TABELAS DE SIMBOLOS
+    int EhFuncao = 0;
     static PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
     
     public GeradorCodigo(Saida codigo){
@@ -19,6 +21,32 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void enterPrograma(FAZEDORESParser.ProgramaContext ctx) {
+        //Tenta encontrar o LCD sendo ativado
+        int i=0;
+        
+        /*Por nao saber quantos 'ativar' existem aqui dentro, entao deve ser 
+        utilizado este loop com getChild, mas por cima eu indico qual eh a 
+        operacao que estou fazendo*/
+        
+        //ctx.comandosSetup().comandoSetup().getChild()
+        while (ctx.getChild(2).getChild(0).getChild(i) != null){
+            
+            //ctx.comandosSetup().comandoSetup().dispositivo().getText().equals("lcd")
+            if (ctx.getChild(2).getChild(0).getChild(i+2).getText().equals("lcd")){
+                /*Encontrado um lcd sendo ativado, entao torna true sua flag e 
+                realiza seus includes no codigo */
+                flagLCD = true;
+                
+                codigo.println("#include <Wire.h>");
+                codigo.println("#include \"rgb_lcd.h\"");
+                codigo.println("");
+                codigo.println("rgb_lcd lcd;");
+            }
+            
+            //incrementa o i na quantidade de filhos que o ComandoSetup possui
+            i = i+6;
+        }
+
         //TABELA DE SIMBOLOS GLOBAL
         pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
     }
@@ -93,6 +121,118 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                     tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
             }
         }
+    }
+    
+    @Override
+    public void enterDeclaracao_global(FAZEDORESParser.Declaracao_globalContext ctx) {
+        //PARA A TABELA DE SIMBOLOS
+        String nome = ctx.IDENT().getText();
+        TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
+        List<String> listaNomePar = new ArrayList<>();
+        List<String> listaTipoPar = new ArrayList<>();
+        
+        String declaracao;
+        
+        //verifica se eh um procedimento ou uma funcao
+        if (ctx.getStart().getText().equals("procedimento")){
+            declaracao = "void ";
+        
+            //PARA A TABELA DE SIMBOLOS
+            if(!pilhaDeTabelas.existeSimbolo(nome)){
+                if(ctx.parametros_opcional()!=null)
+                    AdicionarTiposParametros(ctx,listaNomePar,listaTipoPar);
+                tabelaDeSimbolosAtual.adicionarSimbolo(nome, null, listaTipoPar, null);
+                TabelaDeSimbolos tabelaDeSimbolosProcedimento = new TabelaDeSimbolos("procedimento"+nome);
+                for(int i = 0; i < listaNomePar.size(); i++){
+                    if(!tabelaDeSimbolosProcedimento.existeSimbolo(listaNomePar.get(i)))
+                        tabelaDeSimbolosProcedimento.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                }
+                pilhaDeTabelas.empilhar(tabelaDeSimbolosProcedimento);  
+            }
+            //FIM DA TABELA DE SIMBOLOS
+        }
+        else{
+            // como eh funcao precisa ser verificado o tipo dela
+            switch (ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText()){
+                case "literal":
+                    declaracao = "char ";
+                    break;
+                case "inteiro":
+                    declaracao = "int ";
+                    break;
+                case "real":
+                    declaracao = "float ";
+                    break;
+                default: //caso logico
+                    declaracao = "bool ";   
+            }
+            
+            //PARA A TABELA DE SIMBOLOS
+            EhFuncao = 1;
+            if(!pilhaDeTabelas.existeSimbolo(nome)){
+                if(ctx.parametros_opcional()!=null)
+                    AdicionarTiposParametros(ctx,listaNomePar,listaTipoPar);
+                String TipoFuncao;
+                if(ctx.tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                    TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().IDENT().getText();
+                else
+                    TipoFuncao = ctx.tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                    
+                tabelaDeSimbolosAtual.adicionarSimbolo(nome, TipoFuncao, listaTipoPar, null);
+                TabelaDeSimbolos tabelaDeSimbolosFuncao = new TabelaDeSimbolos("funcao"+nome);
+                    
+                for(int i = 0; i < listaNomePar.size(); i++){
+                    if(!tabelaDeSimbolosFuncao.existeSimbolo(listaNomePar.get(i)))
+                        tabelaDeSimbolosFuncao.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                }
+                pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);
+            }
+            //FIM TABELA DE SIMBOLOS
+        }
+        
+        declaracao = declaracao + ctx.IDENT().getText()+" (";
+        
+        //captura dos parametros
+        if (ctx.parametros_opcional() != null){
+            // pega o tipo do parametro
+            switch (ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText()){
+                case "literal":
+                    //char eh passado como um ponteiro aqui
+                    declaracao = declaracao + "char* ";
+                    break;
+                case "inteiro":
+                    declaracao = declaracao + "int ";
+                    break;
+                case "real":
+                    declaracao = declaracao + "float ";
+                    break;
+                default: //caso logico
+                    declaracao = declaracao + "bool ";  
+            }
+            
+            // pega o nome da variavel
+            declaracao = declaracao + ctx.parametros_opcional().parametro().identificador().getText();
+            
+            if (ctx.parametros_opcional().parametro().mais_parametros().getStart().getText().equals(","))
+                //aqui tambem jah seria uma boa poder tratar retornos no noh, assim nao precisaria fazer todo 
+                // o tratamento para o mais_parametros... por enquanto fica soh a virgula pois nao tem
+                // nenhum caso de teste que utilize mais que um parametro, qualquer coisa dou uma melhorada aqui depois...
+                declaracao = declaracao + " ,";
+        }
+        
+        declaracao = declaracao + ") {";
+        codigo.println(declaracao);
+    }
+    
+    @Override
+    public void exitDeclaracao_global(FAZEDORESParser.Declaracao_globalContext ctx) {
+        //Declarou tudo o que tinha pra se declarar no procedimento ou funcao, fecha a chave dele e pula uma linha
+        codigo.println("}");
+        codigo.println("");
+        
+        //PARA A TABELA DE SIMBOLOS
+        pilhaDeTabelas.desempilhar();
+        EhFuncao = 0;
     }
     
     @Override
@@ -295,7 +435,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 //Verifica se o dispositivoSaida eh um led
                 if (ctx.getChild(2).getText().equals("led")){
                     //Aqui nao existe diferenca entre ligar ou desligar (fonte: iot.pdf, pag 22)
-                    //loop = "\tanalogWrite(" + ctx.pino(0).getText() + ", " + ctx.pino(1).getText() +");";
+                    loop = "\tanalogWrite(" + ctx.pino().getText() + ", " + ctx.volt().getText() +");";
                 }
             }
             else{
