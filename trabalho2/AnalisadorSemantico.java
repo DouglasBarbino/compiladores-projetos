@@ -47,6 +47,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         String nome;
         String tipo;
         int linha;
+        String valor;
         
         //Primeira verificacao, se a regra comeca com a palavra chave constante
         if(ctx.getStart().getText().equals("constante"))
@@ -57,14 +58,15 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
             linha = ctx.IDENT().getSymbol().getLine();
             // o tipo e identificado pela chamada da regra tipo_basico, recuperando o texto
             tipo = ctx.tipo_basico().getText();
+            
+            valor = ctx.valor_constante().getText();
                 
             //Poder adicionar essa constante, primeiramente deve-se verificar se esse nome ja nao existe em nenhum
             //escopo visivel
             if(!pilhaDeTabelas.existeSimbolo(nome))
-            {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo, null, null);
-                            System.out.println("Var adicionada "+nome+" "+tipo+" linha: "+linha);
+            {   tabelaDeSimbolosAtual.adicionarSimbolo(nome,tipo, null, null,valor);
             }    
-            else //ERRO 1
+            else 
                 out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
             
         }else
@@ -667,7 +669,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                     {
                         if(!tabelaDeSimbolosFuncao.existeSimbolo(listaNomePar.get(i)))
                         {
-                            tabelaDeSimbolosFuncao.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null);
+                            tabelaDeSimbolosFuncao.adicionarSimbolo(listaNomePar.get(i), listaTipoPar.get(i), null, null, null);
                         }
                     }
                     pilhaDeTabelas.empilhar(tabelaDeSimbolosFuncao);  
@@ -877,6 +879,289 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
             }
         }
     }
+    
+    @Override
+    public void enterComandosSetup(FAZEDORESParser.ComandosSetupContext ctx)
+    {
+        TabelaDeSimbolos tabelaDeSimbolosSetup = new TabelaDeSimbolos("setup");
+        pilhaDeTabelas.empilhar(tabelaDeSimbolosSetup);
+        TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
+        //Primeira verificação: lista de dispositivos suportados
+        //List<String> Dispositivos = new ArrayList<>();
+        //Dispositivos.add("");
+        
+        
+        for(int i = 0; i < ctx.comandoSetup().size(); i++)
+        {
+            if(ctx.comandoSetup(i).getStart().getText().equals("ativar"))
+            {
+                if(ctx.comandoSetup(i).pino().NUM_INT() != null)
+                {
+                    String numPino = ctx.comandoSetup(i).pino().getText();
+                    int linha = ctx.comandoSetup(i).pino().NUM_INT().getSymbol().getLine();
+                    //int num = Integer.parseInt(numPino);
+                    //verificar o tamanho do numero do pino
+                    //int numPino = ctx.comandoSetup(i).pino(i).NUM_INT().getSymbol().;
+                    if(!tabelaAtual.existePino(numPino))
+                    {
+                        int num = Integer.parseInt(numPino);
+                        String dispositivo = ctx.comandoSetup(i).dispositivo().getText();
+                        String tipoPorta = verificaValoresPinos(num);
+                        verificaErrosPinos(dispositivo, num, linha, tipoPorta);
+                        tabelaAtual.adicionarSimbolo(null, tipoPorta, null, null, numPino);
+                    }else
+                    {
+                        out.println("Linha "+ linha+": Esse pino já foi ativado anteriormente.");
+                    }
+                }else{
+                    if(ctx.comandoSetup(i).pino().IDENT()!=null)
+                    {
+                        String nome = ctx.comandoSetup(i).pino().getText();
+                        int linha = ctx.comandoSetup(i).pino().IDENT().getSymbol().getLine();
+                        
+                        if(!pilhaDeTabelas.existeSimbolo(nome))
+                        {
+                            out.println("Um nome deve ser declarado antes de ser usado.");
+                        }else
+                        {
+                            //trata-se de uma constante. Valor é inicializado apenas quando se trata de uma constante
+                            if(pilhaDeTabelas.getValor(nome)!=null)
+                            {
+                                String valor = pilhaDeTabelas.getValor(nome);
+                                if(!tabelaAtual.existePino(valor))
+                                {
+                                    int num = Integer.parseInt(valor);
+                                    String dispositivo = ctx.comandoSetup(i).dispositivo().getText();
+                                    String tipoPorta = verificaValoresPinos(num);
+                                    verificaErrosPinos(dispositivo, num, linha, tipoPorta);
+                                    tabelaAtual.adicionarSimbolo(null, tipoPorta, null, null, valor);
+                                }else{
+                                    out.println("Linha "+linha+": Esse pino já foi ativado anteriormente.");
+                                }
+                                
+                                
+                            }
+                            //recuperar o valor do pino a partir do valor da variavel ou da constante
+                            //verificar se está nos limites pre-estabelecidos
+                            //se for constante, da pra recuperar pelo valor constante
+                        }
+                        
+                        //verificar se a variavel que está sendo usada já foi declarada
+                        //depois recuperar o valor que foi atribuido a essa variavel e verificar se está num range
+                        //permitido
+                        
+                    }
+                }
+                
+            }
+            
+        }
+    }
+    
+    
+    @Override
+    public void exitComandosSetup(FAZEDORESParser.ComandosSetupContext ctx)
+    {
+       // pilhaDeTabelas.desempilhar();
+    }
+    
+    @Override
+    public void enterComandoLoop(FAZEDORESParser.ComandoLoopContext ctx)
+    {
+        TabelaDeSimbolos tabelaDoSetup = pilhaDeTabelas.getTabela("setup");
+        TabelaDeSimbolos atual = pilhaDeTabelas.topo();
+        int linha = 0;
+        
+        for(int i = 0; i < ctx.cmdLoop().size(); i++)
+        {
+            if(ctx.cmdLoop(i).pino()!=null)
+            {   String pino = ctx.cmdLoop(i).pino().getText();
+                if(ctx.cmdLoop(i).getStart().getText().equals("ligar")||ctx.cmdLoop(i).getStart().getText().equals("desligar"))
+                {
+                    String dispositivo = ctx.cmdLoop(i).dispositivoSaida().getText();
+                    
+                    
+                    if(ctx.cmdLoop(i).pino().NUM_INT()!=null)
+                    {   
+                        int num = Integer.parseInt(pino);
+                        linha = ctx.cmdLoop(i).pino().NUM_INT().getSymbol().getLine();
+                        if(!tabelaDoSetup.existePino(pino))
+                        {
+                            out.println("Linha "+linha+": porta nao ativada");
+                            out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                        }
+                        String tipoPorta = verificaValoresPinos(num);
+                        verificaErrosPinos(dispositivo, num, linha, tipoPorta);
+                        if(ctx.cmdLoop(i).volt()!=null)
+                        {
+                        
+                            if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
+                            {
+                                 out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
+                            }else{
+                                String svolt = ctx.cmdLoop(i).volt().getText();
+                                     int voltagem = 0;
+                                     
+                                     if(ctx.cmdLoop(i).volt().IDENT()!=null)
+                                     {
+                                        String val =  pilhaDeTabelas.getValor(svolt);
+                                        if(val==null)
+                                        {
+                                            out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
+                                        }else{
+                                            voltagem = Integer.parseInt(val);
+                                        }
+                                     }else{
+                                         voltagem = Integer.parseInt(svolt);
+                                     }
+                                     
+                                     
+                                     
+                                     if((voltagem < 0) || (voltagem > 255))
+                                     {
+                                         out.println("Linha "+linha+": voltagem especificada incorreta");
+                                         out.println("Dica: a voltagem varia de 0 a 255");
+                                     }
+                            }
+                        }
+                    }else
+                    {
+                        if(ctx.cmdLoop(i).pino().IDENT()!=null)
+                        {
+                            linha = ctx.cmdLoop(i).pino().IDENT().getSymbol().getLine();
+                            String numPino = pilhaDeTabelas.getValor(pino);
+                            int num = Integer.parseInt(numPino);
+                            if(!tabelaDoSetup.existePino(numPino))
+                            {
+                                out.println("Linha "+linha+": porta nao ativada");
+                                out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                            }
+                            String tipoPorta = verificaValoresPinos(num);
+                            verificaErrosPinos(dispositivo, num, linha, tipoPorta);
+                            if(ctx.cmdLoop(i).volt()!=null)
+                            {
+                        
+                                 if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
+                                {
+                                    out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
+                                }else{
+                                     String svolt = ctx.cmdLoop(i).volt().getText();
+                                     int voltagem = 0;
+                                     
+                                     if(ctx.cmdLoop(i).volt().IDENT()!=null)
+                                     {
+                                        String val =  pilhaDeTabelas.getValor(svolt);
+                                        if(val==null)
+                                        {
+                                            out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
+                                        }else{
+                                            voltagem = Integer.parseInt(val);
+                                        }
+                                     }else{
+                                         voltagem = Integer.parseInt(svolt);
+                                     }
+                                     
+                                     
+                                     
+                                     if((voltagem < 0) || (voltagem > 255))
+                                     {
+                                         out.println("Linha "+linha+": voltagem especificada incorreta");
+                                         out.println("Dica: a voltagem varia de 0 a 255");
+                                     }
+                                     
+                                 }
+                        }
+                       }
+                    }
+                    
+                }
+                
+                    
+                
+                
+            }  
+        }
+        
+        //para cada pino usado no comando loop, verificar se existe algum equivalente na tabela ativar
+    }
 
+    public String verificaValoresPinos(int num)
+    {
+        if((num == 3) || (num == 6) || (num == 5))
+        {
+            return "pwm";
+        }else{
+            if((num < 10) && (num > 0))
+            {
+                return "portaDigital";
+            }else{
+                if((num > 10) || (num < 20))
+                {
+                    return "portaAnalogica";
+                }else{
+                    if(num == 21)
+                    {
+                        return "I2C";
+                    }
+                }
+            }
+        }
+        return null;
+    }
+    
+    public void printMensagem(int linha)
+    {
+        out.println("Linha "+ linha +": uso de porta indevida");
+        out.println("Dica:");
+        out.println("- 0 a 10 são portas digitais");
+        out.println("- 3, 5, 3, 6 são portas PWM");
+        out.println("- 10 a 20 portas analogicas");
+        out.println("- 21 porta I2C (usada para o LCD)");
+    }
+    
+    public void verificaErrosPinos(String dispositivo, int num, int linha, String tipoPorta)
+    {
+        
+        switch (dispositivo){
+            case "led":
+                if(tipoPorta.equals("portaAnalogica"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("I2C"))
+                    {
+                        printMensagem(linha);
+                    }
+                }
+                break;
+            case "potenciometro":
+                break;
+            case "som":
+                break;
+            case "luz":
+                break;
+            case "botao":
+                break;
+            case "sensor de toque":
+                break;
+            case "LCD":
+                break;
+        }
+        
+//        if(dispositivo.equals("led"))
+//        {
+//            if(tipoPorta.equals("portaAnalogica"))
+//            {
+//                printMensagem(linha); 
+//            }else{
+//                if(tipoPorta.equals("I2C"))
+//                {
+//                    printMensagem(linha);
+//                }
+//            }
+//        }   
+        
+        
+    }
   
 }
