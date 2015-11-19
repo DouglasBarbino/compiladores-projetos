@@ -48,10 +48,6 @@ COMENTARIO_ERRADO
 ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identificado"); }
             ;
 
-// Definindo cor:
-COR         : '(' NUM_INT ',' NUM_INT ',' NUM_INT ')'
-            ;
-
 /*****************************SINTATICO*****************************************/
 
 programa 		: declaracoes 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop'
@@ -192,7 +188,7 @@ lcd			: 'LCD'
 			| 'tela'
 			;
 
-comandoLCD		: 'definirCor' '(' lcd ',' pino ',' COR ')'
+comandoLCD		: 'definirCor' '(' lcd ',' pino ',' cor ')'
 			| 'escrever' '(' lcd ',' pino ',' (CADEIA | IDENT) ')'
 			;
 
@@ -207,6 +203,9 @@ tempo			: NUM_INT
 volt			: NUM_INT
 			| IDENT
 			; 
+
+cor                     : '(' NUM_INT ',' NUM_INT ',' NUM_INT ')'
+                        ;
 
 mais_expressao          : (',' expressao)*
 			;
