@@ -159,7 +159,7 @@ cmd 			: 'leia' '(' identificador mais_ident ')'
 comandosSetup		: (comandoSetup)+
 			;
 
-comandoSetup		: ('ativar' '(' dispositivo ',' pino ')')
+comandoSetup		: 'ativar' '(' dispositivo ',' pino ')'
 			| declaracao_local
 			;
 
