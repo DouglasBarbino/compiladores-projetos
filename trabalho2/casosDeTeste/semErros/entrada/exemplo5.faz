@@ -22,7 +22,7 @@ comando_setup
 fim_comando_setup
 
 comando_loop	
-	y <- ler(sensortoque, pinoSensor)
+	y <- ler(potenciometro, pinoPot)
 	defineCor(lcd, pinoLCD, (10, 10, 10))
 	imprimeLCD(y)
 	esperar(tempo)
