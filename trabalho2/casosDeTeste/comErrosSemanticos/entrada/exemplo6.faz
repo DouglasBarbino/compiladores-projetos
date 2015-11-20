@@ -3,6 +3,7 @@ constante pinoPot: inteiro = 14
 
 declare
 	y: real
+declare	
 	mensagem: literal
 
 comando_setup
@@ -19,7 +20,7 @@ comando_loop
 		mensagem <- "Potencia dada é " + y
 		escreva(mensagem)
 		esperar(tempo)	
-		x = "0"
+		x <- "0"
 	senao
 		escreva("esperando digitar 'sim' para fazer a leitura")
 
