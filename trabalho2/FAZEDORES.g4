@@ -183,11 +183,6 @@ dispositivoEntrada	: 'botao'
 			| 'potenciometro'
 			;
 
-lcd			: 'LCD'
-			| 'lcd'
-			| 'tela'
-			;
-
 comandoLCD		: 'definirCor' '(' lcd ',' pino ',' cor ')'
 			| 'escrever' '(' lcd ',' pino ',' (CADEIA | IDENT) ')'
 			;
@@ -206,6 +201,13 @@ volt			: NUM_INT
 
 cor                     : '(' NUM_INT ',' NUM_INT ',' NUM_INT ')'
                         ;
+                        
+                        
+
+lcd			: 'LCD'
+			| 'lcd'
+			| 'tela'
+			;
 
 mais_expressao          : (',' expressao)*
 			;
