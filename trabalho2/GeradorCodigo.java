@@ -9,7 +9,7 @@ import org.antlr.runtime.RecognitionException;
  */
 public class GeradorCodigo extends FAZEDORESBaseListener {
     Saida codigo;
-    Boolean flagLCD = false; 
+    Boolean flagLCD = false, flagSerial = false; 
   
     //PARA AS TABELAS DE SIMBOLOS
     int EhFuncao = 0;
@@ -21,18 +21,15 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void enterPrograma(FAZEDORESParser.ProgramaContext ctx) {
-        //Tenta encontrar o LCD sendo ativado
+        //Para utilizar na procura de uma funcao escreva() ou leia()
+        String chamadaFeita;
+        
         int i=0;
         
-        /*Por nao saber quantos 'ativar' existem aqui dentro, entao deve ser 
-        utilizado este loop com getChild, mas por cima eu indico qual eh a 
-        operacao que estou fazendo*/
-        
-        //ctx.comandosSetup().comandoSetup()
-        while (ctx.getChild(2).getChild(i) != null){
+        //Tenta encontrar o LCD sendo ativado
+        while (ctx.comandosSetup().comandoSetup(i) != null){
             
-            //ctx.comandosSetup().comandoSetup().dispositivo().getText().equals("lcd")
-            if (ctx.getChild(2).getChild(i).getChild(2).getText().equals("lcd")){
+            if (ctx.comandosSetup().comandoSetup(i).dispositivo().getText().equals("lcd")){
                 /*Encontrado um lcd sendo ativado, entao torna true sua flag e 
                 realiza seus includes no codigo */
                 flagLCD = true;
@@ -47,21 +44,44 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //incrementa o i para verificar outros possiveis comandoSetup
             i++;
         }
+        
+        //Zera o i para uma nova consulta
+        i = 0;
+        
+        //Verifica se encontra alguma funcao do tipo leia ou escreva
+        ProcuraEscrevaLeia(ctx.comandos());
+        
+        /*Tambem se verifica nas declaracoes se nao existe alguma funcao do tipo 
+        leia ou escreva*/
+        while (ctx.declaracoes().decl_local_global(i) != null && flagSerial == false){
+            
+            //Pega qual chamada eh feita
+            chamadaFeita = ctx.declaracoes().decl_local_global(i).getStart().getText();
+            if (chamadaFeita.equals("procedimento") || chamadaFeita.equals("funcao"))
+                ProcuraEscrevaLeia(ctx.declaracoes().decl_local_global(i).declaracao_global().comandos());
+            
+            //Incrementa o i
+            i++;
+        }
 
         //TABELA DE SIMBOLOS GLOBAL
         pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
     }
     
     @Override 
+    public void exitPrograma(FAZEDORESParser.ProgramaContext ctx) { 
+        /*Caso foi necessario verificar se o serial estava ativado, fecha a chave
+        desta verificacao*/
+        if (flagSerial)
+            codigo.println("\t}");
+        //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
+        codigo.println("}");
+    }
+        
+    @Override 
     public void exitDeclaracoes(FAZEDORESParser.DeclaracoesContext ctx) { 
         //Terminou todas as declaracoes, pula uma linha
         codigo.println("");
-    }
-    
-    @Override 
-    public void exitPrograma(FAZEDORESParser.ProgramaContext ctx) { 
-        //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
-        codigo.println("}");
     }
     
     @Override
@@ -368,6 +388,14 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             condicao = condicao + ") {";
             codigo.println(condicao);
         }
+        else{
+            if (estrutura.equals("leia"))
+                codigo.println("\t" + ctx.identificador().getText() + " = Serial.read();");
+            else{
+                if (estrutura.equals("escreva"))
+                    codigo.println("\tSerial.printl(" + ctx.expressao().getText() + ");");
+            }
+        }  
     }
     
     @Override
@@ -391,11 +419,18 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         //Caso tenha sido declarado o LCD, eh necessario uma inicializacao especial para ele
         if (flagLCD)
             codigo.println("\tlcd.begin(16,2);");
+        //Caso possua as funcoes leia ou escreva, eh necessario uma inicializacao para o serial
+        if (flagSerial)
+            codigo.println("\tSerial.begin(115200);");
         //Terminou todas as declaracoes da funcao setup, eh fechada a chave dela
         codigo.println("}");
         //Uma linha em branco e declara a funcao loop do Arduino
         codigo.println("");
         codigo.println("void loop() {");
+        
+        //Caso for utilizar funcoes do Serial, deve-se verificar se ele estah ativado
+        if (flagSerial)
+            codigo.println("\tif (Serial.avaiable() > 0)\n\t{");
     }
     
     @Override
@@ -490,9 +525,9 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //verifica se o primeiro token encontrado no pai eh se, ou seja, eh o caso de senao,
             // ou se eh um caso, ou seja, eh o caso do default
             if (ctx.getParent().getStart().getText().equals("se"))
-                codigo.println("else {");
+                codigo.println("\telse {");
             else
-                codigo.println("default:");
+                codigo.println("\tdefault:");
         }
     }
     
@@ -503,7 +538,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //verifica se o primeiro token encontrado no pai eh se pois apenas no se eh necessario
             // fechar a chave do senao, na regra do caso o default nao utiliza chave
             if (ctx.getParent().getStart().getText().equals("se"))
-                codigo.println("}");
+                codigo.println("\t}");
         }
     }
     
@@ -534,10 +569,48 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 }
             }
             else{
-                atribuicao = atribuicao + ctx.getChild(3).getText() + ";";
+                atribuicao = atribuicao + " = " + ctx.getChild(3).getText() + ";";
             }
         }
         codigo.println(atribuicao);
+    }
+    
+    // Funcao utilizada para procurar chamadas leia e escreva dentro do codigo
+    public void ProcuraEscrevaLeia (FAZEDORESParser.ComandosContext ctx){
+        int i = 0;
+        String chamadaFeita;
+        
+        //Tenta encontrar alguma funcao do tipo leia ou escreva no comandos
+        while (ctx.cmd(i) != null && flagSerial == false){
+            
+            //Pega qual chamada eh feita
+            chamadaFeita = ctx.cmd(i).getStart().getText();
+            if (chamadaFeita.equals("leia") || chamadaFeita.equals("escreva")){
+                //Encontrado um lcd sendo ativado, entao torna true sua flag 
+                flagSerial = true;
+            }
+            else{
+                /*Verifica se a chamada que eh feita eh alguma que chama a regra
+                  comandos internamente*/
+                if (chamadaFeita.equals("se") || chamadaFeita.equals("para") ||
+                    chamadaFeita.equals("enquanto") || chamadaFeita.equals("faca"))
+                    ProcuraEscrevaLeia(ctx.cmd(i).comandos());
+                
+                //A regra caso tambem possui a regra comandos, porem um pouco mais escondido
+                if (chamadaFeita.equals("caso"))
+                    ProcuraEscrevaLeia(ctx.cmd(i).selecao().comandos());
+                
+                //Mesma situacao do senao_opcional
+                if (chamadaFeita.equals("se")){
+                    //Verifica se existe algo no senao_opcional
+                    if (ctx.cmd(i).senao_opcional().comandos() != null)
+                        ProcuraEscrevaLeia(ctx.cmd(i).senao_opcional().comandos());
+                }
+            }
+            
+            //Incrementa o i
+            i++;
+        }
     }
     
     // A partir de agora sao as tres funcoes utilizadas para adicionar simbolos nas tabelas de simbolos
