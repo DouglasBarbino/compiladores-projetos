@@ -53,6 +53,12 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     }
     
     @Override 
+    public void exitDeclaracoes(FAZEDORESParser.DeclaracoesContext ctx) { 
+        //Terminou todas as declaracoes, pula uma linha
+        codigo.println("");
+    }
+    
+    @Override 
     public void exitPrograma(FAZEDORESParser.ProgramaContext ctx) { 
         //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
         codigo.println("}");
@@ -88,7 +94,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             
             //Impressao da constante
             codigo.println("const "+tipoConstante+nomeVar+" = "+ctx.valor_constante().getText()+";");
-            codigo.println("");
             
             if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
                 tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
@@ -383,6 +388,9 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override
     public void exitComandosSetup(FAZEDORESParser.ComandosSetupContext ctx){
+        //Caso tenha sido declarado o LCD, eh necessario uma inicializacao especial para ele
+        if (flagLCD)
+            codigo.println("\tlcd.begin(16,2);");
         //Terminou todas as declaracoes da funcao setup, eh fechada a chave dela
         codigo.println("}");
         //Uma linha em branco e declara a funcao loop do Arduino
@@ -421,11 +429,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             //incrementa o i na quantidade de filhos que o ComandoSetup possui
             i = i+6;
         }
-        
-        //PASSAR ISSO PRO EXIT COMANDOSSETUP
-        //Caso tenha sido declarado o LCD, eh necessario uma inicializacao especial
-        if (flagLCD)
-            codigo.println("lcd.begin(16,2);");
     }
     
     @Override
@@ -510,22 +513,23 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         String atribuicao;
         
         //Busca a variavel que vai receber a atribuicao
-        atribuicao = "\t" + ctx.getParent().getChild(0).getText() + " = ";
+        atribuicao = "\t" + ctx.getParent().getChild(0).getText();
         
-        //Verifica primeiro se nao eh uma chamada de funcao
+        //Verifica primeiro se eh uma chamada de funcao
         if (ctx.getStart().getText().equals("(")){
-            
+            atribuicao = atribuicao + "(" + ctx.argumentos_opcional().getText() + ");";
         }
+        //Caso nao seja uma funcao, eh uma atribuicao
         else{
             //Verifica se eh uma leitura
             if (ctx.getChild(3).getChild(0).getText().equals("ler")){
                 //Tipo do que estah sendo lido determina a funcao de leitura
                 if (ctx.getChild(3).getChild(2).getText().equals("botao") ||
                     ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
-                    atribuicao = atribuicao + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
+                    atribuicao = atribuicao + " = " + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
                 else{
                     if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
-                        atribuicao = atribuicao + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");"
+                        atribuicao = atribuicao + " = " + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");"
                                      + "\n\t" + ctx.getParent().getChild(0).getText() + " = map("  + ctx.getParent().getChild(0).getText() + ", 0, 1023, 0, 255);";
                 }
             }
