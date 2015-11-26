@@ -6,6 +6,14 @@ import org.antlr.runtime.RecognitionException;
 /**
  * @program GeradorCodigo - Faz toda a geracao de codigo em Arduino de um dado codigo da Linguagem FAZEDORES
  * @author Douglas
+ * 
+ * Principais funcoes que definem na maioria dos casos o caminho de um programa:
+ * - enterPrograma / void ProcuraLeiaEscreva -> Verificacao de algumas flags
+ * - enterDeclaracao_Local / enterDeclaracao_Global -> Declaracoes iniciais e chamada de procedimentos/funcoes
+ * - enterComandosSetup -> Inicio do procedimento Setup()
+ * - enterComandoSetup (NAO EH A MESMA QUE A DE CIMA) -> Comandos que vao dentro do procedimento Setup()
+ * - exitComandosSetup -> Ultimas declaracoes do procedimento Setup() que dependem das flags e inicio do procedimento Loop()
+ * - enterCMDLoop / enterComandoLCD / enterChamada_atribuicao -> Comandos que vao dentro do procedimento Loop()
  */
 public class GeradorCodigo extends FAZEDORESBaseListener {
     Saida codigo;
@@ -48,8 +56,10 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         //Zera o i para uma nova consulta
         i = 0;
         
-        //Verifica se encontra alguma funcao do tipo leia ou escreva
+        //Verifica se encontra alguma funcao do tipo leia ou escreva dentro do comando loop
         ProcuraEscrevaLeia(ctx.comandos());
+        
+        //Explicacoes melhores deste while se encontram na funcao ProcuraEscrevaLeia
         
         /*Tambem se verifica nas declaracoes se nao existe alguma funcao do tipo 
         leia ou escreva*/
@@ -57,6 +67,8 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             
             //Pega qual chamada eh feita
             chamadaFeita = ctx.declaracoes().decl_local_global(i).getStart().getText();
+            /*Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
+              o leia ou o escreva, entao faz uma chamada recursiva para verificar ali*/
             if (chamadaFeita.equals("procedimento") || chamadaFeita.equals("funcao"))
                 ProcuraEscrevaLeia(ctx.declaracoes().decl_local_global(i).declaracao_global().comandos());
             
@@ -149,6 +161,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }
     }
     
+    //Codigos reaproveitados do trabalho 1
     @Override
     public void enterDeclaracao_global(FAZEDORESParser.Declaracao_globalContext ctx) {
         //PARA A TABELA DE SIMBOLOS
@@ -250,6 +263,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         codigo.println(declaracao);
     }
     
+    //Codigos reaproveitados do trabalho 1
     @Override
     public void exitDeclaracao_global(FAZEDORESParser.Declaracao_globalContext ctx) {
         //Declarou tudo o que tinha pra se declarar no procedimento ou funcao, fecha a chave dele e pula uma linha
@@ -261,6 +275,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         EhFuncao = 0;
     }
     
+    //Codigos reaproveitados do trabalho 1
     @Override
     public void exitComandos(FAZEDORESParser.ComandosContext ctx) {
         //Ao contrario do caso, para ou enquanto onde se fecha a chave no exitCmd, o se
@@ -398,6 +413,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }  
     }
     
+    //Codigos reaproveitados do trabalho 1
     @Override
     public void exitCmd(FAZEDORESParser.CmdContext ctx) {
         //Declarou tudo o que tinha para declarar em caso, para ou enquanto, fecha a chave 
@@ -518,6 +534,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }
     }
     
+    //Codigos reaproveitados do trabalho 1
     @Override
     public void enterSenao_opcional(FAZEDORESParser.Senao_opcionalContext ctx) {
         //primeiramente se verifica se esse noh nao estah vazio
@@ -531,6 +548,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }
     }
     
+    //Codigos reaproveitados do trabalho 1
     @Override
     public void exitSenao_opcional(FAZEDORESParser.Senao_opcionalContext ctx) {
         //primeiramente se verifica se esse noh nao estah vazio
@@ -544,7 +562,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void enterChamada_atribuicao(FAZEDORESParser.Chamada_atribuicaoContext ctx) { 
-        
         String atribuicao;
         
         //Busca a variavel que vai receber a atribuicao
@@ -554,7 +571,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         if (ctx.getStart().getText().equals("(")){
             atribuicao = atribuicao + "(" + ctx.argumentos_opcional().getText() + ");";
         }
-        //Caso nao seja uma funcao, eh uma atribuicao
+        //Caso nao seja uma chamada de funcao, eh uma atribuicao (basica ou leitura)
         else{
             //Verifica se eh uma leitura
             if (ctx.getChild(3).getChild(0).getText().equals("ler")){
@@ -563,24 +580,30 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                     ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
                     atribuicao = atribuicao + " = " + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
                 else{
+                    /*Potenciometro alem de utilizar uma funcao de leitura diferente,
+                      tambem necessita de uma chamada de map imediatamente apos a leitura*/
                     if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
                         atribuicao = atribuicao + " = " + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");"
                                      + "\n\t" + ctx.getParent().getChild(0).getText() + " = map("  + ctx.getParent().getChild(0).getText() + ", 0, 1023, 0, 255);";
                 }
             }
             else{
+                //Eh apenas uma atribuicao basica
                 atribuicao = atribuicao + " = " + ctx.getChild(3).getText() + ";";
             }
         }
         codigo.println(atribuicao);
     }
     
-    // Funcao utilizada para procurar chamadas leia e escreva dentro do codigo
+    // Funcao utilizada para procurar chamadas leia e escreva dentro da regra sintatica comandos
     public void ProcuraEscrevaLeia (FAZEDORESParser.ComandosContext ctx){
         int i = 0;
         String chamadaFeita;
         
-        //Tenta encontrar alguma funcao do tipo leia ou escreva no comandos
+        /*Tenta encontrar alguma funcao do tipo leia ou escreva percorrendo todas
+          as regras cmd que existirem na regra sintatica comandos que estah sendo 
+          verificada. Para de verificar quando nao ha mais regras cmd ou quando
+          conseguiu encontrar uma regra leia ou escreva, ativando a flag*/
         while (ctx.cmd(i) != null && flagSerial == false){
             
             //Pega qual chamada eh feita
@@ -613,6 +636,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }
     }
     
+    //Codigos reaproveitados do trabalho 1
     // A partir de agora sao as tres funcoes utilizadas para adicionar simbolos nas tabelas de simbolos
     public void AdicionarSimboloRegistro(FAZEDORESParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual, String nomeDoReg){ 
         String nome, tipo;
@@ -690,6 +714,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         tabelaDeSimbolosAtual.adicionarSimbolo(nomeDoReg, nomeDoReg, null, tabelaDoRegistro);         
     }
     
+    //Codigos reaproveitados do trabalho 1
     public void AdicionarSimbolo(FAZEDORESParser.Declaracao_localContext ctx, TabelaDeSimbolos tabelaDeSimbolosAtual){
         String nome, tipo;
         
@@ -723,6 +748,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }       
     }
     
+    //Codigos reaproveitados do trabalho 1
     public void AdicionarTiposParametros(FAZEDORESParser.Declaracao_globalContext ctx, List<String> ListaNomePar, List<String> ListaTipoPar){
         String nome, tipo;
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
