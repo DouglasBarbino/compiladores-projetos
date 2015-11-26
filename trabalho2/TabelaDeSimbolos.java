@@ -41,6 +41,10 @@ public class TabelaDeSimbolos {
         }
     }
     
+    public void adicionarSimbolo(String tipo, String valor, String dispositivo) {
+        simbolos.add(new EntradaTabelaDeSimbolos(tipo, valor, dispositivo));
+    }
+    
     //Metodo para recuperar um tipo associado a um nome por meio de uma pesquisa nos simbolos da tabela.	
     public String getTipo(String nome)
     {
@@ -132,6 +136,22 @@ public class TabelaDeSimbolos {
             
         }
         return valor;
+    }
+    
+    public String getDispositivo(String valor)
+    {
+        String dispositivo = null;
+        for(int i = 0; i < simbolos.size(); i++) {
+            String v = simbolos.get(i).getValor();
+            if(v!=null)
+            {
+                if(simbolos.get(i).getValor().equals(valor)) {
+                    dispositivo = simbolos.get(i).getDispositivo();
+                }
+            }
+            
+        }
+        return dispositivo;
     }
     
     @Override
