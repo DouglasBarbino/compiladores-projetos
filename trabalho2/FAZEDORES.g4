@@ -50,7 +50,7 @@ ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identif
 
 /*****************************SINTATICO*****************************************/
 
-programa 		: declaracoes_locais 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop' declaracoes_globais
+programa 		: declaracoes 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop' declaracao_global?
 			;
 			
 declaracoes_locais      : (declaracao_local)*
@@ -125,6 +125,7 @@ registro 		: 'registro' variavel mais_variaveis 'fim_registro'
 declaracao_global 	: 'procedimento' IDENT '(' parametros_opcional ')' declaracoes_locais comandos 'fim_procedimento'
         		| 'funcao'  IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
                         ;
+
 
 parametros_opcional 	: (parametro)?
 			;
