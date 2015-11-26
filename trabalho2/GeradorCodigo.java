@@ -61,16 +61,18 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         
         /*Tambem se verifica na declaracao global se nao existe alguma funcao do tipo 
         leia ou escreva*/
-        if (ctx.declaracoes_globais() != null){
+        if (ctx.declaracao_global() != null)
+            ProcuraEscrevaLeia(ctx.declaracao_global().comandos());
+        /*if (ctx.declaracoes_globais() != null){
             while (ctx.declaracoes_globais().declaracao_global(i) != null && flagSerial == false){
-                /*Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
-                  o leia ou o escreva, entao faz uma chamada recursiva para verificar ali*/
+                //Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
+                //  o leia ou o escreva, entao faz uma chamada recursiva para verificar ali
                 ProcuraEscrevaLeia(ctx.declaracoes_globais().declaracao_global(i).comandos());
 
                 //Incrementa o i
                 i++;
             }
-        }
+        }*/
 
         //TABELA DE SIMBOLOS GLOBAL
         pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
@@ -94,15 +96,15 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     public void enterDeclaracoes_globais(FAZEDORESParser.Declaracoes_globaisContext ctx) {
         /*Caso possuir algum procedimento ou funcao, fecha a chave dela aqui e 
           nao no fim do programa */
-        temDeclGlobais = true;
+       /* temDeclGlobais = true;
        
-        /*Caso foi necessario verificar se o serial estava ativado, fecha a chave
-        desta verificacao*/
+        //Caso foi necessario verificar se o serial estava ativado, fecha a chave
+        //desta verificacao
         if (flagSerial)
             codigo.println("\t}");
         //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
         codigo.println("}");
-        codigo.println("");
+        codigo.println("");*/
     }
     
     @Override
@@ -186,6 +188,18 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         List<String> listaTipoPar = new ArrayList<>();
         
         String declaracao;
+        
+        /*Caso possuir algum procedimento ou funcao, fecha a chave dela aqui e 
+          nao no fim do programa */
+        temDeclGlobais = true;
+       
+        //Caso foi necessario verificar se o serial estava ativado, fecha a chave
+        //desta verificacao
+        if (flagSerial)
+            codigo.println("\t}");
+        //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
+        codigo.println("}");
+        codigo.println("");
         
         //verifica se eh um procedimento ou uma funcao
         if (ctx.getStart().getText().equals("procedimento")){
@@ -436,7 +450,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         String tipoCmd = ctx.getStart().getText(); 
         
         if (tipoCmd.equals("caso") || tipoCmd.equals("para") || tipoCmd.equals("enquanto"))
-            codigo.println("}");
+            codigo.println("\t}");
     }
     
     @Override
