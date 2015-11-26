@@ -748,44 +748,16 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         int linha;
         TabelaDeSimbolos tabelaDeSimbolosAtual = pilhaDeTabelas.topo();
         
-        nome = ctx.parametros_opcional().parametro().identificador().IDENT().getText();
-        linha = ctx.parametros_opcional().parametro().identificador().IDENT().getSymbol().getLine();
-        if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+        if(ctx.parametros_opcional().parametro()!=null)
         {
-            ListaNomePar.add(nome);
-        }else{
             
-            out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
-        }
         
-        if(ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT()!=null)
-        {
-            tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT().getText();
-        }else
-        {
-            tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
-        }
         
-        ListaTipoPar.add(tipo);
-        
-        for(int i = 0; i<ctx.parametros_opcional().parametro().mais_ident().identificador().size(); i++)
+        if(ctx.parametros_opcional().parametro().identificador()!=null)
         {
-            nome = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getText();
-            linha = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getSymbol().getLine();
-            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
-            {
-                ListaNomePar.add(nome);
-            }else{
             
-                out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
-            }
-            ListaTipoPar.add(tipo);
-        }
-        
-        if(ctx.parametros_opcional().parametro().mais_parametros().parametro()!=null)
-        {
-            nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getText();
-            linha = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getSymbol().getLine();
+            nome = ctx.parametros_opcional().parametro().identificador().IDENT().getText();
+            linha = ctx.parametros_opcional().parametro().identificador().IDENT().getSymbol().getLine();
             if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
             {
                 ListaNomePar.add(nome);
@@ -802,26 +774,63 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                 tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
             }
         
-            ListaTipoPar.add(tipo);
+             ListaTipoPar.add(tipo);
         
-        for(int i = 0; i < ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador().size(); i++)
-        {
-            nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getText();
-            linha = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getSymbol().getLine();
-            if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+            for(int i = 0; i<ctx.parametros_opcional().parametro().mais_ident().identificador().size(); i++)
             {
-                ListaNomePar.add(nome);
-            }else{
+                nome = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getText();
+                linha = ctx.parametros_opcional().parametro().mais_ident().identificador(i).IDENT().getSymbol().getLine();
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                {
+                    ListaNomePar.add(nome);
+                }else{
             
-                out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                    out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                }
+                ListaTipoPar.add(tipo);
             }
-            ListaTipoPar.add(tipo);
-        }
+        
+            if(ctx.parametros_opcional().parametro().mais_parametros().parametro()!=null)
+            {
+                nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getText();
+                linha = ctx.parametros_opcional().parametro().mais_parametros().parametro().identificador().IDENT().getSymbol().getLine();
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                {
+                    ListaNomePar.add(nome);
+                }else{
+            
+                    out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                }
+        
+                if(ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT()!=null)
+                {
+                    tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().IDENT().getText();
+                }else
+                {
+                    tipo = ctx.parametros_opcional().parametro().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
+                }
+        
+                ListaTipoPar.add(tipo);
+        
+            for(int i = 0; i < ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador().size(); i++)
+            {
+                nome = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getText();
+                linha = ctx.parametros_opcional().parametro().mais_parametros().parametro().mais_ident().identificador(i).IDENT().getSymbol().getLine();
+                if(!tabelaDeSimbolosAtual.existeSimbolo(nome))
+                {
+                    ListaNomePar.add(nome);
+                }else{
+            
+                    out.println("Linha "+linha+": identificador " +nome+ " ja declarado anteriormente");
+                }
+                ListaTipoPar.add(tipo);
+            }
             
             
-    
-        }
-      }
+            }
+        }   
+    }  
+    }
     
     /**
      * Metodo sobrescrito do listener para tratar os identificadores, verificar se eles foram declarados anteriormente.
@@ -886,10 +895,6 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         TabelaDeSimbolos tabelaDeSimbolosSetup = new TabelaDeSimbolos("setup");
         pilhaDeTabelas.empilhar(tabelaDeSimbolosSetup);
         TabelaDeSimbolos tabelaAtual = pilhaDeTabelas.topo();
-        //Primeira verificação: lista de dispositivos suportados
-        //List<String> Dispositivos = new ArrayList<>();
-        //Dispositivos.add("");
-        
         
         for(int i = 0; i < ctx.comandoSetup().size(); i++)
         {
@@ -908,7 +913,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                         String dispositivo = ctx.comandoSetup(i).dispositivo().getText();
                         String tipoPorta = verificaValoresPinos(num);
                         verificaErrosPinos(dispositivo, num, linha, tipoPorta);
-                        tabelaAtual.adicionarSimbolo(null, tipoPorta, null, null, numPino);
+                        tabelaAtual.adicionarSimbolo(tipoPorta, numPino, dispositivo);
                     }else
                     {
                         out.println("Linha "+ linha+": Esse pino já foi ativado anteriormente.");
@@ -934,7 +939,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                                     String dispositivo = ctx.comandoSetup(i).dispositivo().getText();
                                     String tipoPorta = verificaValoresPinos(num);
                                     verificaErrosPinos(dispositivo, num, linha, tipoPorta);
-                                    tabelaAtual.adicionarSimbolo(null, tipoPorta, null, null, valor);
+                                    tabelaAtual.adicionarSimbolo(tipoPorta, valor, dispositivo);
                                 }else{
                                     out.println("Linha "+linha+": Esse pino já foi ativado anteriormente.");
                                 }
@@ -971,25 +976,82 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         TabelaDeSimbolos tabelaDoSetup = pilhaDeTabelas.getTabela("setup");
         TabelaDeSimbolos atual = pilhaDeTabelas.topo();
         int linha = 0;
+        String dispositivo = "";
+        String dispositivoDeclarado;
         
         for(int i = 0; i < ctx.cmdLoop().size(); i++)
         {
+            if(ctx.cmdLoop(i).comandoLCD()!=null)
+            {
+                dispositivo = "lcd";
+                String pino = ctx.cmdLoop(i).comandoLCD().pino().getText();
+                String numPino;
+                if(ctx.cmdLoop(i).comandoLCD().pino().IDENT()!=null)
+                {
+                    numPino = pilhaDeTabelas.getValor(pino);
+                }else{
+                    numPino = pino;
+                }
+                int num = Integer.parseInt(numPino);
+                linha = ctx.cmdLoop(i).comandoLCD().getStop().getLine();
+                String tipoPorta = verificaValoresPinos(num);
+                if(!tabelaDoSetup.existePino(numPino))
+                {
+                    out.println("Linha "+linha+": porta nao ativada");
+                    out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                }
+                
+                verificaErrosPinos(dispositivo, num, linha, tipoPorta);
+                
+                if(ctx.cmdLoop(i).comandoLCD().cor()!=null)
+                {
+                    String numInt1 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(0).getText();
+                    String numInt2 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(1).getText();
+                    String numInt3 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(2).getText();
+                    
+                    int num1 = Integer.parseInt(numInt1);
+                    int num2 = Integer.parseInt(numInt2);
+                    int num3 = Integer.parseInt(numInt3);
+                    
+                    if(((num1 > 255) || (num1 < 0)) || ((num2 > 255) || (num2 < 0)) || ((num3 > 255) || (num3 < 0)))
+                    {
+                        out.println("Linha "+linha+": cor definida incorretamente");
+                        out.println("Dica: a cor deve ser definida da seguinte forma (a, b, c), onde a corresponde ao R (de 0 a 255), o b ao B (de 0 a 255), e o c ao G (de 0 a 255) do sistema de cores RGB");
+                    }
+                    
+                }
+                
+                
+            }else{    
             if(ctx.cmdLoop(i).pino()!=null)
             {   String pino = ctx.cmdLoop(i).pino().getText();
                 if(ctx.cmdLoop(i).getStart().getText().equals("ligar")||ctx.cmdLoop(i).getStart().getText().equals("desligar"))
                 {
-                    String dispositivo = ctx.cmdLoop(i).dispositivoSaida().getText();
-                    
+                    dispositivo = ctx.cmdLoop(i).dispositivoSaida().getText();
+                }else{
+                    if(ctx.cmdLoop(i).getStart().getText().equals("ler"))
+                    {
+                        dispositivo = ctx.cmdLoop(i).dispositivoEntrada().getText();
+                    }
+                }    
                     
                     if(ctx.cmdLoop(i).pino().NUM_INT()!=null)
                     {   
                         int num = Integer.parseInt(pino);
                         linha = ctx.cmdLoop(i).pino().NUM_INT().getSymbol().getLine();
-                        if(!tabelaDoSetup.existePino(pino))
-                        {
-                            out.println("Linha "+linha+": porta nao ativada");
-                            out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
-                        }
+                        dispositivoDeclarado = tabelaDoSetup.getDispositivo(pino);
+                            if(!tabelaDoSetup.existePino(pino))
+                            {
+                                out.println("Linha "+linha+": porta nao ativada");
+                                out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                            }else{
+                                 if(!dispositivo.equals(dispositivoDeclarado))
+                                {
+                                    out.println("Linha "+linha+": A porta "+pino+"foi declarada associada ao dispositivo "+ 
+                                    dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
+                                }
+                            }
+                        
                         String tipoPorta = verificaValoresPinos(num);
                         verificaErrosPinos(dispositivo, num, linha, tipoPorta);
                         if(ctx.cmdLoop(i).volt()!=null)
@@ -1028,13 +1090,21 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                     {
                         if(ctx.cmdLoop(i).pino().IDENT()!=null)
                         {
+ 
                             linha = ctx.cmdLoop(i).pino().IDENT().getSymbol().getLine();
                             String numPino = pilhaDeTabelas.getValor(pino);
                             int num = Integer.parseInt(numPino);
+                            dispositivoDeclarado = tabelaDoSetup.getDispositivo(numPino);
                             if(!tabelaDoSetup.existePino(numPino))
                             {
                                 out.println("Linha "+linha+": porta nao ativada");
                                 out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                            }else{
+                                 if(!dispositivo.equals(dispositivoDeclarado))
+                                {
+                                    out.println("Linha "+linha+": A porta "+pino+"foi declarada associada ao dispositivo "+ 
+                                    dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
+                                }
                             }
                             String tipoPorta = verificaValoresPinos(num);
                             verificaErrosPinos(dispositivo, num, linha, tipoPorta);
@@ -1070,16 +1140,17 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                                      }
                                      
                                  }
-                        }
+                            }
                        }
                     }
                     
-                }
+                
                 
                     
                 
                 
-            }  
+            }
+        }  
         }
         
         //para cada pino usado no comando loop, verificar se existe algum equivalente na tabela ativar
@@ -1135,16 +1206,85 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                 }
                 break;
             case "potenciometro":
+                if(tipoPorta.equals("portaDigital"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("I2C"))
+                    {
+                        printMensagem(linha);
+                    }else{
+                        if(tipoPorta.equals("pwm"))
+                        {
+                            printMensagem(linha);
+                        }
+                    }
+                }
                 break;
             case "som":
+                if(tipoPorta.equals("portaAnalogica"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("I2C"))
+                    {
+                        printMensagem(linha);
+                    }
+                }
                 break;
             case "luz":
+                if(tipoPorta.equals("portaAnalogica"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("I2C"))
+                    {
+                        printMensagem(linha);
+                    }
+                }
                 break;
             case "botao":
+                if(tipoPorta.equals("portaAnalogica"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("I2C"))
+                    {
+                        printMensagem(linha);
+                    }
+                }
                 break;
             case "sensor de toque":
+                if(tipoPorta.equals("portaDigital"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("I2C"))
+                    {
+                        printMensagem(linha);
+                    }else{
+                        if(tipoPorta.equals("pwm"))
+                        {
+                            printMensagem(linha);
+                        }
+                    }
+                }
                 break;
             case "LCD":
+                if(tipoPorta.equals("portaDigital"))
+                {
+                    printMensagem(linha); 
+                }else{
+                    if(tipoPorta.equals("portaAnalogica"))
+                    {
+                        printMensagem(linha);
+                    }else{
+                        if(tipoPorta.equals("pwm"))
+                        {
+                            printMensagem(linha);
+                        }
+                    }
+                }
                 break;
         }
         
