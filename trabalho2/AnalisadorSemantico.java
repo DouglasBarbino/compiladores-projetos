@@ -978,6 +978,8 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         int linha = 0;
         String dispositivo = "";
         String dispositivoDeclarado;
+        int num = 0;
+        String numPino = "";
         
         for(int i = 0; i < ctx.cmdLoop().size(); i++)
         {
@@ -985,14 +987,13 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
             {
                 dispositivo = "lcd";
                 String pino = ctx.cmdLoop(i).comandoLCD().pino().getText();
-                String numPino;
                 if(ctx.cmdLoop(i).comandoLCD().pino().IDENT()!=null)
                 {
                     numPino = pilhaDeTabelas.getValor(pino);
                 }else{
                     numPino = pino;
                 }
-                int num = Integer.parseInt(numPino);
+                num = Integer.parseInt(numPino);
                 linha = ctx.cmdLoop(i).comandoLCD().getStop().getLine();
                 String tipoPorta = verificaValoresPinos(num);
                 if(!tabelaDoSetup.existePino(numPino))
@@ -1035,113 +1036,67 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                     }
                 }    
                     
-                    if(ctx.cmdLoop(i).pino().NUM_INT()!=null)
-                    {   
-                        int num = Integer.parseInt(pino);
-                        linha = ctx.cmdLoop(i).pino().NUM_INT().getSymbol().getLine();
-                        dispositivoDeclarado = tabelaDoSetup.getDispositivo(pino);
-                            if(!tabelaDoSetup.existePino(pino))
+                if(ctx.cmdLoop(i).pino().NUM_INT()!=null)
+                {   
+                    num = Integer.parseInt(pino);
+                    linha = ctx.cmdLoop(i).pino().NUM_INT().getSymbol().getLine();
+                    numPino = pino;
+                }else{
+                    if(ctx.cmdLoop(i).pino().IDENT()!=null)
+                    {
+                        linha = ctx.cmdLoop(i).pino().IDENT().getSymbol().getLine();
+                        numPino = pilhaDeTabelas.getValor(pino);
+                        num = Integer.parseInt(numPino);
+                    }
+                }        
+                        
+                dispositivoDeclarado = tabelaDoSetup.getDispositivo(numPino);
+                if(!tabelaDoSetup.existePino(numPino))
+                {
+                    out.println("Linha "+linha+": porta nao ativada");
+                    out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                }else{
+                    if(!dispositivo.equals(dispositivoDeclarado))
+                    {
+                        out.println("Linha "+linha+": A porta "+numPino+"foi declarada associada ao dispositivo "+ 
+                        dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
+                    }
+                }
+                        
+                String tipoPorta = verificaValoresPinos(num);
+                verificaErrosPinos(dispositivo, num, linha, tipoPorta);
+                if(ctx.cmdLoop(i).volt()!=null)
+                {
+                        
+                    if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
+                    {
+                        out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
+                    }else{
+                        String svolt = ctx.cmdLoop(i).volt().getText();
+                        int voltagem = 0;
+                                     
+                            if(ctx.cmdLoop(i).volt().IDENT()!=null)
                             {
-                                out.println("Linha "+linha+": porta nao ativada");
-                                out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
-                            }else{
-                                 if(!dispositivo.equals(dispositivoDeclarado))
+                                String val =  pilhaDeTabelas.getValor(svolt);
+                                if(val==null)
                                 {
-                                    out.println("Linha "+linha+": A porta "+pino+"foi declarada associada ao dispositivo "+ 
-                                    dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
+                                    out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
+                                }else{
+                                    voltagem = Integer.parseInt(val);
                                 }
-                            }
-                        
-                        String tipoPorta = verificaValoresPinos(num);
-                        verificaErrosPinos(dispositivo, num, linha, tipoPorta);
-                        if(ctx.cmdLoop(i).volt()!=null)
-                        {
-                        
-                            if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
-                            {
-                                 out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
                             }else{
-                                String svolt = ctx.cmdLoop(i).volt().getText();
-                                     int voltagem = 0;
-                                     
-                                     if(ctx.cmdLoop(i).volt().IDENT()!=null)
-                                     {
-                                        String val =  pilhaDeTabelas.getValor(svolt);
-                                        if(val==null)
-                                        {
-                                            out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
-                                        }else{
-                                            voltagem = Integer.parseInt(val);
-                                        }
-                                     }else{
-                                         voltagem = Integer.parseInt(svolt);
-                                     }
+                                voltagem = Integer.parseInt(svolt);
+                            }
                                      
                                      
                                      
-                                     if((voltagem < 0) || (voltagem > 255))
-                                     {
-                                         out.println("Linha "+linha+": voltagem especificada incorreta");
-                                         out.println("Dica: a voltagem varia de 0 a 255");
-                                     }
+                            if((voltagem < 0) || (voltagem > 255))
+                            {
+                                out.println("Linha "+linha+": voltagem especificada incorreta");
+                                out.println("Dica: a voltagem varia de 0 a 255");
                             }
                         }
-                    }else
-                    {
-                        if(ctx.cmdLoop(i).pino().IDENT()!=null)
-                        {
- 
-                            linha = ctx.cmdLoop(i).pino().IDENT().getSymbol().getLine();
-                            String numPino = pilhaDeTabelas.getValor(pino);
-                            int num = Integer.parseInt(numPino);
-                            dispositivoDeclarado = tabelaDoSetup.getDispositivo(numPino);
-                            if(!tabelaDoSetup.existePino(numPino))
-                            {
-                                out.println("Linha "+linha+": porta nao ativada");
-                                out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
-                            }else{
-                                 if(!dispositivo.equals(dispositivoDeclarado))
-                                {
-                                    out.println("Linha "+linha+": A porta "+pino+"foi declarada associada ao dispositivo "+ 
-                                    dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
-                                }
-                            }
-                            String tipoPorta = verificaValoresPinos(num);
-                            verificaErrosPinos(dispositivo, num, linha, tipoPorta);
-                            if(ctx.cmdLoop(i).volt()!=null)
-                            {
-                        
-                                 if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
-                                {
-                                    out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
-                                }else{
-                                     String svolt = ctx.cmdLoop(i).volt().getText();
-                                     int voltagem = 0;
-                                     
-                                     if(ctx.cmdLoop(i).volt().IDENT()!=null)
-                                     {
-                                        String val =  pilhaDeTabelas.getValor(svolt);
-                                        if(val==null)
-                                        {
-                                            out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
-                                        }else{
-                                            voltagem = Integer.parseInt(val);
-                                        }
-                                     }else{
-                                         voltagem = Integer.parseInt(svolt);
-                                     }
-                                     
-                                     
-                                     
-                                     if((voltagem < 0) || (voltagem > 255))
-                                     {
-                                         out.println("Linha "+linha+": voltagem especificada incorreta");
-                                         out.println("Dica: a voltagem varia de 0 a 255");
-                                     }
-                                     
-                                 }
-                            }
-                       }
+                    }
                     }
                     
                 
@@ -1149,7 +1104,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                     
                 
                 
-            }
+            
         }  
         }
         
