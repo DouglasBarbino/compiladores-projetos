@@ -5,15 +5,6 @@ constante pinoLCD: inteiro = 21
 declare
 	y: real
 
-procedimento imprimeLCD(y: real)
-	declare
-		mensagem: literal
-
-	mensagem <- "Potencia dada é " + y
-	escrever(lcd, pinoLCD, mensagem)
-fim_procedimento
-
-
 comando_setup
 	
 	ativar(potenciometro, pinoPot)
@@ -27,3 +18,11 @@ comando_loop
 	imprimeLCD(y)
 	esperar(tempo)
 fim_comando_loop
+
+procedimento imprimeLCD(y: real)
+	declare
+		mensagem: literal
+
+	mensagem <- "Potencia dada eh " + y
+	escrever(lcd, pinoLCD, mensagem)
+fim_procedimento
