@@ -8,16 +8,17 @@ import org.antlr.runtime.RecognitionException;
  * @author Douglas
  * 
  * Principais funcoes que definem na maioria dos casos o caminho de um programa:
- * - enterPrograma / void ProcuraLeiaEscreva -> Verificacao de algumas flags
- * - enterDeclaracao_Local / enterDeclaracao_Global -> Declaracoes iniciais e chamada de procedimentos/funcoes
+ * - enterPrograma / void ProcuraLeiaEscreva -> Verificacao de se existe LCD ou a necessidade de utilizar o Serial
+ * - enterDeclaracao_Local -> Declaracoes iniciais
  * - enterComandosSetup -> Inicio do procedimento Setup()
  * - enterComandoSetup (NAO EH A MESMA QUE A DE CIMA) -> Comandos que vao dentro do procedimento Setup()
- * - exitComandosSetup -> Ultimas declaracoes do procedimento Setup() que dependem das flags e inicio do procedimento Loop()
+ * - exitComandosSetup -> Ultimas declaracoes do procedimento Setup() que dependem das flags (LCD e Serial) e inicio do procedimento Loop()
  * - enterCMDLoop / enterComandoLCD / enterChamada_atribuicao -> Comandos que vao dentro do procedimento Loop()
+ * - enterDeclaracao_Global -> Chamada de procedimentos/funcoes
  */
 public class GeradorCodigo extends FAZEDORESBaseListener {
     Saida codigo;
-    Boolean flagLCD = false, flagSerial = false; 
+    Boolean flagLCD = false, flagSerial = false, temDeclGlobais = false; 
   
     //PARA AS TABELAS DE SIMBOLOS
     int EhFuncao = 0;
@@ -29,9 +30,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void enterPrograma(FAZEDORESParser.ProgramaContext ctx) {
-        //Para utilizar na procura de uma funcao escreva() ou leia()
-        String chamadaFeita;
-        
         int i=0;
         
         //Tenta encontrar o LCD sendo ativado
@@ -61,19 +59,17 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         
         //Explicacoes melhores deste while se encontram na funcao ProcuraEscrevaLeia
         
-        /*Tambem se verifica nas declaracoes se nao existe alguma funcao do tipo 
+        /*Tambem se verifica na declaracao global se nao existe alguma funcao do tipo 
         leia ou escreva*/
-        while (ctx.declaracoes().decl_local_global(i) != null && flagSerial == false){
-            
-            //Pega qual chamada eh feita
-            chamadaFeita = ctx.declaracoes().decl_local_global(i).getStart().getText();
-            /*Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
-              o leia ou o escreva, entao faz uma chamada recursiva para verificar ali*/
-            if (chamadaFeita.equals("procedimento") || chamadaFeita.equals("funcao"))
-                ProcuraEscrevaLeia(ctx.declaracoes().decl_local_global(i).declaracao_global().comandos());
-            
-            //Incrementa o i
-            i++;
+        if (ctx.declaracoes_globais() != null){
+            while (ctx.declaracoes_globais().declaracao_global(i) != null && flagSerial == false){
+                /*Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
+                  o leia ou o escreva, entao faz uma chamada recursiva para verificar ali*/
+                ProcuraEscrevaLeia(ctx.declaracoes_globais().declaracao_global(i).comandos());
+
+                //Incrementa o i
+                i++;
+            }
         }
 
         //TABELA DE SIMBOLOS GLOBAL
@@ -82,17 +78,30 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void exitPrograma(FAZEDORESParser.ProgramaContext ctx) { 
+        //Fecha as chaves da funcao loop aqui caso nao teve procedimentos
+        
+        if (temDeclGlobais == false){
+            /*Caso foi necessario verificar se o serial estava ativado, fecha a chave
+            desta verificacao*/
+            if (flagSerial)
+                codigo.println("\t}");
+            //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
+            codigo.println("}");
+        }
+    }
+    
+    @Override 
+    public void enterDeclaracoes_globais(FAZEDORESParser.Declaracoes_globaisContext ctx) {
+        /*Caso possuir algum procedimento ou funcao, fecha a chave dela aqui e 
+          nao no fim do programa */
+        temDeclGlobais = true;
+       
         /*Caso foi necessario verificar se o serial estava ativado, fecha a chave
         desta verificacao*/
         if (flagSerial)
             codigo.println("\t}");
         //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
         codigo.println("}");
-    }
-        
-    @Override 
-    public void exitDeclaracoes(FAZEDORESParser.DeclaracoesContext ctx) { 
-        //Terminou todas as declaracoes, pula uma linha
         codigo.println("");
     }
     
@@ -159,6 +168,12 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                     tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
             }
         }
+    }
+    
+    @Override 
+    public void exitDeclaracao_local(FAZEDORESParser.Declaracao_localContext ctx) { 
+        //Terminou todas as declaracoes locais, pula uma linha
+        codigo.println("");
     }
     
     //Codigos reaproveitados do trabalho 1
@@ -446,7 +461,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         
         //Caso for utilizar funcoes do Serial, deve-se verificar se ele estah ativado
         if (flagSerial)
-            codigo.println("\tif (Serial.avaiable() > 0)\n\t{");
+            codigo.println("\tif (Serial.available() > 0)\n\t{");
     }
     
     @Override
