@@ -50,8 +50,14 @@ ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identif
 
 /*****************************SINTATICO*****************************************/
 
-programa 		: declaracoes 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop'
+programa 		: declaracoes_locais 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop' declaracoes_globais
 			;
+			
+declaracoes_locais      : (declaracao_local)*
+                        ;
+
+declaracoes_globais     : (declaracao_global)*
+                        ;
 			
 declaracoes 		: (decl_local_global)*
 			; 
@@ -120,7 +126,6 @@ declaracao_global 	: 'procedimento' IDENT '(' parametros_opcional ')' declaracoe
         		| 'funcao'  IDENT '(' parametros_opcional ')' ':' tipo_estendido declaracoes_locais comandos 'fim_funcao'
                         ;
 
-
 parametros_opcional 	: (parametro)?
 			;
 
@@ -132,9 +137,6 @@ var_opcional 		: 'var'?
 
 mais_parametros 	: (',' parametro)?
                         ;
-			
-declaracoes_locais 	: (declaracao_local)*
-			;
 						
 comandos                : (cmd)*
 			;
@@ -201,8 +203,6 @@ volt			: NUM_INT
 
 cor                     : '(' NUM_INT ',' NUM_INT ',' NUM_INT ')'
                         ;
-                        
-                        
 
 lcd			: 'LCD'
 			| 'lcd'
