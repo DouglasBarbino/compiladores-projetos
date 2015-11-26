@@ -21,6 +21,7 @@ public class EntradaTabelaDeSimbolos {
     private List<String> parametros;
     private TabelaDeSimbolos subTabeladoRegistro;
     private String valor;
+    private String dispositivo;
     
     public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub, String valor) 
     {
@@ -28,22 +29,8 @@ public class EntradaTabelaDeSimbolos {
         this.tipo = tipo;
         this.subTabeladoRegistro = sub;
         this.valor = valor;
-        
-        if(listaPassada == null)
-        {
-            this.parametros = listaPassada;
-        }else
-        {
-	    //inicializacao dos parametros
-            this.parametros = new ArrayList<String>();
-        
-            for(int i=0; i< listaPassada.size(); i++)
-            {
-               this.parametros.add(i,listaPassada.get(i));
-            }
-        }
-
-        
+        this.parametros = listaPassada;   
+        this.dispositivo = null;
     }
     
     public EntradaTabelaDeSimbolos(String nome, String tipo, List<String> listaPassada, TabelaDeSimbolos sub) 
@@ -52,6 +39,7 @@ public class EntradaTabelaDeSimbolos {
         this.tipo = tipo;
         this.subTabeladoRegistro = sub;
         this.valor = null;
+        this.dispositivo = null;
         
         if(listaPassada == null)
         {
@@ -70,8 +58,24 @@ public class EntradaTabelaDeSimbolos {
         
     }
     
+    //Construtor da entrada da tabela de símbolos quando se trata de um pino
+    public EntradaTabelaDeSimbolos(String tipo, String valor, String dispositivo) 
+    {
+        this.nome = null;
+        this.tipo = tipo;
+        this.subTabeladoRegistro = null;
+        this.valor = valor;
+        this.parametros = null;  
+        this.dispositivo = dispositivo;
+    }
+    
     public String getNome() {
         return this.nome;
+    }
+    
+    public String getDispositivo()
+    {
+        return this.dispositivo;
     }
     
     public String getValor()
