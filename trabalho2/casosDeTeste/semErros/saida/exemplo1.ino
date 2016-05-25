@@ -1,10 +1,12 @@
-void setup()
+void setup() 
 {
 	pinMode(5, OUTPUT);
 }
-void loop() {
+
+void loop() 
+{
 	digitalWrite(5, HIGH);
-	delay(1000);
+	delay(100);
 	digitalWrite(5, LOW);
-	delay(1000);
+	delay(100);
 }

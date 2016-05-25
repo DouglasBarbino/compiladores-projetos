@@ -1,23 +1,29 @@
-constante tempo: inteiro = 10
+constante tempo: inteiro = 1000
+constante pinoPot: inteiro = 14
 
 declare
-	x: inteiro
+	y: real
+declare
+	mensagem: literal
 
 comando_setup
-
-	ativar(luz, 1)
-	ativar(botao, 5)
+	
+	ativar(potenciometro, pinoPot)
 
 fim_comando_setup
 
-comando_loop
+comando_loop	
 
-	x <- ler(botao, 5)
+	leia (mensagem)
+	se mensagem = "sim" entao
+		y <- ler(sensortoque, pinoPot)
+		mensagem <- "O potenciometro foi variado."
+		escreva(mensagem)
+		esperar(tempo)	
+		mensagem <- "0"
+	senao
+		escreva("esperando digitar 'sim' para fazer a leitura")
 
-	se x = 1 entao 
-		ligar(luz, 1)
-		esperar(tempo)
-		desligar(luz, 1)
 	fim_se
-
+		
 fim_comando_loop

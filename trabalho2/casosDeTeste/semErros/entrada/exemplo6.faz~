@@ -1,8 +1,9 @@
 constante tempo: inteiro = 1000
-constante pinoPot: inteiro = 14
+constante pinoPot: inteiro = 13
 
 declare
 	y: real
+declare
 	mensagem: literal
 
 comando_setup
@@ -13,16 +14,9 @@ fim_comando_setup
 
 comando_loop	
 
-	leia (x)
-	se mensagem = "sim" entao
-		y <- ler(sensortoque, pinoSensor)
-		mensagem <- "Potencia dada é " + y
-		escreva(mensagem)
-		esperar(tempo)	
-		x = "0"
-	senao
-		escreva("esperando digitar 'sim' para fazer a leitura")
-
-	fim_se
-		
+	y <- ler(potenciometro, pinoPot)
+	escreva("O valor do potenciometro é: ")
+	escreva(y)
+	esperar(tempo)	
+	
 fim_comando_loop

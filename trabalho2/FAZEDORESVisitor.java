@@ -26,6 +26,27 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	T visitTermo(@NotNull FAZEDORESParser.TermoContext ctx);
 
 	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#cor}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitCor(@NotNull FAZEDORESParser.CorContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#comandosSetup}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitComandosSetup(@NotNull FAZEDORESParser.ComandosSetupContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#op_multiplicacao}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#comandoSetup}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -40,11 +61,18 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	T visitComandoLoop(@NotNull FAZEDORESParser.ComandoLoopContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link FAZEDORESParser#op_multiplicacao}.
+	 * Visit a parse tree produced by {@link FAZEDORESParser#tempo}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx);
+	T visitTempo(@NotNull FAZEDORESParser.TempoContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#lcd}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitLcd(@NotNull FAZEDORESParser.LcdContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#intervalo_opcional}.
@@ -87,6 +115,13 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitPonteiros_opcionais(@NotNull FAZEDORESParser.Ponteiros_opcionaisContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#pino}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitPino(@NotNull FAZEDORESParser.PinoContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#tipo_basico}.
@@ -264,6 +299,13 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	T visitVar_opcional(@NotNull FAZEDORESParser.Var_opcionalContext ctx);
 
 	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#volt}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVolt(@NotNull FAZEDORESParser.VoltContext ctx);
+
+	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#parcela_unario}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
@@ -290,13 +332,6 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitOutras_parcelas(@NotNull FAZEDORESParser.Outras_parcelasContext ctx);
-
-	/**
-	 * Visit a parse tree produced by {@link FAZEDORESParser#corpo}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitCorpo(@NotNull FAZEDORESParser.CorpoContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#exp_relacional}.
@@ -404,18 +439,18 @@ public interface FAZEDORESVisitor<T> extends ParseTreeVisitor<T> {
 	T visitMais_constantes(@NotNull FAZEDORESParser.Mais_constantesContext ctx);
 
 	/**
-	 * Visit a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
-
-	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#op_adicao}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
 	T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
+
+	/**
+	 * Visit a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
 
 	/**
 	 * Visit a parse tree produced by {@link FAZEDORESParser#dimensao}.

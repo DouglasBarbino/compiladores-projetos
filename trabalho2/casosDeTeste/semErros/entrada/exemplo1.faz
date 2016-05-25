@@ -1,10 +1,10 @@
 comando_setup
-    ativar(led, 5)
+    ativar(som, 5)
 fim_comando_setup
 
 comando_loop
-    ligar(led, 5)
-    esperar(1000)
-    desligar(led, 5)
-    esperar(1000)
+    ligar(som, 5)
+    esperar(100)
+    desligar(som, 5)
+    esperar(100)
 fim_comando_loop

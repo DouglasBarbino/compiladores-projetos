@@ -31,6 +31,39 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	void exitTermo(@NotNull FAZEDORESParser.TermoContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#cor}.
+	 * @param ctx the parse tree
+	 */
+	void enterCor(@NotNull FAZEDORESParser.CorContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#cor}.
+	 * @param ctx the parse tree
+	 */
+	void exitCor(@NotNull FAZEDORESParser.CorContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#comandosSetup}.
+	 * @param ctx the parse tree
+	 */
+	void enterComandosSetup(@NotNull FAZEDORESParser.ComandosSetupContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#comandosSetup}.
+	 * @param ctx the parse tree
+	 */
+	void exitComandosSetup(@NotNull FAZEDORESParser.ComandosSetupContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#op_multiplicacao}.
+	 * @param ctx the parse tree
+	 */
+	void enterOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#op_multiplicacao}.
+	 * @param ctx the parse tree
+	 */
+	void exitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#comandoSetup}.
 	 * @param ctx the parse tree
 	 */
@@ -53,15 +86,26 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	void exitComandoLoop(@NotNull FAZEDORESParser.ComandoLoopContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link FAZEDORESParser#op_multiplicacao}.
+	 * Enter a parse tree produced by {@link FAZEDORESParser#tempo}.
 	 * @param ctx the parse tree
 	 */
-	void enterOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx);
+	void enterTempo(@NotNull FAZEDORESParser.TempoContext ctx);
 	/**
-	 * Exit a parse tree produced by {@link FAZEDORESParser#op_multiplicacao}.
+	 * Exit a parse tree produced by {@link FAZEDORESParser#tempo}.
 	 * @param ctx the parse tree
 	 */
-	void exitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx);
+	void exitTempo(@NotNull FAZEDORESParser.TempoContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#lcd}.
+	 * @param ctx the parse tree
+	 */
+	void enterLcd(@NotNull FAZEDORESParser.LcdContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#lcd}.
+	 * @param ctx the parse tree
+	 */
+	void exitLcd(@NotNull FAZEDORESParser.LcdContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#intervalo_opcional}.
@@ -128,6 +172,17 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitPonteiros_opcionais(@NotNull FAZEDORESParser.Ponteiros_opcionaisContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#pino}.
+	 * @param ctx the parse tree
+	 */
+	void enterPino(@NotNull FAZEDORESParser.PinoContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#pino}.
+	 * @param ctx the parse tree
+	 */
+	void exitPino(@NotNull FAZEDORESParser.PinoContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#tipo_basico}.
@@ -405,6 +460,17 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	void exitVar_opcional(@NotNull FAZEDORESParser.Var_opcionalContext ctx);
 
 	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#volt}.
+	 * @param ctx the parse tree
+	 */
+	void enterVolt(@NotNull FAZEDORESParser.VoltContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#volt}.
+	 * @param ctx the parse tree
+	 */
+	void exitVolt(@NotNull FAZEDORESParser.VoltContext ctx);
+
+	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#parcela_unario}.
 	 * @param ctx the parse tree
 	 */
@@ -447,17 +513,6 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitOutras_parcelas(@NotNull FAZEDORESParser.Outras_parcelasContext ctx);
-
-	/**
-	 * Enter a parse tree produced by {@link FAZEDORESParser#corpo}.
-	 * @param ctx the parse tree
-	 */
-	void enterCorpo(@NotNull FAZEDORESParser.CorpoContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FAZEDORESParser#corpo}.
-	 * @param ctx the parse tree
-	 */
-	void exitCorpo(@NotNull FAZEDORESParser.CorpoContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#exp_relacional}.
@@ -625,17 +680,6 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	void exitMais_constantes(@NotNull FAZEDORESParser.Mais_constantesContext ctx);
 
 	/**
-	 * Enter a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
-	 * @param ctx the parse tree
-	 */
-	void enterDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
-	/**
-	 * Exit a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
-	 * @param ctx the parse tree
-	 */
-	void exitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
-
-	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#op_adicao}.
 	 * @param ctx the parse tree
 	 */
@@ -645,6 +689,17 @@ public interface FAZEDORESListener extends ParseTreeListener {
 	 * @param ctx the parse tree
 	 */
 	void exitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx);
+
+	/**
+	 * Enter a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
+	 * @param ctx the parse tree
+	 */
+	void enterDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link FAZEDORESParser#dispositivoSaida}.
+	 * @param ctx the parse tree
+	 */
+	void exitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx);
 
 	/**
 	 * Enter a parse tree produced by {@link FAZEDORESParser#dimensao}.

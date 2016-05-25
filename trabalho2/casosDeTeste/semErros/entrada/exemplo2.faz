@@ -5,12 +5,12 @@ declare
 	i: inteiro
 
 comando_setup
-    ativar(led, pinSom)
+    ativar(som, pinSom)
 fim_comando_setup
 
 comando_loop
     para i de 0 ate 256 faca
-        ligar(led, pinSom, i)
+        ligar(som, pinSom, i)
         esperar(BREATH_DELAY)
     fim_para
     esperar(100)

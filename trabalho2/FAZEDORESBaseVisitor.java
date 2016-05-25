@@ -34,6 +34,30 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitCor(@NotNull FAZEDORESParser.CorContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitComandosSetup(@NotNull FAZEDORESParser.ComandosSetupContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitComandoSetup(@NotNull FAZEDORESParser.ComandoSetupContext ctx) { return visitChildren(ctx); }
 
 	/**
@@ -50,7 +74,15 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx) { return visitChildren(ctx); }
+	@Override public T visitTempo(@NotNull FAZEDORESParser.TempoContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitLcd(@NotNull FAZEDORESParser.LcdContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -99,6 +131,14 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitPonteiros_opcionais(@NotNull FAZEDORESParser.Ponteiros_opcionaisContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitPino(@NotNull FAZEDORESParser.PinoContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -306,6 +346,14 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
+	@Override public T visitVolt(@NotNull FAZEDORESParser.VoltContext ctx) { return visitChildren(ctx); }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
 	@Override public T visitParcela_unario(@NotNull FAZEDORESParser.Parcela_unarioContext ctx) { return visitChildren(ctx); }
 
 	/**
@@ -331,14 +379,6 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
 	@Override public T visitOutras_parcelas(@NotNull FAZEDORESParser.Outras_parcelasContext ctx) { return visitChildren(ctx); }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitCorpo(@NotNull FAZEDORESParser.CorpoContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -466,7 +506,7 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { return visitChildren(ctx); }
+	@Override public T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}
@@ -474,7 +514,7 @@ public class FAZEDORESBaseVisitor<T> extends AbstractParseTreeVisitor<T> impleme
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { return visitChildren(ctx); }
+	@Override public T visitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { return visitChildren(ctx); }
 
 	/**
 	 * {@inheritDoc}

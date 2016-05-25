@@ -1,4 +1,4 @@
-constante pinSom: inteiro = 5
+constante pinLed: inteiro = 5
 constante BREATH_DELAY: inteiro = 5
 
 declare

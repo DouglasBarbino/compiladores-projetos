@@ -2,6 +2,7 @@ package trabalho3;
 
 import java.util.ArrayList;
 import java.util.List;
+import org.antlr.v4.runtime.misc.NotNull;
 import trabalho3.FAZEDORESParser.Declaracao_localContext;
 import trabalho3.FAZEDORESParser.DimensaoContext;
 
@@ -19,8 +20,6 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
 
     // Uma instancia da pilha de tabelas que armazenara as tabelas de simbolos que forem criadas para cada escopo
     static PilhaDeTabelas pilhaDeTabelas = new PilhaDeTabelas();
-    
-    
     
     
     
@@ -160,6 +159,8 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
     * método, como o valor da voltagem, se a voltagem está especificada com o dispositivo/porta correto, e verificações
     * nos valores das cores.
     */
+    
+    
     @Override
     public void enterComandoLoop(FAZEDORESParser.ComandoLoopContext ctx)
     {
@@ -171,161 +172,180 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         int num = 0;
         String numPino = "";
         
-        //para cada comandoLoop
-        for(int i = 0; i < ctx.cmdLoop().size(); i++)
+        if(tabelaDoSetup != null)
         {
-            //comaçando verificando o dispositivo LCD, que tem algumas regras específicas
-            if(ctx.cmdLoop(i).comandoLCD()!=null)
+            //para cada comandoLoop
+            for(int i = 0; i < ctx.cmdLoop().size(); i++)
             {
-                //determinando o dispositivo
-                dispositivo = "lcd";
-                //recuperando o pino
-                String pino = ctx.cmdLoop(i).comandoLCD().pino().getText();
-                //recuperando o valor, seja do número ou do valor declarado de uma constante
-                if(ctx.cmdLoop(i).comandoLCD().pino().IDENT()!=null)
+                //comaçando verificando o dispositivo LCD, que tem algumas regras específicas
+                if(ctx.cmdLoop(i).comandoLCD()!=null)
                 {
-                    numPino = pilhaDeTabelas.getValor(pino);
-                }else{
-                    numPino = pino;
-                }
-                num = Integer.parseInt(numPino);
-                linha = ctx.cmdLoop(i).comandoLCD().getStop().getLine();
-                String tipoPorta = verificaValoresPinos(num);
-                //se não existir o pino, a mensagem de que esse pino deve ser ativado é impressa
-                if(!tabelaDoSetup.existePino(numPino))
-                {
-                    out.println("Linha "+linha+": porta nao ativada");
-                    out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
-                }
-                
-                //erros nos pinos em relação ao dispositivo são verificados, assim como no setup
-                verificaErrosPinos(dispositivo, linha, tipoPorta);
-                
-                //Se a cor for definida, é necessário verificar se sua especificação segue o padrão RGB,
-                //em que cada componente varia de 0 a 255
-                if(ctx.cmdLoop(i).comandoLCD().cor()!=null)
-                {
-                    String numInt1 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(0).getText();
-                    String numInt2 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(1).getText();
-                    String numInt3 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(2).getText();
-                    
-                    int num1 = Integer.parseInt(numInt1);
-                    int num2 = Integer.parseInt(numInt2);
-                    int num3 = Integer.parseInt(numInt3);
-                    
-                    if(((num1 > 255) || (num1 < 0)) || ((num2 > 255) || (num2 < 0)) || ((num3 > 255) || (num3 < 0)))
+                    //determinando o dispositivo
+                    dispositivo = "lcd";
+                    //recuperando o pino
+                    String pino = ctx.cmdLoop(i).comandoLCD().pino().getText();
+                    //recuperando o valor, seja do número ou do valor declarado de uma constante
+                    if(ctx.cmdLoop(i).comandoLCD().pino().IDENT()!=null)
                     {
-                        out.println("Linha "+linha+": cor definida incorretamente");
-                        out.println("Dica: a cor deve ser definida da seguinte forma (a, b, c), onde a corresponde ao R (de 0 a 255), o b ao B (de 0 a 255), e o c ao G (de 0 a 255) do sistema de cores RGB");
-                    }
-                    
-                }
-                
-                
-            }else{    
-                //Se não for LCD, as verificações também são realizadas
-            if(ctx.cmdLoop(i).pino()!=null)
-            {   String pino = ctx.cmdLoop(i).pino().getText();
-                //se for ligar ou desligar, o dispositivo é um dispositivo de saída
-                if(ctx.cmdLoop(i).getStart().getText().equals("ligar")||ctx.cmdLoop(i).getStart().getText().equals("desligar"))
-                {
-                    dispositivo = ctx.cmdLoop(i).dispositivoSaida().getText();
-                }else{
-                    //se for ler, é de entrada
-                    if(ctx.cmdLoop(i).getStart().getText().equals("ler"))
-                    {
-                        dispositivo = ctx.cmdLoop(i).dispositivoEntrada().getText();
-                    }
-                }    
-                    
-                //O número do pino é recuperado da mesma forma no ativar, ou através do número inteiro
-                //ou através da tabela de símbolos, recuperando o valor associado ao nome da constante
-                if(ctx.cmdLoop(i).pino().NUM_INT()!=null)
-                {   
-                    num = Integer.parseInt(pino);
-                    linha = ctx.cmdLoop(i).pino().NUM_INT().getSymbol().getLine();
-                    numPino = pino;
-                }else{
-                    if(ctx.cmdLoop(i).pino().IDENT()!=null)
-                    {
-                        linha = ctx.cmdLoop(i).pino().IDENT().getSymbol().getLine();
                         numPino = pilhaDeTabelas.getValor(pino);
-                        num = Integer.parseInt(numPino);
-                    }
-                }        
-                        
-                //o dispositivo que foi declarado também é recuperado de acordo com o número do pino,
-                //para verificar se o nome do dispositivo declarado em relação ao pino é equivalente 
-                //ao dispositivo usado nesse pino no comando
-                dispositivoDeclarado = tabelaDoSetup.getDispositivo(numPino);
-                //primeiramente, verifica se o pino foi declarado
-                if(!tabelaDoSetup.existePino(numPino))
-                {
-                    out.println("Linha "+linha+": porta nao ativada");
-                    out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
-                }else{
-                    //depois, se os dispositivos são equivalentes
-                    if(!dispositivo.equals(dispositivoDeclarado))
-                    {
-                        out.println("Linha "+linha+": A porta "+numPino+"foi declarada associada ao dispositivo "+ 
-                        dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
-                    }
-                }
-                        
-                String tipoPorta = verificaValoresPinos(num);
-                verificaErrosPinos(dispositivo, linha, tipoPorta);
-                
-                //Outra verificação realizada é em relação a voltagem. Primeiramente, deve-se verificar
-                //se o uso do volt é realizado em pinos (portas) corretos. As portas são analógica e pwm
-                
-                if(ctx.cmdLoop(i).volt()!=null)
-                {
-                        
-                    if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
-                    {
-                        out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
                     }else{
-                        //Se a porta está correta, outra verificação que deve ser feita é se a voltagem está no range
-                        //permitido
-                        String svolt = ctx.cmdLoop(i).volt().getText();
-                        int voltagem = 0;
-                                     
-                            if(ctx.cmdLoop(i).volt().IDENT()!=null)
+                        numPino = pino;
+                    }
+                    num = Integer.parseInt(numPino);
+                    linha = ctx.cmdLoop(i).comandoLCD().getStop().getLine();
+                    String tipoPorta = verificaValoresPinos(num);
+                    //se não existir o pino, a mensagem de que esse pino deve ser ativado é impressa
+                    if(!tabelaDoSetup.existePino(numPino))
+                    {
+                        out.println("Linha "+linha+": porta nao ativada");
+                        out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                    }
+
+                    //erros nos pinos em relação ao dispositivo são verificados, assim como no setup
+                    verificaErrosPinos(dispositivo, linha, tipoPorta);
+
+                    //Se a cor for definida, é necessário verificar se sua especificação segue o padrão RGB,
+                    //em que cada componente varia de 0 a 255
+                    if(ctx.cmdLoop(i).comandoLCD().cor()!=null)
+                    {
+                        String numInt1 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(0).getText();
+                        String numInt2 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(1).getText();
+                        String numInt3 = ctx.cmdLoop(i).comandoLCD().cor().NUM_INT(2).getText();
+
+                        int num1 = Integer.parseInt(numInt1);
+                        int num2 = Integer.parseInt(numInt2);
+                        int num3 = Integer.parseInt(numInt3);
+
+                        if(((num1 > 255) || (num1 < 0)) || ((num2 > 255) || (num2 < 0)) || ((num3 > 255) || (num3 < 0)))
+                        {
+                            out.println("Linha "+linha+": cor definida incorretamente");
+                            out.println("Dica: a cor deve ser definida da seguinte forma (a, b, c), onde a corresponde ao R (de 0 a 255), o b ao B (de 0 a 255), e o c ao G (de 0 a 255) do sistema de cores RGB");
+                        }
+
+                    }
+
+
+                }else{    
+                    //Se não for LCD, as verificações também são realizadas
+                if(ctx.cmdLoop(i).pino()!=null)
+                {   String pino = ctx.cmdLoop(i).pino().getText();
+                    //se for ligar ou desligar, o dispositivo é um dispositivo de saída
+                    if(ctx.cmdLoop(i).getStart().getText().equals("ligar")||ctx.cmdLoop(i).getStart().getText().equals("desligar"))
+                    {
+                        dispositivo = ctx.cmdLoop(i).dispositivoSaida().getText();
+                    }else{
+                        //se for ler, é de entrada
+                        if(ctx.cmdLoop(i).IDENT() != null)
+                        {
+                            dispositivo = ctx.cmdLoop(i).dispositivoEntrada().getText();
+                        }
+                    }    
+
+                    //O número do pino é recuperado da mesma forma no ativar, ou através do número inteiro
+                    //ou através da tabela de símbolos, recuperando o valor associado ao nome da constante
+                    if(ctx.cmdLoop(i).pino().NUM_INT()!=null)
+                    {   
+                        num = Integer.parseInt(pino);
+                        linha = ctx.cmdLoop(i).pino().NUM_INT().getSymbol().getLine();
+                        numPino = pino;
+                    }else{
+                        if(ctx.cmdLoop(i).pino().IDENT()!=null)
+                        {
+                            linha = ctx.cmdLoop(i).pino().IDENT().getSymbol().getLine();
+                            numPino = pilhaDeTabelas.getValor(pino);
+                            if (numPino!= null)
                             {
-                                String val =  pilhaDeTabelas.getValor(svolt);
-                                if(val==null)
-                                {
-                                    //se for uma variavel, um aviso
-                                    out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
-                                }else{
-                                    //Se for constante, recupera o valor
-                                    voltagem = Integer.parseInt(val);
-                                }
-                            }else{
-                                voltagem = Integer.parseInt(svolt);
+                                num = Integer.parseInt(numPino);
+
+
                             }
-                                     
-                                     
-                                     // Se a voltagem não estiver entre 0 e 255, erro semântico
-                            if((voltagem < 0) || (voltagem > 255))
+                            else
                             {
-                                out.println("Linha "+linha+": voltagem especificada incorreta");
-                                out.println("Dica: a voltagem varia de 0 a 255");
+                                num = -1;
+                                out.println("Linha "+linha+" pino "+pino+" não declarado.");
                             }
                         }
+                    }        
+
+                    //o dispositivo que foi declarado também é recuperado de acordo com o número do pino,
+                    //para verificar se o nome do dispositivo declarado em relação ao pino é equivalente 
+                    //ao dispositivo usado nesse pino no comando
+                    dispositivoDeclarado = tabelaDoSetup.getDispositivo(numPino);
+                    //primeiramente, verifica se o pino foi declarado
+                    if(!tabelaDoSetup.existePino(numPino))
+                    {
+                        out.println("Linha "+linha+": porta nao ativada");
+                        out.println("Dica: lembre-se de usar o comando ativar(dispositivo, pino) nos comandos setup.");
+                    }else{
+                        //depois, se os dispositivos são equivalentes
+                        if(!dispositivo.equals(dispositivoDeclarado))
+                        {
+                            out.println("Linha "+linha+": A porta "+numPino+" foi declarada associada ao dispositivo "+ 
+                            dispositivoDeclarado+ " e usada com o dispositivo "+dispositivo); 
+                        }
                     }
-                    }
-                    
-                
-                
-                    
-                
-                
-            
-            }  
+
+                    String tipoPorta = verificaValoresPinos(num);
+                    verificaErrosPinos(dispositivo, linha, tipoPorta);
+
+                    //Outra verificação realizada é em relação a voltagem. Primeiramente, deve-se verificar
+                    //se o uso do volt é realizado em pinos (portas) corretos. As portas são analógica e pwm
+
+                    if(ctx.cmdLoop(i).volt()!=null)
+                    {
+
+                        if(!(tipoPorta.equals("pwm") || tipoPorta.equals("portaAnalogica")))
+                        {
+                            out.println("Linha "+ linha +": uso de volt em portas que não são analogicas nem PWM");
+                        }else{
+                            //Se a porta está correta, outra verificação que deve ser feita é se a voltagem está no range
+                            //permitido
+                            String svolt = ctx.cmdLoop(i).volt().getText();
+                            int voltagem = 0;
+
+                                if(ctx.cmdLoop(i).volt().IDENT()!=null)
+                                {
+                                    String val =  pilhaDeTabelas.getValor(svolt);
+                                    if(val==null)
+                                    {
+                                        //se for uma variavel, um aviso
+                                        //out.println("Linha "+linha+": Aviso - Você está usando uma variável em um campo que deve variar de 0 a 255");
+                                    }else{
+                                        //Se for constante, recupera o valor
+                                        voltagem = Integer.parseInt(val);
+                                    }
+                                }else{
+                                    voltagem = Integer.parseInt(svolt);
+                                }
+
+
+                                        // Se a voltagem não estiver entre 0 e 255, erro semântico
+                                if((voltagem < 0) || (voltagem > 255))
+                                {
+                                    out.println("Linha "+linha+": voltagem especificada incorreta");
+                                    out.println("Dica: a voltagem varia de 0 a 255");
+                                }
+                            }
+                        }
+                        }
+
+
+
+
+
+
+
+                }  
+            }
+        }
+        else
+        {
+            out.println("O setup deve ser declarado antes.");
+            out.println("Dica: programas em arduino dependem das funções setup (que é executada uma vez) e loop (que como o nome diz fica em loop).");
         }
   
     }
+    
 
     /*
     * Método auxiliar que recebe um número de um pino e retorna o tipo do pino equivalente, seguindo a
@@ -733,7 +753,6 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
             //so por precaucao
             if(ctx.variavel().tipo().registro()==null)       
             {      nome = ctx.variavel().IDENT().getText();
-                   System.out.println("Simbolo sendo adicionado: "+nome);
                    linha = ctx.variavel().IDENT().getSymbol().getLine();
                    
                    //primeira verificacao para ver se o tipo ja foi declarado anteriormente or meio de um registro
@@ -741,7 +760,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                    if(ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT()!=null)
                    {
                        tipo = ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().IDENT().getText();
-                       System.out.println("Tipo da variavel: "+tipo);
+
                        if(!pilhaDeTabelas.existeSimbolo(tipo))
                        {
                            out.println("Linha "+linha+ ": tipo "+tipo+" nao declarado");
@@ -749,7 +768,7 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
                    }else
                    {
                        tipo = ctx.variavel().tipo().tipo_estendido().tipo_basico_ident().tipo_basico().getText();
-                       System.out.println("Tipo da variavel: "+tipo);
+
                    }
                    
                    //verificando se na tabela de simbolos atual existe alguma variavel com nome igual a nome
@@ -1323,10 +1342,8 @@ public class AnalisadorSemantico extends FAZEDORESBaseListener {
         if(ctx.IDENT()!=null)
         {
             String nome = ctx.IDENT().getText();
-            System.out.println("Nome parcela_unario "+nome);
             int linha = ctx.IDENT().getSymbol().getLine();
             tipo = pilhaDeTabelas.getTipo(nome);
-            System.out.println("Tipo recuperado "+tipo);
             if(!pilhaDeTabelas.existeSimbolo(nome))
             {
                 if (ctx.outros_ident().identificador()!= null)

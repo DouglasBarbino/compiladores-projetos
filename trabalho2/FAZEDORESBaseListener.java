@@ -43,6 +43,45 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterCor(@NotNull FAZEDORESParser.CorContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitCor(@NotNull FAZEDORESParser.CorContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterComandosSetup(@NotNull FAZEDORESParser.ComandosSetupContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitComandosSetup(@NotNull FAZEDORESParser.ComandosSetupContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterComandoSetup(@NotNull FAZEDORESParser.ComandoSetupContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -69,13 +108,26 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx) { }
+	@Override public void enterTempo(@NotNull FAZEDORESParser.TempoContext ctx) { }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void exitOp_multiplicacao(@NotNull FAZEDORESParser.Op_multiplicacaoContext ctx) { }
+	@Override public void exitTempo(@NotNull FAZEDORESParser.TempoContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterLcd(@NotNull FAZEDORESParser.LcdContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitLcd(@NotNull FAZEDORESParser.LcdContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -154,6 +206,19 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitPonteiros_opcionais(@NotNull FAZEDORESParser.Ponteiros_opcionaisContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterPino(@NotNull FAZEDORESParser.PinoContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitPino(@NotNull FAZEDORESParser.PinoContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -485,6 +550,19 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterVolt(@NotNull FAZEDORESParser.VoltContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitVolt(@NotNull FAZEDORESParser.VoltContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterParcela_unario(@NotNull FAZEDORESParser.Parcela_unarioContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -531,19 +609,6 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitOutras_parcelas(@NotNull FAZEDORESParser.Outras_parcelasContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void enterCorpo(@NotNull FAZEDORESParser.CorpoContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitCorpo(@NotNull FAZEDORESParser.CorpoContext ctx) { }
 
 	/**
 	 * {@inheritDoc}
@@ -745,19 +810,6 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
-	@Override public void enterDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
-	@Override public void exitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { }
-
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation does nothing.</p>
-	 */
 	@Override public void enterOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { }
 	/**
 	 * {@inheritDoc}
@@ -765,6 +817,19 @@ public class FAZEDORESBaseListener implements FAZEDORESListener {
 	 * <p>The default implementation does nothing.</p>
 	 */
 	@Override public void exitOp_adicao(@NotNull FAZEDORESParser.Op_adicaoContext ctx) { }
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void enterDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDispositivoSaida(@NotNull FAZEDORESParser.DispositivoSaidaContext ctx) { }
 
 	/**
 	 * {@inheritDoc}

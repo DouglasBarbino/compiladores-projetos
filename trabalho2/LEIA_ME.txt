@@ -45,5 +45,15 @@ Thiago Arraiol Casaes - 551880
 
 13- Para gerar o .jar do projeto do compilador basta apertar F11 e será gerado o executável .jar;
 
-14- Para teste de algum arquivo basta usar a seguinte linha em um Terminal:
+14- Para teste de algum (apenas um) arquivo basta usar a seguinte linha em um Terminal:
 	java -jar [arquivo jar gerado].jar [arquivo de entrada que deseja testar] [arquivo que apresentará a saída]
+
+15- Para fazer o teste de todos os casos de teste basta usar o script 'teste.sh' que temos disponível nesse zip e coloca-lo na pasta onde está locaizado o jar. Após isso deve-se na execução fazer:
+	- Testando todos do sintatico/lexico:
+	./teste.h sintatico [caminho da pasta onde está a pasta casoDeTeste]
+	- Testando todos do semantico:
+	./teste.h semantico [caminho da pasta onde está a pasta casoDeTeste]
+	- Testando todos do gerador:
+	./teste.h gerador [caminho da pasta onde está a pasta casoDeTeste]
+	- Testando todos:
+	./teste.h tudo [caminho da pasta onde está a pasta casoDeTeste]

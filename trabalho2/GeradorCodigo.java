@@ -8,17 +8,16 @@ import org.antlr.runtime.RecognitionException;
  * @author Douglas
  * 
  * Principais funcoes que definem na maioria dos casos o caminho de um programa:
- * - enterPrograma / void ProcuraLeiaEscreva -> Verificacao de se existe LCD ou a necessidade de utilizar o Serial
- * - enterDeclaracao_Local -> Declaracoes iniciais
+ * - enterPrograma / void ProcuraLeiaEscreva -> Verificacao de algumas flags
+ * - enterDeclaracao_Local / enterDeclaracao_Global -> Declaracoes iniciais e chamada de procedimentos/funcoes
  * - enterComandosSetup -> Inicio do procedimento Setup()
  * - enterComandoSetup (NAO EH A MESMA QUE A DE CIMA) -> Comandos que vao dentro do procedimento Setup()
- * - exitComandosSetup -> Ultimas declaracoes do procedimento Setup() que dependem das flags (LCD e Serial) e inicio do procedimento Loop()
+ * - exitComandosSetup -> Ultimas declaracoes do procedimento Setup() que dependem das flags e inicio do procedimento Loop()
  * - enterCMDLoop / enterComandoLCD / enterChamada_atribuicao -> Comandos que vao dentro do procedimento Loop()
- * - enterDeclaracao_Global -> Chamada de procedimentos/funcoes
  */
 public class GeradorCodigo extends FAZEDORESBaseListener {
     Saida codigo;
-    Boolean flagLCD = false, flagSerial = false, temDeclGlobais = false; 
+    Boolean flagLCD = false, flagSerial = false; 
   
     //PARA AS TABELAS DE SIMBOLOS
     int EhFuncao = 0;
@@ -30,6 +29,9 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void enterPrograma(FAZEDORESParser.ProgramaContext ctx) {
+        //Para utilizar na procura de uma funcao escreva() ou leia()
+        String chamadaFeita;
+        
         int i=0;
         
         //Tenta encontrar o LCD sendo ativado
@@ -59,20 +61,20 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         
         //Explicacoes melhores deste while se encontram na funcao ProcuraEscrevaLeia
         
-        /*Tambem se verifica na declaracao global se nao existe alguma funcao do tipo 
+        /*Tambem se verifica nas declaracoes se nao existe alguma funcao do tipo 
         leia ou escreva*/
-        if (ctx.declaracao_global() != null)
-            ProcuraEscrevaLeia(ctx.declaracao_global().comandos());
-        /*if (ctx.declaracoes_globais() != null){
-            while (ctx.declaracoes_globais().declaracao_global(i) != null && flagSerial == false){
-                //Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
-                //  o leia ou o escreva, entao faz uma chamada recursiva para verificar ali
-                ProcuraEscrevaLeia(ctx.declaracoes_globais().declaracao_global(i).comandos());
-
-                //Incrementa o i
-                i++;
-            }
-        }*/
+        while (ctx.declaracoes().decl_local_global(i) != null && flagSerial == false){
+            
+            //Pega qual chamada eh feita
+            chamadaFeita = ctx.declaracoes().decl_local_global(i).getStart().getText();
+            /*Dentro das funcoes e procedimentos temos a possibilidade de utilizar 
+              o leia ou o escreva, entao faz uma chamada recursiva para verificar ali*/
+            if (chamadaFeita.equals("procedimento") || chamadaFeita.equals("funcao"))
+                ProcuraEscrevaLeia(ctx.declaracoes().decl_local_global(i).declaracao_global().comandos());
+            
+            //Incrementa o i
+            i++;
+        }
 
         //TABELA DE SIMBOLOS GLOBAL
         pilhaDeTabelas.empilhar(new TabelaDeSimbolos("global"));
@@ -80,31 +82,16 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     
     @Override 
     public void exitPrograma(FAZEDORESParser.ProgramaContext ctx) { 
-        //Fecha as chaves da funcao loop aqui caso nao teve procedimentos
-        
-        if (temDeclGlobais == false){
-            /*Caso foi necessario verificar se o serial estava ativado, fecha a chave
-            desta verificacao*/
-            if (flagSerial)
-                codigo.println("\t}");
-            //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
-            codigo.println("}");
-        }
-    }
-    
-    @Override 
-    public void enterDeclaracoes_globais(FAZEDORESParser.Declaracoes_globaisContext ctx) {
-        /*Caso possuir algum procedimento ou funcao, fecha a chave dela aqui e 
-          nao no fim do programa */
-       /* temDeclGlobais = true;
-       
-        //Caso foi necessario verificar se o serial estava ativado, fecha a chave
-        //desta verificacao
-        if (flagSerial)
-            codigo.println("\t}");
+        /*Caso foi necessario verificar se o serial estava ativado, fecha a chave
+        desta verificacao*/
         //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
         codigo.println("}");
-        codigo.println("");*/
+    }
+        
+    @Override 
+    public void exitDeclaracoes(FAZEDORESParser.DeclaracoesContext ctx) { 
+        //Terminou todas as declaracoes, pula uma linha
+        codigo.println("");
     }
     
     @Override
@@ -123,7 +110,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             
             switch (tipo){
                 case "literal":
-                    tipoConstante = "string ";
+                    tipoConstante = "String ";
                     break;
                 case "inteiro":
                     tipoConstante = "int ";
@@ -136,7 +123,15 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             }
             
             //Impressao da constante
-            codigo.println("const "+tipoConstante+nomeVar+" = "+ctx.valor_constante().getText()+";");
+            if(nomeVar.contains("Pot") || nomeVar.contains("oque"))
+            {   
+                int porta = Integer.parseInt(ctx.valor_constante().getText());
+                porta = porta % 10;
+                codigo.println("const "+tipoConstante+nomeVar+" = A"+ porta +";");
+            }
+            else
+                
+                codigo.println("const "+tipoConstante+nomeVar+" = "+ctx.valor_constante().getText()+";");
             
             if(!pilhaDeTabelas.existeSimbolo(nomeVar)) 
                 tabelaDeSimbolosAtual.adicionarSimbolo(nomeVar,tipo, null, null);
@@ -150,7 +145,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
 
                 switch (tipo){
                     case "literal":
-                        tipoConstante = "string ";
+                        tipoConstante = "String ";
                         break;
                     case "inteiro":
                         tipoConstante = "int ";
@@ -172,12 +167,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         }
     }
     
-    @Override 
-    public void exitDeclaracao_local(FAZEDORESParser.Declaracao_localContext ctx) { 
-        //Terminou todas as declaracoes locais, pula uma linha
-        codigo.println("");
-    }
-    
     //Codigos reaproveitados do trabalho 1
     @Override
     public void enterDeclaracao_global(FAZEDORESParser.Declaracao_globalContext ctx) {
@@ -188,18 +177,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         List<String> listaTipoPar = new ArrayList<>();
         
         String declaracao;
-        
-        /*Caso possuir algum procedimento ou funcao, fecha a chave dela aqui e 
-          nao no fim do programa */
-        temDeclGlobais = true;
-       
-        //Caso foi necessario verificar se o serial estava ativado, fecha a chave
-        //desta verificacao
-        if (flagSerial)
-            codigo.println("\t}");
-        //Terminou todas as declaracoes da funcao loop, eh fechada a chave dela
-        codigo.println("}");
-        codigo.println("");
         
         //verifica se eh um procedimento ou uma funcao
         if (ctx.getStart().getText().equals("procedimento")){
@@ -437,7 +414,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
                 codigo.println("\t" + ctx.identificador().getText() + " = Serial.read();");
             else{
                 if (estrutura.equals("escreva"))
-                    codigo.println("\tSerial.printl(" + ctx.expressao().getText() + ");");
+                    codigo.println("\tSerial.println(" + ctx.expressao().getText() + ");");
             }
         }  
     }
@@ -450,7 +427,7 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         String tipoCmd = ctx.getStart().getText(); 
         
         if (tipoCmd.equals("caso") || tipoCmd.equals("para") || tipoCmd.equals("enquanto"))
-            codigo.println("\t}");
+            codigo.println("}");
     }
     
     @Override
@@ -474,8 +451,6 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
         codigo.println("void loop() {");
         
         //Caso for utilizar funcoes do Serial, deve-se verificar se ele estah ativado
-        if (flagSerial)
-            codigo.println("\tif (Serial.available() > 0)\n\t{");
     }
     
     @Override
@@ -514,39 +489,61 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
     @Override
     public void enterCmdLoop(FAZEDORESParser.CmdLoopContext ctx) {
         
-        String regra = ctx.getStart().getText();
         String loop = "";
-        
-        if (regra.equals("ligar") || regra.equals("desligar"))
+
+        if(ctx.IDENT() != null)
         {
-            //Verifica se existe o volt por meio do sexto filho, se eh ',' ou ')'
-            if (ctx.getChild(5).getText().equals(","))
+            loop = "\t" + ctx.IDENT().getText();
+            //Tipo do que estah sendo lido determina a funcao de leitura
+            if (ctx.dispositivoEntrada().getText().equals("botao") ||
+                    ctx.dispositivoEntrada().getText().equals("sensortoque"))
+                    loop += " = " + "digitalRead(" + ctx.pino().getText() + ");";
+            else
             {
-                //Caso do analogWrite
-                //Verifica se o dispositivoSaida eh um led
-                if (ctx.getChild(2).getText().equals("led")){
-                    //Aqui nao existe diferenca entre ligar ou desligar (fonte: iot.pdf, pag 22)
-                    loop = "\tanalogWrite(" + ctx.pino().getText() + ", " + ctx.volt().getText() +");";
+                    /*Potenciometro alem de utilizar uma funcao de leitura diferente,
+                      tambem necessita de uma chamada de map imediatamente apos a leitura*/
+                    if (ctx.dispositivoEntrada().getText().equals("potenciometro"))
+                        loop += " = " + "analogRead(" + ctx.pino().getText() + ");" + "\n\t" 
+                                + ctx.IDENT().getText() + " = map("  + ctx.IDENT().getText() + ", 0, 1023, 0, 255);";
+            }
+        }
+        else
+        {
+            String regra = ctx.getStart().getText();
+
+            if (regra.equals("ligar") || regra.equals("desligar"))
+            {
+                //Verifica se existe o volt por meio do sexto filho, se eh ',' ou ')'
+                if (ctx.getChild(5).getText().equals(","))
+                {
+                    //Caso do analogWrite
+                    //Verifica se o dispositivoSaida eh um led
+                    if (ctx.getChild(2).getText().equals("led") || ctx.getChild(2).getText().equals("som")  ){
+                        //Aqui nao existe diferenca entre ligar ou desligar (fonte: iot.pdf, pag 22)
+                        loop = "\tanalogWrite(" + ctx.pino().getText() + ", " + ctx.volt().getText() +");";
+                    }
+                }
+                else{
+                    //Verifica se o dispositivoSaida eh um led, uma luz ou um som
+                    if (ctx.getChild(2).getText().equals("led") ||
+                        ctx.getChild(2).getText().equals("luz") ||
+                        ctx.getChild(2).getText().equals("som")){
+                        loop = "\tdigitalWrite(" + ctx.pino().getText();
+                        if (regra.equals("ligar"))
+                            loop = loop + ", HIGH);";
+                        else
+                            loop = loop + ", LOW);";
+                    }
                 }
             }
             else{
-                //Verifica se o dispositivoSaida eh um led, uma luz ou um som
-                if (ctx.getChild(2).getText().equals("led") ||
-                    ctx.getChild(2).getText().equals("luz") ||
-                    ctx.getChild(2).getText().equals("som")){
-                    loop = "\tdigitalWrite(" + ctx.pino().getText();
-                    if (regra.equals("ligar"))
-                        loop = loop + ", HIGH);";
-                    else
-                        loop = loop + ", LOW);";
-                }
+                if (regra.equals("esperar"))
+                    loop = "\tdelay(" + ctx.tempo().getText() + ");";
             }
-        }
-        else{
-            if (regra.equals("esperar"))
-                loop = "\tdelay(" + ctx.tempo().getText() + ");";
-        }
-        codigo.println(loop);
+            
+         }
+            codigo.println(loop);
+        
     }
     
     @Override 
@@ -601,25 +598,11 @@ public class GeradorCodigo extends FAZEDORESBaseListener {
             atribuicao = atribuicao + "(" + ctx.argumentos_opcional().getText() + ");";
         }
         //Caso nao seja uma chamada de funcao, eh uma atribuicao (basica ou leitura)
-        else{
-            //Verifica se eh uma leitura
-            if (ctx.getChild(3).getChild(0).getText().equals("ler")){
-                //Tipo do que estah sendo lido determina a funcao de leitura
-                if (ctx.getChild(3).getChild(2).getText().equals("botao") ||
-                    ctx.getChild(3).getChild(2).getText().equals("sensortoque"))
-                    atribuicao = atribuicao + " = " + "digitalRead(" + ctx.getChild(3).getChild(4).getText() + ");";
-                else{
-                    /*Potenciometro alem de utilizar uma funcao de leitura diferente,
-                      tambem necessita de uma chamada de map imediatamente apos a leitura*/
-                    if (ctx.getChild(3).getChild(2).getText().equals("potenciometro"))
-                        atribuicao = atribuicao + " = " + "analogRead(" + ctx.getChild(3).getChild(4).getText() + ");"
-                                     + "\n\t" + ctx.getParent().getChild(0).getText() + " = map("  + ctx.getParent().getChild(0).getText() + ", 0, 1023, 0, 255);";
-                }
-            }
-            else{
+        else
+        {
+         
                 //Eh apenas uma atribuicao basica
                 atribuicao = atribuicao + " = " + ctx.getChild(3).getText() + ";";
-            }
         }
         codigo.println(atribuicao);
     }

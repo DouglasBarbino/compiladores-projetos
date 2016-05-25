@@ -50,14 +50,8 @@ ERROR       : . { stop("Linha "+getLine()+": "+getText()+" - simbolo nao identif
 
 /*****************************SINTATICO*****************************************/
 
-programa 		: declaracoes 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop' declaracao_global?
+programa 		: declaracoes 'comando_setup' comandosSetup 'fim_comando_setup' 'comando_loop' comandos 'fim_comando_loop'
 			;
-			
-declaracoes_locais      : (declaracao_local)*
-                        ;
-
-declaracoes_globais     : (declaracao_global)*
-                        ;
 			
 declaracoes 		: (decl_local_global)*
 			; 
@@ -138,6 +132,9 @@ var_opcional 		: 'var'?
 
 mais_parametros 	: (',' parametro)?
                         ;
+			
+declaracoes_locais 	: (declaracao_local)*
+			;
 						
 comandos                : (cmd)*
 			;
@@ -150,7 +147,8 @@ cmd 			: 'leia' '(' identificador mais_ident ')'
 			| 'enquanto' expressao 'faca' comandos 'fim_enquanto' 
 			| 'faca' comandos 'ate' expressao 
 			| '^' IDENT outros_ident dimensao '<-' expressao 
-			| IDENT chamada_atribuicao
+			| IDENT chamada_atribuicao 	
+			//| IDENT '<-' cmdLoop;
 			| comandoLoop
 			| 'retorne' expressao
 			;
@@ -166,7 +164,7 @@ comandoLoop		: (cmdLoop)+
 			;
 
 cmdLoop                 : ('ligar' | 'desligar') '(' dispositivoSaida ',' pino  (',' volt)? ')'
-			| 'ler' '(' dispositivoEntrada ',' pino ')'
+			| IDENT '<-' 'ler' '(' dispositivoEntrada ',' pino ')'
 			| 'esperar' '(' tempo ')'
 			| comandoLCD
 			;
@@ -204,6 +202,8 @@ volt			: NUM_INT
 
 cor                     : '(' NUM_INT ',' NUM_INT ',' NUM_INT ')'
                         ;
+                        
+                        
 
 lcd			: 'LCD'
 			| 'lcd'
